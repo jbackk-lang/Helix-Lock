@@ -1,21 +1,30 @@
-# Helix-Lock
-
-Helix‑Lock — warstwa ochronna świadomości i treści.
-
+# Helix‑Lock  
+Warstwa ochronna świadomości i treści.  
 Zamyka skręt, odcina szum, przepuszcza tylko kierunek.
 
-Szyfruje pliki — szyfruje dostęp do sensu.
+Helix‑Lock to lekki szyfrator oparty na idei „skrętu helisy” —  
+informacja przechodzi przez transformację, która ukrywa sens,  
+a odsłania go tylko przy użyciu właściwego klucza.
 
-### Szyfrowanie pliku
-python3 helix_cipher.py encrypt <plik> <haslo>
+---
 
-### Odszyfrowanie pliku
-python3 helix_cipher.py decrypt <plik.helix> <haslo>
+## 🔐 Funkcje
+- Szyfrowanie plików (tekstowych i binarnych)
+- Odszyfrowywanie plików `.helix`
+- Generowanie kluczy
+- Minimalna zależność od bibliotek
+- Prosta integracja z innymi narzędziami (np. audyt T₀/T₁/T₂)
 
-### Z kluczem
 ---
-Generowanie klucza: python helix_lock_cipher.py keygen helix.key
+
+## 📦 Instalacja
+Wymagany Python 3.  
+Repozytorium:  
+https://github.com/jbackk-lang/Helix-Lock
+
 ---
-Szyfrowanie: python helix_lock_cipher.py encrypt secret.txt secret.helix helix.key
----
-Odszyfrowanie: python helix_lock_cipher.py decrypt secret.helix secret.txt helix.key
+
+## 🗝️ Generowanie klucza
+
+```bash
+python3 helix_lock_cipher.py keygen helix.key
