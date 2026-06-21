@@ -51,7 +51,25 @@ To moduł bezpieczeństwa — „czarna skrzynka” pliku.
 ## **4. audyt.py**
 Narzędzie do analizy pliku po przejściach T₀ / T₁ / T₂.
 
-**Funkcje:**
+python3 helix_lock_cipher.py encrypt dane.txt dane.helix helix.key
+
+python3 helix_lock_cipher.py decrypt dane.helix dane.txt helix.key
+
+python3 audyt.py plik.bin
+
+**Funkcje:**Wynik:
+
+T₀ — oryginał
+
+T₁ — po pierwszym przejściu
+
+T₂ — po drugim przejściu
+
+ΔS — zmiana entropii
+
+ΔC — zmiana korelacji
+
+wniosek: „przeszedł / nie przeszedł transformację”
 - wykonuje **dwa przejścia** (kompresja→dekompresja),
 - mierzy entropię i rozkład bajtów,
 - porównuje T₀ (oryginał), T₁ i T₂,
@@ -79,6 +97,8 @@ Dokument, który właśnie czytasz.
 Wymagany Python 3.  
 Repozytorium:  
 https://github.com/jbackk-lang/Helix-Lock
+
+
 
 ---
 
