@@ -1,46 +1,88 @@
-import json
-import base64
-import hashlib
-import hmac
+# Helix‑Lock  
+Warstwa ochronna świadomości i treści.  
+Zamyka skręt, odcina szum, przepuszcza tylko kierunek.
 
-MAGIC = b"HLX1"
+Helix‑Lock to lekki szyfrator oparty na idei „skrętu helisy” —  
+informacja przechodzi przez transformację, która ukrywa sens,  
+a odsłania go tylko przy użyciu właściwego klucza.
 
-def sign(data: bytes, key: bytes) -> bytes:
-    return hmac.new(key, data, hashlib.sha256).digest()
+---
 
-def encrypt_with_counter(data: bytes, key: bytes, counter: int = 0) -> bytes:
-    header = {
-        "counter": counter
-    }
-    header_bytes = json.dumps(header).encode()
-    payload = base64.b64encode(data)
+# 📂 Zawartość repozytorium — co robi każdy program?
 
-    signed = sign(header_bytes + payload, key)
+## **1. helix_cipher.py**
+Podstawowy moduł szyfrujący.
 
-    return MAGIC + signed + b"|" + header_bytes + b"|" + payload
+**Funkcje:**
+- szyfrowanie plików (tekstowych i binarnych),
+- odszyfrowywanie plików `.helix`,
+- prosta implementacja bez licznika odczytów.
 
+To najlżejsza wersja szyfratora — dobra do integracji lub testów.
 
-def decrypt_with_counter(blob: bytes, key: bytes):
-    assert blob.startswith(MAGIC)
-    blob = blob[len(MAGIC):]
+---
 
-    sig, header_bytes, payload = blob.split(b"|", 2)
+## **2. helix_lock_cipher.py**
+Główna, „pełna” wersja szyfratora.
 
-    # verify signature
-    expected = sign(header_bytes + payload, key)
-    if not hmac.compare_digest(sig, expected):
-        raise ValueError("Invalid signature")
+**Funkcje:**
+- szyfrowanie i odszyfrowywanie plików z użyciem klucza,
+- obsługa formatu `.helix`,
+- zabezpieczenia integralności,
+- możliwość rozszerzenia o licznik odczytów.
 
-    header = json.loads(header_bytes.decode())
-    counter = header["counter"]
+To wersja, której używasz na co dzień.
 
-    # increment counter
-    header["counter"] += 1
-    new_header_bytes = json.dumps(header).encode()
-    new_sig = sign(new_header_bytes + payload, key)
+---
 
-    # return decrypted data + updated blob
-    data = base64.b64decode(payload)
-    updated_blob = MAGIC + new_sig + b"|" + new_header_bytes + b"|" + payload
+## **3. HLX1.py**
+Implementacja szyfrowania **z licznikiem odczytań**.
 
-    return data, counter, updated_blob
+**Funkcje:**
+- zapisuje w nagłówku liczbę odszyfrowań (`counter`),
+- przy każdym odczycie zwiększa licznik,
+- podpisuje nagłówek HMAC, aby uniemożliwić manipulację,
+- pozwala wykryć nieautoryzowane odczyty.
+
+To moduł bezpieczeństwa — „czarna skrzynka” pliku.
+
+---
+
+## **4. audyt.py**
+Narzędzie do analizy pliku po przejściach T₀ / T₁ / T₂.
+
+**Funkcje:**
+- wykonuje **dwa przejścia** (kompresja→dekompresja),
+- mierzy entropię i rozkład bajtów,
+- porównuje T₀ (oryginał), T₁ i T₂,
+- wykrywa ślady transformacji.
+
+Przydatne do sprawdzania, czy plik był modyfikowany lub przepuszczany przez obce narzędzia.
+
+---
+
+## **5. README.md**
+Dokument, który właśnie czytasz.
+
+---
+
+# 🔐 Funkcje Helix‑Lock
+- szyfrowanie plików (tekstowych i binarnych),
+- odszyfrowywanie plików `.helix`,
+- generowanie kluczy,
+- integracja z licznikiem odczytów (HLX1),
+- audyt przejść T₀/T₁/T₂.
+
+---
+
+# 📦 Instalacja
+Wymagany Python 3.  
+Repozytorium:  
+https://github.com/jbackk-lang/Helix-Lock
+
+---
+
+# 🗝️ Generowanie klucza
+
+```bash
+python3 helix_lock_cipher.py keygen helix.key
