@@ -1,3 +1,8 @@
+## 🔗 Wszystkie modele i repozytoria
+Pełna lista projektów znajduje się na stronie:
+https://jbackk-lang.github.io
+---
+
 # Helix‑Lock  
 Warstwa ochronna świadomości i treści.  
 Zamyka skręt, odcina szum, przepuszcza tylko kierunek.
