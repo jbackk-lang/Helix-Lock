@@ -27,7 +27,11 @@ from helix_pro.cipher import (
     detect_format,
     HelixProError,
 )
-from helix_pro.counter_lock import CounterLock
+from helix_pro.counter_lock import (
+    CounterLock,
+    encrypt_file_with_counter,
+    decrypt_file_with_counter,
+)
 
 
 # ── cipher.py: tryb klucza ───────────────────────────────────────────
@@ -412,3 +416,123 @@ def test_encrypt_with_name_rejects_too_long_filename(tmp_path, monkeypatch):
 
     with pytest.raises(HelixProError):
         encrypt_file_with_name(str(src), str(enc), key=key)
+
+
+# ── counter_lock.py: encrypt_file_with_counter / decrypt_file_with_counter ──
+# Wpiecie CounterLock w ten sam format "nazwa + kompresja + tresc" co
+# encrypt_file_with_name(), zeby dalo sie go uzyc jako trzecia opcje w
+# GUI ("sledz licznik odczytow"), nie tylko jako osobna klase.
+
+def test_detect_format_counter(tmp_path):
+    src = tmp_path / "dane.txt"
+    src.write_bytes(b"tresc")
+    enc = tmp_path / "dane.helixpro"
+    encrypt_file_with_counter(str(src), str(enc), key=generate_key())
+    assert detect_format(str(enc)) == "counter"
+
+
+def test_encrypt_file_with_counter_recovers_name_and_content(tmp_path):
+    key = generate_key()
+    src = tmp_path / "zdjecie.jpg"
+    src.write_bytes(b"\xff\xd8\xff niby-tresc-jpg")
+    enc = tmp_path / "cos_innego.dat"  # celowo inna nazwa niz zrodlo
+    encrypt_file_with_counter(str(src), str(enc), key=key)
+
+    out_dir = tmp_path / "odzyskane"
+    out_dir.mkdir()
+    out_path, counter = decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+
+    assert out_path == str(out_dir / "zdjecie.jpg")
+    assert open(out_path, "rb").read() == src.read_bytes()
+    assert counter == 0  # pierwsze szyfrowanie bylo z counter=0
+
+
+def test_decrypt_file_with_counter_rewrites_source_with_incremented_counter(tmp_path):
+    """Sedno funkcji 'sledzenia odczytow': kazde kolejne wywolanie na
+    tym samym pliku .helixpro widzi wyzszy licznik, bo funkcja nadpisuje
+    in_path zaktualizowanym blobem (unlock_and_advance)."""
+    key = generate_key()
+    src = tmp_path / "dane.txt"
+    src.write_bytes(b"tajna tresc")
+    enc = tmp_path / "enc.helixpro"
+    encrypt_file_with_counter(str(src), str(enc), key=key)
+
+    out_dir = tmp_path / "odzyskane"
+    out_dir.mkdir()
+
+    _, counter_1 = decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+    _, counter_2 = decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+    _, counter_3 = decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+
+    assert (counter_1, counter_2, counter_3) == (0, 1, 2)
+
+
+def test_decrypt_file_with_counter_rejects_rolled_back_copy(tmp_path):
+    """Podmiana pliku .helixpro na wczesniej zrobiona kopie (z nizszym
+    licznikiem w naglowku, ale STARYM ciphertextem - wiec spojna sama w
+    sobie) jest dalej odczytywalna, bo AAD zgadza sie z jej wlasnym
+    ciphertextem. To co JEST wykrywalne to podmiana samego naglowka bez
+    ponownego szyfrowania (patrz test_counter_lock_rejects_rolled_back_counter_in_header
+    dla klasy CounterLock) - ten test dokumentuje ten sam fakt na
+    poziomie funkcji plikowych: stara, ale spojna kopia pliku nie jest
+    kryptograficznie odrzucona sama z siebie, wiec ochrona przed
+    rollbackiem wymaga porownania licznika przez wywolujacego (GUI),
+    a nie jest automatyczna."""
+    key = generate_key()
+    src = tmp_path / "dane.txt"
+    src.write_bytes(b"tresc")
+    enc = tmp_path / "enc.helixpro"
+    encrypt_file_with_counter(str(src), str(enc), key=key)
+
+    out_dir = tmp_path / "odzyskane"
+    out_dir.mkdir()
+
+    stara_kopia = enc.read_bytes()  # counter=0, zapamietana PRZED odczytem
+    _, counter_1 = decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+    assert counter_1 == 0
+    assert enc.read_bytes() != stara_kopia  # plik zostal nadpisany (counter=1)
+
+    # podmiana z powrotem na stara, ale wewnetrznie spojna kopie (counter=0)
+    enc.write_bytes(stara_kopia)
+    _, counter_2 = decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+    assert counter_2 == 0  # znowu 0 - wywolujacy MUSI sam porownac z counter_1
+
+
+def test_decrypt_file_with_counter_wrong_key_raises(tmp_path):
+    src = tmp_path / "dane.txt"
+    src.write_bytes(b"tresc")
+    enc = tmp_path / "enc.helixpro"
+    encrypt_file_with_counter(str(src), str(enc), key=generate_key())
+
+    out_dir = tmp_path / "odzyskane"
+    out_dir.mkdir()
+    with pytest.raises(HelixProError):
+        decrypt_file_with_counter(str(enc), str(out_dir), key=generate_key())
+
+
+def test_decrypt_file_with_counter_rejects_plain_or_named_format(tmp_path):
+    """Plik z innego formatu (bez naglowka HLXC) powinien dac jasny
+    blad, nie ciche zle zinterpretowanie danych."""
+    key = generate_key()
+    src = tmp_path / "dane.txt"
+    src.write_bytes(b"tresc")
+    enc = tmp_path / "enc.helixpro"
+    encrypt_file_with_name(str(src), str(enc), key=key)  # NIE counter-format
+
+    out_dir = tmp_path / "odzyskane"
+    out_dir.mkdir()
+    with pytest.raises(HelixProError):
+        decrypt_file_with_counter(str(enc), str(out_dir), key=key)
+
+
+def test_encrypt_file_with_counter_compression_shrinks_repetitive_content(tmp_path):
+    key = generate_key()
+    src = tmp_path / "powtarzalny.txt"
+    src.write_bytes(b"AAAA" * 50_000)
+
+    enc_compressed = tmp_path / "z_kompresja.helixpro"
+    enc_plain = tmp_path / "bez_kompresji.helixpro"
+    encrypt_file_with_counter(str(src), str(enc_compressed), key=key, compress=True)
+    encrypt_file_with_counter(str(src), str(enc_plain), key=key, compress=False)
+
+    assert enc_compressed.stat().st_size < enc_plain.stat().st_size
