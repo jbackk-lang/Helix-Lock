@@ -33,6 +33,10 @@ from .cipher import (
     decrypt_bytes,
     encrypt_file,
     decrypt_file,
+    encrypt_file_with_name,
+    decrypt_bytes_with_name,
+    decrypt_file_with_name,
+    detect_format,
     HelixProError,
 )
 from .counter_lock import CounterLock
@@ -44,6 +48,10 @@ __all__ = [
     "decrypt_bytes",
     "encrypt_file",
     "decrypt_file",
+    "encrypt_file_with_name",
+    "decrypt_bytes_with_name",
+    "decrypt_file_with_name",
+    "detect_format",
     "HelixProError",
     "CounterLock",
 ]
