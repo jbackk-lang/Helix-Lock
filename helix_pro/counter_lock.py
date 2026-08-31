@@ -19,9 +19,10 @@ zawsze konczy sie HelixProError).
 """
 from __future__ import annotations
 
+import os
 import struct
 
-from .cipher import encrypt_bytes, decrypt_bytes, HelixProError
+from .cipher import encrypt_bytes, decrypt_bytes, HelixProError, pack_named_payload, unpack_named_payload
 
 MAGIC = b"HLXC"
 VERSION = 1
@@ -69,3 +70,68 @@ class CounterLock:
         data, counter = self.unlock(blob)
         next_blob = self.lock(data, counter + 1)
         return data, counter, next_blob
+
+
+def encrypt_file_with_counter(
+    in_path: str,
+    out_path: str,
+    *,
+    key: bytes,
+    counter: int = 0,
+    compress: bool = True,
+) -> None:
+    """Szyfruje plik przez CounterLock zamiast zwyklego encrypt_bytes()
+    z cipher.py - AAD wiaze licznik z ciphertextem (patrz docstring
+    modulu). Oryginalna nazwa+rozszerzenie i ewentualna kompresja gzip
+    sa pakowane tym samym pack_named_payload() co w
+    cipher.encrypt_file_with_name(), wiec po odszyfrowaniu typ pliku
+    wraca poprawnie tak samo jak w zwyklym formacie "z nazwa".
+
+    TYLKO tryb klucza. CounterLock nie ma trybu hasla - haslo
+    wymagaloby trzymania soli scrypt obok licznika w naglowku, czego
+    ten format jeszcze nie robi. Do trybu hasla uzyj
+    cipher.encrypt_file_with_name() (bez licznika).
+
+    counter=0 przy pierwszym szyfrowaniu pliku. Kolejne "odswiezenia"
+    licznika dzieja sie automatycznie przy kazdym decrypt_file_with_counter()
+    (patrz nizej) - ta funkcja sluzy do utworzenia PIERWSZEJ wersji pliku
+    z licznikiem."""
+    original_name = os.path.basename(in_path)
+    with open(in_path, "rb") as f:
+        content = f.read()
+    payload = pack_named_payload(original_name, content, compress=compress)
+    blob = CounterLock(key).lock(payload, counter)
+    with open(out_path, "wb") as f:
+        f.write(blob)
+
+
+def decrypt_file_with_counter(in_path: str, out_dir: str, *, key: bytes) -> tuple[str, int]:
+    """Odszyfrowuje plik zapisany przez encrypt_file_with_counter(),
+    zapisuje odzyskana tresc w out_dir pod odtworzona (oryginalna)
+    nazwa, i zwraca (pelna_sciezka_wyniku, licznik_PRZED_ta_operacja).
+
+    WAZNY EFEKT UBOCZNY: ta funkcja NADPISUJE in_path nowym blobem z
+    licznikiem inkrementowanym o 1 (przez CounterLock.unlock_and_advance).
+    To jest zamierzone - o to chodzi w "sledzeniu odczytow": kazde kolejne
+    wywolanie tej funkcji na tym samym pliku zobaczy wyzszy licznik, a
+    podmiana pliku na starsza kopie (z nizszym licznikiem w AAD) nie
+    unieadzni tagu autentykacji AES-GCM starszej kopii - ale JEST wykrywalna
+    przez porownanie z ostatnio zaobserwowanym licznikiem, jesli
+    wywolujacy go zapamietal (GUI aktualnie tego nie robi - patrz README).
+
+    Rzuca HelixProError jesli klucz jest zly, blob jest uszkodzony, albo
+    naglowek nie jest formatem CounterLock (MAGIC HLXC)."""
+    with open(in_path, "rb") as f:
+        blob = f.read()
+    lock = CounterLock(key)
+    payload, counter, next_blob = lock.unlock_and_advance(blob)
+    original_name, content = unpack_named_payload(payload)
+
+    out_path = os.path.join(out_dir, original_name)
+    with open(out_path, "wb") as f:
+        f.write(content)
+
+    with open(in_path, "wb") as f:
+        f.write(next_blob)
+
+    return out_path, counter

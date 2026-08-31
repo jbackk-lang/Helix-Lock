@@ -39,7 +39,11 @@ from .cipher import (
     detect_format,
     HelixProError,
 )
-from .counter_lock import CounterLock
+from .counter_lock import (
+    CounterLock,
+    encrypt_file_with_counter,
+    decrypt_file_with_counter,
+)
 
 __all__ = [
     "generate_key",
@@ -54,4 +58,6 @@ __all__ = [
     "detect_format",
     "HelixProError",
     "CounterLock",
+    "encrypt_file_with_counter",
+    "decrypt_file_with_counter",
 ]

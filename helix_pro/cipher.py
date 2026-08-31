@@ -182,17 +182,87 @@ def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
 
 
 def detect_format(path: str) -> str:
-    """Zwraca 'named' (encrypt_file_with_name), 'plain' (encrypt_file)
-    albo 'unknown' na podstawie 4-bajtowego naglowka pliku - bez klucza
-    ani hasla, wiec mozna wywolac PRZED ich podaniem (np. zeby GUI od
-    razu wiedzialo, ktorej sciezki odszyfrowania uzyc)."""
+    """Zwraca 'named' (encrypt_file_with_name), 'plain' (encrypt_file),
+    'counter' (counter_lock.encrypt_file_with_counter) albo 'unknown' na
+    podstawie 4-bajtowego naglowka pliku - bez klucza ani hasla, wiec
+    mozna wywolac PRZED ich podaniem (np. zeby GUI od razu wiedzialo,
+    ktorej sciezki odszyfrowania uzyc).
+
+    Wartosc b"HLXC" jest tu wpisana wprost (zamiast zaimportowana z
+    counter_lock.MAGIC), zeby uniknac importu cyklicznego - to
+    counter_lock.py importuje z cipher.py, nie odwrotnie."""
     with open(path, "rb") as f:
         magic = f.read(4)
     if magic == MAGIC_NAMED:
         return "named"
     if magic == MAGIC:
         return "plain"
+    if magic == b"HLXC":
+        return "counter"
     return "unknown"
+
+
+def pack_named_payload(original_name: str, content: bytes, compress: bool = True) -> bytes:
+    """Buduje payload "nazwa + flaga kompresji + tresc" - format opisany
+    w "DRUGI FORMAT" w docstringu modulu. Wydzielone z encrypt_file_with_name()
+    zeby dalo sie uzyc tego samego pakowania z innym opakowaniem
+    kryptograficznym niz zwykle encrypt_bytes() - patrz
+    counter_lock.py::encrypt_file_with_counter(), gdzie ten sam payload
+    jest szyfrowany przez CounterLock zamiast bezposrednio.
+
+    `compress=True` (domyslnie) probuje gzip PRZED zwroceniem payloadu -
+    "smart": uzyty jest tylko wtedy, gdy faktycznie zmniejsza dane
+    (porownanie dlugosci po kompresji vs przed). Dla juz skompresowanych
+    formatow (jpg, mp4, zip, ...) gzip zwykle NIE pomaga (czasem lekko
+    powieksza), wiec w takim przypadku zwracane sa dane surowe - nigdy
+    nie powiekszamy wyniku przez sama probe kompresji. Ustaw
+    compress=False, zeby pominac probe w ogole."""
+    name_bytes = original_name.encode("utf-8")
+    if len(name_bytes) > NAME_LEN_MAX:
+        raise HelixProError(
+            f"nazwa pliku '{original_name}' jest za dluga ({len(name_bytes)} bajtow UTF-8, limit {NAME_LEN_MAX}) "
+            "dla trybu z zachowana nazwa - uzyj encrypt_file() zamiast tego"
+        )
+
+    compress_flag = COMPRESS_NONE
+    if compress:
+        compressed = gzip.compress(content, compresslevel=9)
+        if len(compressed) < len(content):
+            compress_flag = COMPRESS_GZIP
+            content = compressed
+        # w przeciwnym razie zostaje content = surowe dane, flag = NONE -
+        # kompresja nigdy nie powieksza wyniku wzgledem braku kompresji
+
+    return bytes([len(name_bytes)]) + name_bytes + bytes([compress_flag]) + content
+
+
+def unpack_named_payload(payload: bytes) -> tuple[str, bytes]:
+    """Odwraca pack_named_payload(): zwraca (oryginalna_nazwa, tresc),
+    dekompresujac gzip jesli flaga tak mowi. Wydzielone z
+    decrypt_bytes_with_name() z tego samego powodu co pack_named_payload()."""
+    if not payload:
+        raise HelixProError("payload jest pusty - brak nawet pola dlugosci nazwy, dane uszkodzone")
+    name_len = payload[0]
+    name_bytes = payload[1:1 + name_len]
+    if len(name_bytes) != name_len:
+        raise HelixProError("payload jest za krotki wzgledem zadeklarowanej dlugosci nazwy - dane uszkodzone")
+    original_name = os.path.basename(name_bytes.decode("utf-8"))  # basename tez tutaj - obrona w glab
+    if not original_name:
+        raise HelixProError("odtworzona nazwa pliku jest pusta po oczyszczeniu")
+
+    rest = payload[1 + name_len:]
+    if not rest:
+        raise HelixProError("payload jest za krotki - brak nawet bajtu flagi kompresji, dane uszkodzone")
+    compress_flag, content = rest[0], rest[1:]
+    if compress_flag == COMPRESS_GZIP:
+        try:
+            content = gzip.decompress(content)
+        except OSError as exc:  # gzip rzuca OSError/BadGzipFile na uszkodzonych danych
+            raise HelixProError(f"nie udalo sie zdekompresowac tresci (gzip) - dane uszkodzone: {exc}") from exc
+    elif compress_flag != COMPRESS_NONE:
+        raise HelixProError(f"nieznana flaga kompresji w naglowku: {compress_flag}")
+
+    return original_name, content
 
 
 def encrypt_file_with_name(
@@ -208,38 +278,15 @@ def encrypt_file_with_name(
     tresci - patrz "DRUGI FORMAT" w docstringu modulu. Uzyj razem z
     decrypt_bytes_with_name()/decrypt_file_with_name().
 
-    `compress=True` (domyslnie) probuje gzip PRZED szyfrowaniem - "smart":
-    uzyty jest tylko wtedy, gdy faktycznie zmniejsza dane (porownanie
-    dlugosci po kompresji vs przed). Dla juz skompresowanych formatow
-    (jpg, mp4, zip, ...) gzip zwykle NIE pomaga (czasem lekko powieksza),
-    wiec w takim przypadku zapisywane sa dane surowe - nigdy nie
-    powiekszamy pliku wynikowego przez sama probe kompresji. Ustaw
-    compress=False, zeby pominac probe w ogole (np. gdy wiesz z gory,
-    ze plik jest juz skompresowany, i chcesz oszczedzic czas na probie)."""
+    `compress=True` (domyslnie) probuje gzip PRZED szyfrowaniem - patrz
+    pack_named_payload() po szczegoly ("smart": nigdy nie powieksza pliku)."""
     if (key is None) == (password is None):
         raise HelixProError("podaj dokladnie jedno z: key, password")
 
     original_name = os.path.basename(in_path)
-    name_bytes = original_name.encode("utf-8")
-    if len(name_bytes) > NAME_LEN_MAX:
-        raise HelixProError(
-            f"nazwa pliku '{original_name}' jest za dluga ({len(name_bytes)} bajtow UTF-8, limit {NAME_LEN_MAX}) "
-            "dla trybu z zachowana nazwa - uzyj encrypt_file() zamiast tego"
-        )
-
     with open(in_path, "rb") as f:
         content = f.read()
-
-    compress_flag = COMPRESS_NONE
-    if compress:
-        compressed = gzip.compress(content, compresslevel=9)
-        if len(compressed) < len(content):
-            compress_flag = COMPRESS_GZIP
-            content = compressed
-        # w przeciwnym razie zostaje content = surowe dane, flag = NONE -
-        # kompresja nigdy nie powieksza pliku wynikowego wzgledem braku kompresji
-
-    payload = bytes([len(name_bytes)]) + name_bytes + bytes([compress_flag]) + content
+    payload = pack_named_payload(original_name, content, compress=compress)
 
     if key is not None:
         header = MAGIC_NAMED + bytes([VERSION]) + MODE_KEY
@@ -290,29 +337,7 @@ def decrypt_bytes_with_name(in_path: str, *, key: bytes | None = None, password:
     else:
         raise HelixProError(f"nieznany tryb w naglowku: {mode!r}")
 
-    if not payload:
-        raise HelixProError("odszyfrowana tresc jest pusta - brak nawet pola dlugosci nazwy, plik uszkodzony")
-    name_len = payload[0]
-    name_bytes = payload[1:1 + name_len]
-    if len(name_bytes) != name_len:
-        raise HelixProError("odszyfrowana tresc jest za krotka wzgledem zadeklarowanej dlugosci nazwy - plik uszkodzony")
-    original_name = os.path.basename(name_bytes.decode("utf-8"))  # basename tez tutaj - obrona w glab
-    if not original_name:
-        raise HelixProError("odtworzona nazwa pliku jest pusta po oczyszczeniu")
-
-    rest = payload[1 + name_len:]
-    if not rest:
-        raise HelixProError("odszyfrowana tresc jest za krotka - brak nawet bajtu flagi kompresji, plik uszkodzony")
-    compress_flag, content = rest[0], rest[1:]
-    if compress_flag == COMPRESS_GZIP:
-        try:
-            content = gzip.decompress(content)
-        except OSError as exc:  # gzip rzuca OSError/BadGzipFile na uszkodzonych danych
-            raise HelixProError(f"nie udalo sie zdekompresowac tresci (gzip) - plik uszkodzony: {exc}") from exc
-    elif compress_flag != COMPRESS_NONE:
-        raise HelixProError(f"nieznana flaga kompresji w naglowku: {compress_flag}")
-
-    return original_name, content
+    return unpack_named_payload(payload)
 
 
 def decrypt_file_with_name(in_path: str, out_dir: str, *, key: bytes | None = None, password: str | None = None) -> str:
