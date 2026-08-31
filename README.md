@@ -52,7 +52,7 @@ dolicza jeszcze 1 bajt + długość nazwy).
 
 Drugi moduł, `helix_pro.CounterLock` — licznik odczytów kryptograficznie
 związany z treścią (zamiast osobnego podpisu nad jawnym base64, jak w
-starym `HLX1.py`):
+starym `HLX1.py`). Niskopoziomowe API działa na samych bajtach:
 
 ```python
 from helix_pro import generate_key, CounterLock
@@ -62,11 +62,76 @@ blob = lock.lock(b"wiadomosc", counter=0)
 data, counter, next_blob = lock.unlock_and_advance(blob)
 ```
 
+...a wysokopoziomowe funkcje plikowe (te same, których używa checkbox
+"Śledź licznik odczytów" w GUI — patrz sekcja GUI niżej) odtwarzają też
+nazwę/rozszerzenie i nadpisują plik źródłowy nową wersją licznika przy
+każdym odszyfrowaniu:
+
+```python
+from helix_pro import generate_key, encrypt_file_with_counter, decrypt_file_with_counter
+
+key = generate_key()
+encrypt_file_with_counter("dane.txt", "dane.helixpro", key=key)  # counter=0
+
+# kazde wywolanie ponizej nadpisuje "dane.helixpro" wyzszym licznikiem
+out_path, counter_before = decrypt_file_with_counter("dane.helixpro", "odzyskane/", key=key)
+```
+
+### 🔐 Właściwości kryptograficzne (co i dlaczego)
+
+- **Nonce.** Każde szyfrowanie generuje nowy, losowy 96-bitowy nonce
+  (`os.urandom(12)`) — zweryfikowane empirycznie: ten sam plik, ten sam
+  klucz, zaszyfrowany dwukrotnie, daje za każdym razem inny wynik
+  (różne nonce w nagłówku, różny cały ciphertext). W trybie hasła sól
+  do scrypt też jest losowa i świeża przy każdym szyfrowaniu (patrz test
+  `test_encrypt_file_password_mode_uses_random_salt_each_time`) —
+  identyczne pliki nigdy nie szyfrują się identycznie.
+- **Tag autentykacji (AEAD).** AES-GCM dolicza do ciphertextu tag
+  integralności — zmiana pojedynczego bajtu ciphertextu, nonce albo
+  nazwy pliku (w wariancie `_with_name`, bo nazwa jest częścią
+  szyfrowanej treści) powoduje, że odszyfrowanie rzuca `HelixProError`
+  zamiast po cichu zwrócić zmanipulowane dane. Zweryfikowane testem
+  `test_tampered_ciphertext_is_rejected`.
+- **Kompresja przed szyfrowaniem.** `encrypt_file_with_name` domyślnie
+  próbuje gzip przed AES-GCM — zmierzony, realny efekt to mniejszy plik
+  wynikowy (patrz sekcja o kompresji wyżej). **Jedno zastrzeżenie do
+  częstego twierdzenia "kompresja utrudnia ataki ze znanym tekstem"**:
+  to nie do końca dotyczy AES-GCM. AES-GCM jest zaprojektowany jako
+  bezpieczny wobec ataków ze znanym/wybranym tekstem jawnym NIEZALEŻNIE
+  od redundancji danych wejściowych — usunięcie redundancji przez gzip
+  nie "wzmacnia" tu kryptografii. Co więcej, w INNYCH kontekstach
+  (protokoły sieciowe, gdzie atakujący może wstrzykiwać część tekstu
+  jawnego i obserwować rozmiar wyniku) kompresja-przed-szyfrowaniem jest
+  znanym źródłem realnych podatności (ataki klasy CRIME/BREACH na TLS/HTTP)
+  — to tu nie ma zastosowania (pojedynczy plik, bez atakującego
+  wstrzykującego własną treść do środka), ale to pokazuje, że "kompresja
+  = bezpieczniej" nie jest ogólną prawdą. Realna, zweryfikowana korzyść
+  kompresji tutaj to mniejszy plik — nic ponad to.
+- **Licznik odczytów (`CounterLock`) — opt-in, nie domyślna ścieżka.**
+  To NIE jest coś, co dzieje się automatycznie przy zwykłym
+  `encrypt_file_with_name`/`decrypt_file` — trzeba świadomie włączyć tę
+  opcję (`encrypt_file_with_counter`/`decrypt_file_with_counter`, albo
+  checkbox "Śledź licznik odczytów" w GUI — patrz sekcja GUI niżej).
+  Dokładniejsze sformułowanie tego, co faktycznie robi: licznik jest
+  wpięty jako AAD w AES-GCM, więc odblokowanie wykrywa PODMIENIONY w
+  nagłówku licznik (ktoś podmienił sam nagłówek bez ponownego
+  szyfrowania) i pozwala zauważyć więcej udanych odblokowań niż się
+  spodziewałeś, JEŚLI wywołujący kod zapamiętał ostatnio widziany
+  licznik i go porównuje — obecne GUI tego porównania jeszcze nie robi,
+  tylko pokazuje licznik "przed" w statusie po każdym odszyfrowaniu
+  (patrz `test_decrypt_file_with_counter_rejects_rolled_back_copy`,
+  które wprost dokumentuje ten brak automatycznego porównania).
+  To NIE wykrywa prób brute-force klucza — atakujący bez klucza nigdy
+  nie dojdzie do etapu odczytania/inkrementacji licznika (AES-GCM
+  odrzuca złe klucze na etapie autentykacji, przed dotarciem do
+  jakiejkolwiek treści) — każda nieudana próba po prostu kończy się
+  błędem, nie zostawiając żadnego śladu w liczniku.
+
 ### Instalacja
 
 ```bash
 pip install cryptography pytest
-python3 -m pytest tests/ -q      # 49/49
+python3 -m pytest tests/ -q      # 56/56
 ```
 
 ### GUI (`helix_pro_gui.py`)
@@ -102,6 +167,17 @@ poprzedniego razu.
 Przy szyfrowaniu jest checkbox "Kompresuj przed szyfrowaniem (gzip)"
 (domyślnie zaznaczony) — status po zaszyfrowaniu pokazuje osiągnięty
 współczynnik (rozmiar oryginału → rozmiar wyniku).
+
+Drugi checkbox, "Śledź licznik odczytów", włącza `CounterLock` zamiast
+zwykłego szyfrowania — dostępny tylko w trybie Plik-klucz (szary/odznaczony
+w trybie Hasła, bo `CounterLock` go nie obsługuje). Przy szyfrowaniu z tą
+opcją licznik startuje od 0. Przy deszyfrowaniu takiego pliku GUI najpierw
+pokazuje ostrzeżenie, że **plik źródłowy zostanie nadpisany** nową wersją
+z licznikiem +1 (sama treść się nie zmienia, ten sam klucz nadal działa) —
+dopiero po potwierdzeniu pyta o katalog docelowy (nie o pełną nazwę pliku,
+bo oryginalna nazwa jest odtwarzana automatycznie, tak jak w zwykłym
+formacie "z nazwą"). Status po odszyfrowaniu pokazuje, jaki licznik był
+przed operacją i jaki jest teraz w pliku źródłowym.
 
 Logika poza samymi widgetami (nazywanie pliku, walidacja ścieżek, odczyt
 klucza) jest w zwykłych funkcjach modułu, przetestowanych w
@@ -139,12 +215,14 @@ Pełne uzasadnienie i zarchiwizowane pliki: `old/README.md`.
 ```
 helix_pro/
     cipher.py         generate_key, derive_key_from_password,
-                       encrypt_bytes/decrypt_bytes, encrypt_file/decrypt_file
-    counter_lock.py    CounterLock — naprawiony licznik odczytów z HLX1
+                       encrypt_bytes/decrypt_bytes, encrypt_file/decrypt_file,
+                       encrypt_file_with_name/decrypt_*_with_name, detect_format
+    counter_lock.py    CounterLock (naprawiony licznik odczytów z HLX1) +
+                       encrypt_file_with_counter/decrypt_file_with_counter
 helix_pro_gui.py       mini GUI (tkinter) - szyfruj/deszyfruj dowolny plik
-                       do dowolnego katalogu
+                       do dowolnego katalogu, opcjonalny licznik odczytów
 tests/
-    test_helix_pro.py      18 testów (pierwsze testy w tym repo)
+    test_helix_pro.py      39 testów (cipher.py + counter_lock.py)
     test_helix_pro_gui.py  17 testów logiki GUI (bez wyświetlacza)
 old/
     helix_cipher.py, helix_lock_cipher.py, HLX1.py   zarchiwizowane, nie używaj

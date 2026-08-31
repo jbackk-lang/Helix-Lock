@@ -39,6 +39,7 @@ from helix_pro.cipher import (
     detect_format,
     HelixProError,
 )
+from helix_pro.counter_lock import encrypt_file_with_counter, decrypt_file_with_counter
 
 ENCRYPTED_SUFFIX = ".helixpro"
 
@@ -138,6 +139,7 @@ def _build_gui():
             self.password = tk.StringVar()
             self.show_password = tk.BooleanVar(value=False)
             self.compress = tk.BooleanVar(value=True)
+            self.use_counter = tk.BooleanVar(value=False)
 
             self._build_ui()
 
@@ -173,8 +175,6 @@ def _build_gui():
             ttk.Checkbutton(self.password_frame, text="pokaż", variable=self.show_password,
                              command=self._toggle_password).pack(side="left")
 
-            self._refresh_mode()
-
             frame_compress = ttk.Frame(self)
             frame_compress.pack(fill="x", padx=10)
             ttk.Checkbutton(
@@ -183,6 +183,19 @@ def _build_gui():
                      "pomijany automatycznie, gdyby powiększał plik",
                 variable=self.compress,
             ).pack(side="left")
+
+            frame_counter = ttk.Frame(self)
+            frame_counter.pack(fill="x", padx=10, pady=(4, 0))
+            self.counter_check = ttk.Checkbutton(
+                frame_counter,
+                text="Śledź licznik odczytów (tylko tryb Plik-klucz) — przy szyfrowaniu "
+                     "startuje od 0; każde odszyfrowanie NADPISUJE plik źródłowy nową "
+                     "wersją z licznikiem +1",
+                variable=self.use_counter,
+            )
+            self.counter_check.pack(side="left")
+
+            self._refresh_mode()  # po zbudowaniu counter_check, ktory ta metoda wlacza/wylacza
 
             frame_actions = ttk.Frame(self)
             frame_actions.pack(fill="x", **pad)
@@ -198,9 +211,15 @@ def _build_gui():
             if self.mode.get() == "key":
                 self.password_frame.pack_forget()
                 self.key_frame.pack(fill="x", padx=6, pady=4)
+                self.counter_check.state(["!disabled"])
             else:
                 self.key_frame.pack_forget()
                 self.password_frame.pack(fill="x", padx=6, pady=4)
+                # CounterLock nie ma trybu hasla (patrz counter_lock.py) -
+                # wylaczamy i odznaczamy checkbox, zeby nie dalo sie wybrac
+                # kombinacji, ktora i tak zostalaby odrzucona w _encrypt/_decrypt.
+                self.use_counter.set(False)
+                self.counter_check.state(["disabled"])
 
         def _toggle_password(self):
             self.password_entry.config(show="" if self.show_password.get() else "*")
@@ -291,21 +310,33 @@ def _build_gui():
                 messagebox.showerror("Błąd", key_result.error)
                 return
 
+            with_counter = self.use_counter.get() and self.mode.get() == "key"
+
             src_size = os.path.getsize(self.source_path.get())
             try:
-                # _with_name: oryginalna nazwa (a wiec i rozszerzenie/typ)
-                # trafia do wnetrza zaszyfrowanej tresci, wiec deszyfrowanie
-                # odtworzy ja poprawnie nawet jesli ten plik .helixpro
-                # zostanie potem przemianowany/przeslany dalej. compress=
-                # gzip "smart" - uzyty tylko jesli faktycznie cos zmniejsza.
-                encrypt_file_with_name(
-                    self.source_path.get(), out_path, compress=self.compress.get(), **key_result.kwargs
-                )
+                if with_counter:
+                    # CounterLock zamiast zwyklego encrypt_bytes - licznik
+                    # (start od 0) jest wpiety jako AAD. Nazwa+kompresja
+                    # pakowane tym samym pack_named_payload() co ponizej,
+                    # wiec typ pliku odtwarza sie tak samo przy odszyfrowaniu.
+                    encrypt_file_with_counter(
+                        self.source_path.get(), out_path, compress=self.compress.get(), **key_result.kwargs
+                    )
+                else:
+                    # _with_name: oryginalna nazwa (a wiec i rozszerzenie/typ)
+                    # trafia do wnetrza zaszyfrowanej tresci, wiec deszyfrowanie
+                    # odtworzy ja poprawnie nawet jesli ten plik .helixpro
+                    # zostanie potem przemianowany/przeslany dalej. compress=
+                    # gzip "smart" - uzyty tylko jesli faktycznie cos zmniejsza.
+                    encrypt_file_with_name(
+                        self.source_path.get(), out_path, compress=self.compress.get(), **key_result.kwargs
+                    )
                 out_size = os.path.getsize(out_path)
                 ratio_note = ""
                 if self.compress.get() and src_size > 0:
                     ratio_note = f" (kompresja: {src_size} B → {out_size} B, {out_size / src_size:.0%} oryginału)"
-                self._log(f"Zaszyfrowano{ratio_note}:\n{self.source_path.get()}\n→ {out_path}")
+                counter_note = " [z licznikiem odczytów, start=0]" if with_counter else ""
+                self._log(f"Zaszyfrowano{ratio_note}{counter_note}:\n{self.source_path.get()}\n→ {out_path}")
                 self._reset_after_action()
             except HelixProError as exc:
                 messagebox.showerror("Błąd — szyfrowanie", str(exc))
@@ -333,7 +364,16 @@ def _build_gui():
                 messagebox.showerror("Błąd", key_result.error)
                 return
 
-            if fmt == "named":
+            if fmt == "counter":
+                if self.mode.get() != "key":
+                    messagebox.showerror(
+                        "Błąd",
+                        "Ten plik ma licznik odczytów (CounterLock) - obsługiwany tylko "
+                        "w trybie Plik-klucz, nie w trybie Hasła.",
+                    )
+                    return
+                self._decrypt_counter(src, key_result.kwargs)
+            elif fmt == "named":
                 self._decrypt_named(src, key_result.kwargs)
             else:  # "plain" - stary format sprzed 2026-08, bez zapisanej nazwy w srodku
                 self._decrypt_plain(src, key_result.kwargs)
@@ -374,6 +414,44 @@ def _build_gui():
                 return
 
             self._log(f"Odszyfrowano (nazwa i typ odtworzone automatycznie: '{original_name}'):\n{src}\n→ {out_path}")
+            self._reset_after_action()
+
+        def _decrypt_counter(self, src: str, key_kwargs: dict):
+            """Deszyfruje plik z licznikiem odczytów (CounterLock). W
+            odróżnieniu od _decrypt_named/_decrypt_plain, plik WYNIKOWY
+            zawsze idzie do wskazanego KATALOGU pod odtworzoną nazwą
+            (decrypt_file_with_counter samo ją odtwarza) - i, co ważne,
+            plik ŹRÓDŁOWY (src) zostaje przy tym NADPISANY nową wersją z
+            licznikiem +1, więc pytamy o potwierdzenie zanim cokolwiek
+            zrobimy."""
+            if not messagebox.askyesno(
+                "Licznik odczytów — uwaga",
+                f"{src}\n\nTen plik ma włączony licznik odczytów. Odszyfrowanie go "
+                "NADPISZE ten plik nową wersją z licznikiem zwiększonym o 1 "
+                "(sama zaszyfrowana treść się nie zmienia - to samo hasło/klucz "
+                "nadal działa). Kontynuować?",
+            ):
+                return
+
+            out_dir = filedialog.askdirectory(title="Wybierz katalog docelowy")
+            if not out_dir:
+                return  # anulowano - nic nie zapisane, plik zrodlowy NIE zostal ruszony
+
+            try:
+                out_path, counter_before = decrypt_file_with_counter(src, out_dir, **key_kwargs)
+            except HelixProError as exc:
+                messagebox.showerror("Błąd — deszyfrowanie", str(exc))
+                self._log(f"BŁĄD (deszyfrowanie z licznikiem): {exc}")
+                return
+            except OSError as exc:
+                messagebox.showerror("Błąd pliku", str(exc))
+                self._log(f"BŁĄD (deszyfrowanie z licznikiem): {exc}")
+                return
+
+            self._log(
+                f"Odszyfrowano (licznik odczytów: był {counter_before}, plik źródłowy "
+                f"zapisany teraz z licznikiem {counter_before + 1}):\n{src}\n→ {out_path}"
+            )
             self._reset_after_action()
 
         def _decrypt_plain(self, src: str, key_kwargs: dict):
