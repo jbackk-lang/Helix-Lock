@@ -93,20 +93,8 @@ out_path, counter_before = decrypt_file_with_counter("dane.helixpro", "odzyskane
   zamiast po cichu zwrócić zmanipulowane dane. Zweryfikowane testem
   `test_tampered_ciphertext_is_rejected`.
 - **Kompresja przed szyfrowaniem.** `encrypt_file_with_name` domyślnie
-  próbuje gzip przed AES-GCM — zmierzony, realny efekt to mniejszy plik
-  wynikowy (patrz sekcja o kompresji wyżej). **Jedno zastrzeżenie do
-  częstego twierdzenia "kompresja utrudnia ataki ze znanym tekstem"**:
-  to nie do końca dotyczy AES-GCM. AES-GCM jest zaprojektowany jako
-  bezpieczny wobec ataków ze znanym/wybranym tekstem jawnym NIEZALEŻNIE
-  od redundancji danych wejściowych — usunięcie redundancji przez gzip
-  nie "wzmacnia" tu kryptografii. Co więcej, w INNYCH kontekstach
-  (protokoły sieciowe, gdzie atakujący może wstrzykiwać część tekstu
-  jawnego i obserwować rozmiar wyniku) kompresja-przed-szyfrowaniem jest
-  znanym źródłem realnych podatności (ataki klasy CRIME/BREACH na TLS/HTTP)
-  — to tu nie ma zastosowania (pojedynczy plik, bez atakującego
-  wstrzykującego własną treść do środka), ale to pokazuje, że "kompresja
-  = bezpieczniej" nie jest ogólną prawdą. Realna, zweryfikowana korzyść
-  kompresji tutaj to mniejszy plik — nic ponad to.
+  próbuje gzip przed AES-GCM (patrz sekcja o kompresji wyżej). Realna,
+  zweryfikowana korzyść to mniejszy plik — nie bezpieczeństwo.
 - **Licznik odczytów (`CounterLock`) — opt-in, nie domyślna ścieżka.**
   To NIE jest coś, co dzieje się automatycznie przy zwykłym
   `encrypt_file_with_name`/`decrypt_file` — trzeba świadomie włączyć tę
