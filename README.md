@@ -111,3 +111,69 @@ https://github.com/jbackk-lang/Helix-Lock
 
 ```bash
 python3 helix_lock_cipher.py keygen helix.key
+```
+
+---
+
+# 🔧 Helix Pro — nowy moduł, co naprawiono (audyt)
+
+`helix_pro/` to nowy, dodatkowy pakiet (nie zastępuje istniejących
+plików — `helix_cipher.py`, `helix_lock_cipher.py`, `HLX1.py` działają
+dalej bez zmian) powstały z audytu tego repo. Trzy konkretne rzeczy
+zostały naprawione:
+
+- **HLX1.py w ogóle nie szyfrował payloadu.** Mimo że README opisuje go
+  jako moduł bezpieczeństwa, `encrypt_with_counter()` robił tylko
+  `base64.b64encode(data)` — to kodowanie, nie szyfrowanie. Każdy z
+  dostępem do pliku odczytał treść bez znajomości klucza. Sam podpis
+  HMAC-SHA256 nad nagłówkiem+payloadem był zrobiony poprawnie
+  (stałoczasowe porównanie), ale chronił tylko licznik przed manipulacją
+  — nie treść przed odczytem. `helix_pro.counter_lock.CounterLock`
+  robi to samo (licznik odczytów, ochrona przed cofnięciem), ale
+  payload jest faktycznie zaszyfrowany AES-256-GCM, a licznik jest
+  wpięty jako AAD w tę samą operację (kryptograficznie związany z
+  ciphertextem, nie osobny podpis nad jawnym base64).
+- **helix_cipher.py używał klucza = `SHA256(hasło)`** bez soli i bez
+  kosztu obliczeniowego (KDF) — podatne na brute-force/słownikowy atak
+  offline przy niezbyt losowym haśle, i na tablice tęczowe (ten sam
+  hash zawsze dla tego samego hasła, niezależnie od pliku). Do tego
+  AES-CBC bez żadnej autentykacji — modyfikacja ciphertextu przechodzi
+  bez wykrycia (padding oracle / bit-flipping).
+  `helix_pro.cipher.derive_key_from_password()` używa scrypt z losową
+  solą (zapisywaną w nagłówku pliku) i jawnie udokumentowanym kosztem
+  (N=2¹⁴, r=8, p=1).
+- **helix_lock_cipher.py był już solidny** (prawdziwe AES-256-GCM z
+  biblioteki `cryptography`) — Helix Pro nie zmienia tego podejścia,
+  tylko rozszerza je o drugi tryb (hasło) w jednym spójnym API
+  (`encrypt_file`/`decrypt_file` z `key=` albo `password=`), żeby nie
+  trzeba było wybierać między "silne, ale tylko plik-klucz" a "wygodne
+  hasło, ale słabe".
+
+## Użycie
+
+```python
+from helix_pro import generate_key, encrypt_file, decrypt_file
+
+key = generate_key()
+encrypt_file("dane.txt", "dane.helixpro", key=key)
+decrypt_file("dane.helixpro", "odzyskane.txt", key=key)
+
+# albo trybem hasła (sól zapisana w nagłówku pliku, nie trzeba jej
+# przechowywać osobno — ale samo hasło nadal musi być silne):
+encrypt_file("dane.txt", "dane.helixpro", password="bardzo-dlugie-haslo")
+decrypt_file("dane.helixpro", "odzyskane.txt", password="bardzo-dlugie-haslo")
+```
+
+Testy: `tests/test_helix_pro.py` — pierwsze testy w tym repo (18/18
+przechodzi, zweryfikowane 2026-08-31), obejmują m.in. regresję wprost
+przeciwko błędowi z HLX1.py (sprawdzenie, że zaszyfrowany blob nie
+zawiera base64 oryginału), wykrywanie manipulacji ciphertextem/AAD/
+licznikiem, oraz round-trip dla obu trybów.
+
+**To repozytorium nadal nie jest audytowaną biblioteką kryptograficzną
+poziomu produkcyjnego** (np. TLS, Signal Protocol) — `helix_pro` opiera
+się o audytowaną bibliotekę `cryptography` (AES-256-GCM, scrypt), ale
+sam kod integracyjny (formaty nagłówków, obsługa błędów) nie przeszedł
+niezależnego audytu bezpieczeństwa. Dla realnie wysokiej stawki
+(pieniądze, dane osobowe wrażliwe prawnie) użyj sprawdzonego,
+audytowanego narzędzia end-to-end, nie tego repo.
