@@ -261,89 +261,104 @@ Testy: `pytest tests/test_adaptive_rotation.py -q`.
 **Granice bezpieczeństwa:** to prototyp rotacji klucza, nie automatyczny detektor włamania ani mechanizm unieważniania skradzionych kopii. Po udanej rotacji aplikacja musi atomowo przełączyć aktywny rekord na nowy blob, ograniczyć dostęp do starego klucza i zgodnie z polityką retencji usunąć/wycofać stare kopie. Kopii ciphertextu i klucza, które napastnik już posiada, sama rotacja nie unieważnia. Nie wolno modyfikować ani podmieniać plaintextu w reakcji na błędne hasło lub nieudaną autentykację — operacja kończy się błędem bez ujawnienia treści. Aktualne formaty plikowe HLXP/HLXN i CounterLock nie są automatycznie migrowane przez ten moduł.
 
 
-## AIRP Monitor — gdzie co jest i jak używać
+## AIRP — gdzie co jest i jak używać
 
-AIRP (Adaptive Information Representation Protection) to **prototyp rotacji klucza i kontroli wersji reprezentacji**. Nie zmienia ani nie „maskuje” prawdziwej treści przy błędnej próbie dostępu. Nie jest samodzielnym detektorem włamania ani produkcyjnym systemem zarządzania kluczami.
+AIRP (Adaptive Information Representation Protection) to prototyp rotacji kluczy, kontroli wersji ciphertextu i rejestracji zdarzeń. Nie zmienia oryginalnej treści przy błędnym dostępie. Nie jest samodzielnym detektorem włamania ani kompletnym systemem KMS.
 
 ### Gdzie co jest?
 
 | Ścieżka | Rola |
 |---|---|
-| `helix_pro/cipher.py` | Podstawowe AES-256-GCM, kompresja gzip i formaty plików HLXP/HLXN |
-| `helix_pro/adaptive_rotation.py` | `rotate_encrypted_blob()`: odszyfrowanie starym kluczem, szyfrowanie nowym, kontrola odzyskania treści |
-| `helix_pro/airp_monitor.py` | `AIRPMonitor`, `RepresentationState`, `AccessEvent`: kontrola wersji/odcisku ciphertextu i rejestr zdarzeń |
-| `helix_pro/counter_lock.py` | Licznik odczytów związany z AES-GCM jako AAD; nie zastępuje zewnętrznego, trwałego rejestru wersji |
-| `tests/test_adaptive_rotation.py` | Testy rotacji klucza i zachowania plaintextu |
-| `tests/test_airp_monitor.py` | Testy zgodności wersji, identyfikatora klucza i logowania zdarzeń |
+| `helix_pro/cipher.py` | AES-256-GCM, kompresja gzip, formaty HLXP/HLXN |
+| `helix_pro/adaptive_rotation.py` | `rotate_encrypted_blob()`: rotacja klucza dla blobów `encrypt_bytes()` |
+| `helix_pro/counter_lock.py` | `CounterLock`, plikowy licznik AAD i `rotate_counter_blob()` zachowujący licznik przy rotacji |
+| `helix_pro/airp_monitor.py` | Monitor in-memory: wersja, key ID, hash reprezentacji i zdarzenia |
+| `helix_pro/airp_store.py` | Trwały rejestr SQLite: wersje obiektów, porównanie CAS i historia zdarzeń |
+| `tests/test_adaptive_rotation.py` | Testy rotacji AES-GCM i CounterLock |
+| `tests/test_airp_monitor.py` | Testy monitora in-memory |
+| `tests/test_airp_store.py` | Testy trwałości, historii i odrzucania nieaktualnej wersji |
 
-### Jak użyć rotacji?
-
-Rotacja dotyczy blobów bajtowych utworzonych przez `encrypt_bytes()`. Nie migruje automatycznie plików HLXP/HLXN ani CounterLock.
+### 1. Rotacja zwykłego blobu AES-GCM
 
 ```python
-from helix_pro import (
-    generate_key, encrypt_bytes, decrypt_bytes,
-    rotate_encrypted_blob,
-)
+from helix_pro import generate_key, encrypt_bytes, decrypt_bytes, rotate_encrypted_blob
 
-old_key = generate_key()
-new_key = generate_key()
-aad = b"record:customer-42"
-
-blob_v1 = encrypt_bytes(b"niezmienna tresc", old_key, aad=aad)
+old_key, new_key = generate_key(), generate_key()
+aad = b"record:42"
+blob_v1 = encrypt_bytes(b"oryginalna tresc", old_key, aad=aad)
 rotation = rotate_encrypted_blob(blob_v1, old_key, new_key, aad=aad)
 
-# Po rotacji treść jest odzyskiwana nowym kluczem:
-assert decrypt_bytes(rotation.blob, new_key, aad=aad) == b"niezmienna tresc"
+assert decrypt_bytes(rotation.blob, new_key, aad=aad) == b"oryginalna tresc"
 ```
 
-`rotation.blob` jest nową reprezentacją do zapisania jako kolejna wersja. `rotation.plaintext_sha256`, `old_blob_sha256` i `new_blob_sha256` to metadane kontrolne — nie zapisuj ich bezrefleksyjnie w publicznych logach (hash treści o małej entropii może ułatwiać zgadywanie).
+Rotacja weryfikuje odzyskanie tych samych bajtów. Zwraca nowy blob i skróty kontrolne. Nie zapisuje automatycznie pliku ani nie unieważnia starego klucza.
 
-### Jak użyć monitora?
+### 2. Rotacja CounterLock bez resetowania licznika
 
 ```python
-from helix_pro import AIRPMonitor, RepresentationState
+from helix_pro import generate_key, CounterLock, rotate_counter_blob
 
-# Przy pierwszym uruchomieniu wczytaj stan z chronionego, trwałego rejestru.
-state = RepresentationState(
-    version=1,
-    key_id="key-v1",  # identyfikator, nigdy sam sekret klucza
-    blob_sha256=AIRPMonitor.fingerprint(blob_v1),
-)
-monitor = AIRPMonitor(state)
+old_key, new_key = generate_key(), generate_key()
+blob_v1 = CounterLock(old_key).lock(b"payload", counter=12)
+blob_v2 = rotate_counter_blob(blob_v1, old_key, new_key)
 
-# Przed operacją sprawdź, czy wersja, klucz i ciphertext są oczekiwane.
-if not monitor.verify_current(blob_v1, version=1, key_id="key-v1"):
-    monitor.record_access(outcome="denied")
-    raise RuntimeError("Nieoczekiwana wersja lub reprezentacja — dostęp zablokowany")
-
-# Po udanej rotacji, po trwałym zapisaniu nowego blobu, zaktualizuj stan:
-monitor.accept_rotation(
-    rotation.blob,
-    new_version=2,
-    new_key_id="key-v2",
-)
-monitor.record_access(outcome="granted")
+payload, counter = CounterLock(new_key).unlock(blob_v2)
+assert payload == b"payload"
+assert counter == 12
 ```
 
-### Ważne ograniczenia i wdrożenie
+Funkcja zachowuje payload i licznik, ale zmienia klucz i reprezentację. Dotyczy formatu CounterLock (`HLXC`), nie automatycznej migracji plików HLXP/HLXN.
 
-- Stan i zdarzenia `AIRPMonitor` są obecnie przechowywane **wyłącznie w pamięci procesu**. Po restarcie znikają. Wykrywanie rollbacku między uruchomieniami wymaga pobrania oczekiwanego stanu z niezależnego, chronionego rejestru (np. transakcyjnej bazy z kontrolą dostępu lub zewnętrznej usługi append-only).
-- `accept_rotation()` aktualizuje tylko stan obiektu w pamięci. Aplikacja musi bezpiecznie i atomowo zapisać nowy ciphertext, a następnie zatwierdzić nowy stan w trwałym rejestrze. Nie wolno nadpisywać jedynej poprawnej kopii przed weryfikacją i zapewnieniem możliwości odzyskania.
-- Loguj wyłącznie wynik dostępu, czas, wersję, identyfikator klucza i odcisk ciphertextu. Nigdy nie zapisuj kluczy, haseł, tokenów ani plaintextu.
-- Rotacja nie unieważnia starej kopii, jeżeli ktoś wcześniej skopiował ciphertext i zachował stary klucz. Wymaga też osobnej polityki wycofania/ochrony starych kluczy i kopii zapasowych.
-- Nieudane uwierzytelnienie ma kończyć się odmową i zdarzeniem audytowym. System nie może zwracać fałszywej treści ani modyfikować oryginału.
-- To prototyp integracyjny. Przed użyciem do ochrony ważnych danych potrzebne są testy integracyjne, trwały rejestr, obsługa awarii/wyścigów i niezależny audyt bezpieczeństwa.
+### 3. Trwały rejestr wersji i zdarzeń SQLite
+
+```python
+from helix_pro import AIRPStore
+
+store = AIRPStore("private_state/airp.sqlite3")
+state_v1 = store.register("document-42", blob_v1, key_id="key-v1")
+
+# Sprawdzenie wersji, identyfikatora klucza i SHA-256 ciphertextu:
+if not store.verify("document-42", blob_v1, version=1, key_id="key-v1"):
+    raise RuntimeError("Nieoczekiwana reprezentacja — odmowa dostępu")
+
+# Po utworzeniu i zweryfikowaniu blob_v2:
+state_v2 = store.commit_rotation(
+    "document-42",
+    blob_v2,
+    expected_version=state_v1.version,
+    expected_blob_sha256=state_v1.blob_sha256,
+    new_key_id="key-v2",
+)
+assert state_v2.version == 2
+print(store.events("document-42"))
+```
+
+`commit_rotation()` używa transakcji SQLite i compare-and-swap: odrzuca zapis, jeżeli wersja lub hash starej reprezentacji nie zgadza się z oczekiwanym stanem. Zdarzenia mają wynik, czas UTC, wersję, key ID i hash — bez kluczy i plaintextu.
+
+**Kolejność produkcyjna:** przygotuj nowy blob → zweryfikuj go nowym kluczem → zapisz go jako nową wersję w sposób odporny na awarię → zatwierdź stan rejestru → dopiero po potwierdzeniu i zgodnie z polityką retencji wycofuj stary klucz/blob. Plik i SQLite nie tworzą jednej transakcji; aplikacja musi wdrożyć staging, atomowe przełączenie oraz procedurę odzyskiwania po przerwaniu procesu.
+
+### 4. Monitor in-memory
+
+`AIRPMonitor` z `airp_monitor.py` jest lekkim pomocnikiem do pojedynczego procesu. Jego stan i zdarzenia znikają po restarcie. Do utrwalania stanu użyj `AIRPStore`.
 
 ### Testy
 
-W katalogu głównym repozytorium uruchom:
+W katalogu głównym repozytorium:
 
 ```bash
 python -m pip install cryptography pytest
-python -m pytest tests/test_adaptive_rotation.py tests/test_airp_monitor.py -q
-# Pełny zestaw:
+python -m pytest tests/test_adaptive_rotation.py tests/test_airp_monitor.py tests/test_airp_store.py -q
+# pełny zestaw:
 python -m pytest tests/ -q
 ```
 
-Testy są dodane do repozytorium; ich obecność nie oznacza, że zostały już uruchomione w środowisku CI lub na Twoim komputerze.
+### Granice bezpieczeństwa — przeczytaj przed wdrożeniem
+
+- SQLite daje trwałość i transakcyjność lokalnego rejestru, ale **nie jest odporny na rollback**, jeśli napastnik może podmienić bazę i kopie zapasowe. Dla silniejszego modelu zagrożeń użyj niezależnej usługi/rejestru append-only, z osobnymi uprawnieniami i ochroną przed cofnięciem.
+- Sam hash ciphertextu nie uwierzytelnia użytkownika. Dostęp musi być autoryzowany osobną polityką.
+- Rotacja nie unieważnia kopii starego ciphertextu, jeśli napastnik zachował także stary klucz.
+- Nieudane uwierzytelnienie oznacza odmowę i audyt, nigdy podmianę prawdziwej treści na fałszywą.
+- Nie loguj kluczy, haseł, tokenów ani plaintextu. Hash plaintextu może ujawniać informacje o danych o małej entropii.
+- Operacja `commit_rotation()` aktualizuje metadane, nie plik z ciphertextem. Wymagana jest bezpieczna koordynacja zapisu obiektu i rejestru.
+- To prototyp integracyjny; przed ochroną ważnych danych potrzebne są testy na docelowym środowisku, testy awarii i niezależny audyt bezpieczeństwa.
+
