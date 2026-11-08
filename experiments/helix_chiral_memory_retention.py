@@ -111,5 +111,5 @@ if __name__ == "__main__":
     result = run(range(1000, 1000 + args.seeds))
     rendered = json.dumps(result, indent=2, sort_keys=True)
     if args.output:
-        args.output.write_text(rendered + "\\n", encoding="utf-8")
+        args.output.write_text(rendered + "\n", encoding="utf-8")
     print(json.dumps(result["summary"], indent=2, sort_keys=True))
