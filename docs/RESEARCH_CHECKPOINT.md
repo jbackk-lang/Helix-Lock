@@ -50,3 +50,9 @@ Commit code, tests, report-generation changes and handoff notes to named researc
 ## Continuation: mid-history reversal experiment
 
 Added `experiments/helix_chiral_memory_reversal.py`, `tests/test_helix_chiral_memory_reversal.py`, `docs/HELIX_CHIRAL_MEMORY_REVERSAL.md` and CI report upload on the same research branch. Commit enabling CI: `73fc70c9a84b31f673886499724a7759bc8a1584`. CI run: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42505958517 . **Do not assume success until the run is checked.** This models a change of local coordinate sign during history acquisition, not a physical helix reversal.
+
+## Verified CI and new negative control (2026-11-08 17:39+ UTC)
+
+Reversal CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42505958517 **passed**, 177 tests on Python 3.11 and 3.12. Midpoint flip (6 of 12 cycles), 100 seeds: per-sample orientation-aware readout 100% exact payload recovery, mean reference error 0.01900644 rad. This is synthetic, and the correct per-sample labels are supplied.
+
+Added `shuffled_labels` negative control, which preserves the left/right label counts but destroys their sample alignment. Code commit `e493b6adcf826a36887d65df7046f73d818063b1`, tests commit `26088bcd779e8883805fa9c7e47aba837e8aecfa`. New CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42506116845 **pending at time of checkpoint**. Do not claim pass before checking it.
