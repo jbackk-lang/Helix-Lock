@@ -17,6 +17,7 @@ on:
       - "experiments/helix_chiral_memory_inference.py"
       - "experiments/helix_chiral_signal.py"
       - "experiments/helix_chiral_signal_channel.py"
+      - "experiments/helix_chiral_intelligence.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -41,6 +42,7 @@ on:
       - "tests/test_helix_chiral_memory_inference.py"
       - "tests/test_helix_chiral_signal.py"
       - "tests/test_helix_chiral_signal_channel.py"
+      - "tests/test_helix_chiral_intelligence.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -186,3 +188,4 @@ jobs:
           tests/test_helix_chiral_memory_inference.py
           tests/test_helix_chiral_signal.py
           tests/test_helix_chiral_signal_channel.py
+          tests/test_helix_chiral_intelligence.py
