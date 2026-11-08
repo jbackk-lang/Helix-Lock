@@ -64,3 +64,22 @@ E. **Chronoproces:** dopiero po mapowaniu rzeczywistych zmiennych TSI/TIMDR moż
 Pamięć historyczna może poprawiać wykrywanie zmian lub interpretację kolejnych przejść. Nie oznacza to automatycznie, że system potrafi odzyskać utraconą informację. Każdy raport musi oddzielać: integralność, koherencję fazową, ciągłość historii, rekonstrukcję treści i jakość decyzji.
 
 **Zasada:** kompresujemy reprezentację analityczną, nigdy nie niszczymy źródłowej historii ani nie udajemy, że streszczenie jest oryginałem.
+
+
+## 8. Pierwsza implementacja pamięci cech historycznych
+
+Dodano `helix_pro/airp_history_memory.py` (`AIRPHistoryMemory`) i `tests/test_airp_history_memory.py`.
+
+Implementacja:
+- konsumuje uporządkowane zdarzenia partiami;
+- wymaga ciągłych numerów sekwencji i strefowych znaczników czasu;
+- tworzy niepokrywające się, stałe okna;
+- emituje deterministyczne podsumowania z zakresem sekwencji, czasem, licznikami typów, odmowami, rotacjami, statystykami odstępów i hashem podsumowania;
+- wiąże wynik z SHA-256 zewnętrznego checkpointu źródłowego przekazanego przez wywołującego;
+- nie zachowuje payloadów, identyfikatorów obiektów ani kryptograficznych sekretów.
+
+**Ograniczenie pamięci:** obiekt przechowuje najwyżej niepełne okno (maksymalnie `window_size` lekkich rekordów). Gotowe podsumowania są zwracane wywołującemu i nie są akumulowane w obiekcie. Warstwa wywołująca musi zapisać je w osobnym magazynie. Dzięki temu pamięć robocza jest O(window_size), a nie O(liczby zdarzeń).
+
+**Granica zaufania:** klasa nie weryfikuje samodzielnie, czy podany hash checkpointu jest prawidłowym, podpisanym checkpointem ani czy obejmuje ostatni przetworzony numer sekwencji. To musi zapewnić integracja z `AIRPIntegrityLedger.verify()/verify_checkpoint()` i niezależnym `TrustAnchor`. Podsumowanie jest indeksem analitycznym, nigdy źródłem prawdy, dowodem autoryzacji ani materiałem do rekonstrukcji payloadu.
+
+Testy obejmują równoważność przetwarzania partiami, stały limit stanu roboczego, wykrywanie luk/replay, odrzucanie naiwnych timestampów oraz brak wycieku payloadu/ID do podsumowań.
