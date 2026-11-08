@@ -64,3 +64,16 @@
 - Earlier in the same continuation: `ca9a8ed` fixed pull_request path filters; `a4568b2` added disturbance target selection; `358e2e0` added common-mode control tests; `cdffc85` documented them.
 - IMPORTANT: check Actions after the latest commits. The previously observed successful run was for commit `358e2e0`, before the newer stale-reference commits. Do not claim the newest code passed CI until its run completes.
 - Next: run Actions, fix any failures, then implement a pre-registered amplitude/duration/frequency heterogeneity sweep with held-out seeds and report median/p90/max/recovery fraction/recovery time/overshoot. Also model legitimate state transition as a first-class case, not only the correction sign.
+
+
+## Desktop v0.1.0 readiness work (2026-11-08, later session)
+
+- `8c6ee9b`: fixed release workflow. It now publishes only on a version tag matching `v*`, uses `github.ref_name` rather than hard-coded `v0.1.0`, and manual dispatch/main/PR runs build artifacts without publishing a release.
+- `bcbd1d5`: added cross-platform packaging validation for app/core changes on main and pull requests.
+- `ad82487`: added `docs/RELEASE_CHECKLIST.md` with manual smoke tests, distribution trust and security limitations.
+- `4ada1c1`: linked release checklist from README.
+- `4965def`: recorded successful cross-platform build run.
+- Build workflow run [42501965166](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42501965166) completed successfully at commit `bcbd1d584e4e9d8c4ba1465571960c7c6f5716b0`. Windows, macOS and Linux PyInstaller/package/upload jobs all passed. Release job was correctly skipped because this was not a version tag.
+- Artifacts: Windows 16,171,183 bytes; macOS 14,940,876 bytes; Linux 31,178,150 bytes. They are CI artifacts, not a published GitHub Release.
+- Still required before calling v0.1.0 complete: inspect/download artifact contents, test each build on a real target OS, verify round-trip and tamper rejection, verify hashes, and arrange signing/notarization if desired. No independent security audit has been performed.
+- Latest release checklist: `docs/RELEASE_CHECKLIST.md`. Do not create/push a release tag until manual checks are complete and the owner explicitly approves publishing.
