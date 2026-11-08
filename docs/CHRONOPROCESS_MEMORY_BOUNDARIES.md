@@ -83,3 +83,17 @@ Implementacja:
 **Granica zaufania:** klasa nie weryfikuje samodzielnie, czy podany hash checkpointu jest prawidłowym, podpisanym checkpointem ani czy obejmuje ostatni przetworzony numer sekwencji. To musi zapewnić integracja z `AIRPIntegrityLedger.verify()/verify_checkpoint()` i niezależnym `TrustAnchor`. Podsumowanie jest indeksem analitycznym, nigdy źródłem prawdy, dowodem autoryzacji ani materiałem do rekonstrukcji payloadu.
 
 Testy obejmują równoważność przetwarzania partiami, stały limit stanu roboczego, wykrywanie luk/replay, odrzucanie naiwnych timestampów oraz brak wycieku payloadu/ID do podsumowań.
+
+
+## 9. Eksperyment trzech pętli: pamięć wzorca fazowego (2026-11-08)
+
+Dodano `experiments/three_loop_phase_memory.py` oraz testy `tests/test_three_loop_phase_memory.py`. Model ma trzy oscylatory o tej samej częstotliwości nominalnej, zachowuje relacje fazowe sprzed zaburzenia, po czym wprowadza czasowe odstrojenie jednego kanału. Po zaburzeniu mierzy średni błąd relacji fazowych względem zapamiętanego wzorca.
+
+Wynik dla 100 stałych seedów (100–199), średni błąd bezwzględny relacji fazowych po zaburzeniu:
+- brak pamięci i sprzężenia: **1.27539 rad**;
+- sprzężenie fazowe bez pamięci wzorca: **0.72049 rad**;
+- sprzężenie fazowe z jawnym sprzężeniem zwrotnym do zapamiętanego wzorca: **0.58147 rad**.
+
+W tym konkretnym modelu pamięć wzorca wraz z dodatkowym prawem sprzężenia zwrotnego zmniejszyła średni błąd o ok. 19.3% względem samego sprzężenia fazowego. To wynik syntetyczny, nie dowód samonaprawy TSI ani Helix. Pamięć nie odtwarza utraconych danych; zachowuje jedynie dwa względne kąty fazowe, a prawo korekty zostało jawnie dopisane do modelu. Wynik nie mówi nic o odporności kryptograficznej, atakach ani produkcyjnej stabilności.
+
+Następny etap: ablacją zmieniać siłę i czas zaburzenia, dodać szum i różnice częstotliwości, sprawdzić błędny/stary wzorzec oraz mierzyć przeregulowanie i stabilność. Nie wolno dobierać parametrów na tym samym zestawie seedów, na którym raportuje się wynik.
