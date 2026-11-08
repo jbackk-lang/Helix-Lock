@@ -33,3 +33,23 @@ def test_monitor_records_only_allowlisted_outcomes():
     assert len(monitor.events) == 1
     with pytest.raises(HelixProError):
         monitor.record_access(outcome="password=secret")
+
+
+
+def test_monitor_event_buffer_is_bounded_and_reports_evictions():
+    monitor = AIRPMonitor(
+        RepresentationState(1, "key-v1", "abc"),
+        max_events=3,
+    )
+    for outcome in ("denied", "denied", "granted", "denied", "granted"):
+        monitor.record_access(outcome=outcome)
+    assert len(monitor.events) == 3
+    assert [event.outcome for event in monitor.events] == ["granted", "denied", "granted"]
+    assert monitor.dropped_events == 2
+    assert monitor.max_events == 3
+
+
+def test_monitor_rejects_invalid_event_buffer_limit():
+    for limit in (0, -1, True, 1.5):
+        with pytest.raises(HelixProError):
+            AIRPMonitor(RepresentationState(1, "key-v1", "abc"), max_events=limit)
