@@ -569,3 +569,35 @@ verification = ledger.verify()
 Publikacja jest uznana za udaną po potwierdzeniu przez quorum. Odczyt wymaga zgodnego checkpointu z quorum. Jeśli świadkowie są rozbieżni lub niedostępni i nie ma większości, operacja kończy się błędem — system nie wybiera po cichu jednego źródła. Częściowa publikacja jest możliwa; ponowienie tego samego checkpointu jest idempotentne na serwerze.
 
 To mechanizm większościowego świadkowania, nie pełny protokół konsensusu BFT: nie rozwiązuje problemu złośliwej większości ani nie zapewnia automatycznej synchronizacji/naprawy świadków. Wdrożenie wymaga osobnych administratorów, monitoringu, kopii zapasowych i procedury rotacji tokenów/kluczy.
+
+
+## AIRP Key Fingerprint — odciski kluczy i wizualne GUI
+
+Moduł `helix_pro.airp_key_fingerprint` dodaje kontekstowy odcisk klucza oparty o HKDF-SHA256 + HMAC-SHA256. Odcisk jest powiązany z `object_id` i `key_id`; nie publikuje zwykłego `SHA256(key)`. Odcisk nie jest kluczem, nie szyfruje danych i samodzielnie nie nadaje uprawnień — autoryzację zapewnia podpisany rejestr AIRP.
+
+- `create_key_fingerprint(key, object_id=..., key_id=...)`
+- `verify_key_fingerprint(key, fingerprint, object_id=..., key_id=...)`
+- `representation_fingerprint_file(path)` — strumieniowy odcisk dużego szyfrogramu
+- `public_key_fingerprint(public_key)` — publiczny odcisk klucza Ed25519
+- `create_rotation_link(..., signer=...)` / `verify_rotation_link(...)` — podpisane powiązanie starego i nowego odcisku przy rotacji
+
+### Ilustracja przepływu
+
+![AIRP fingerprint flow](assets/airp-fingerprint-flow.svg)
+
+### Uruchomienie intuicyjnego GUI (Windows / Linux / macOS)
+
+```powershell
+python airp_fingerprint_gui.py
+```
+
+GUI umożliwia:
+1. Wskazanie lokalnego pliku 32-bajtowego klucza.
+2. Nadanie identyfikatora obiektu i klucza.
+3. Utworzenie i zapis manifestu JSON odcisku.
+4. Wczytanie manifestu i weryfikację klucza/kontekstu.
+5. Obliczenie odcisku wybranego szyfrogramu bez wczytywania całego dużego pliku do pamięci.
+
+Ekran pokazuje wizualny przepływ: klucz → odcisk → weryfikacja → rejestr AIRP. Manifest zawiera wyłącznie identyfikatory, algorytm i odcisk — nigdy materiał klucza. Nie wysyła klucza do sieci ani nie zapisuje go w rejestrze.
+
+**Uwaga:** GUI tworzy i weryfikuje lokalny manifest. Nie zastępuje jeszcze zarejestrowania zdarzenia w zewnętrznym Trust Anchor ani podpisanej polityki autoryzacji. Plik manifestu nie jest sam w sobie dowodem zaufania; jego pochodzenie musi być potwierdzone niezależnym kanałem lub rejestrem.
