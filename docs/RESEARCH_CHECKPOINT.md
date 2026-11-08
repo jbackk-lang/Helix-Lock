@@ -46,3 +46,7 @@ Report payload accuracy and circular reference error; add tests for mirror covar
 ## Workflow
 
 Commit code, tests, report-generation changes and handoff notes to named research branches. Run GitHub Actions on Python 3.11/3.12; inspect failing logs and isolate test versus implementation versus theory mistakes. Keep PRs draft until verified. Never merge into `main` merely to preserve progress.
+
+## Continuation: mid-history reversal experiment
+
+Added `experiments/helix_chiral_memory_reversal.py`, `tests/test_helix_chiral_memory_reversal.py`, `docs/HELIX_CHIRAL_MEMORY_REVERSAL.md` and CI report upload on the same research branch. Commit enabling CI: `73fc70c9a84b31f673886499724a7759bc8a1584`. CI run: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42505958517 . **Do not assume success until the run is checked.** This models a change of local coordinate sign during history acquisition, not a physical helix reversal.
