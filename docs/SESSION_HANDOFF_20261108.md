@@ -77,3 +77,11 @@
 - Artifacts: Windows 16,171,183 bytes; macOS 14,940,876 bytes; Linux 31,178,150 bytes. They are CI artifacts, not a published GitHub Release.
 - Still required before calling v0.1.0 complete: inspect/download artifact contents, test each build on a real target OS, verify round-trip and tamper rejection, verify hashes, and arrange signing/notarization if desired. No independent security audit has been performed.
 - Latest release checklist: `docs/RELEASE_CHECKLIST.md`. Do not create/push a release tag until manual checks are complete and the owner explicitly approves publishing.
+
+
+## Final workflow trigger correction (2026-11-08)
+
+- `45bbf41`: release publishing workflow now has a dedicated `push.tags: v*` trigger; no branch/path filter is combined with tags.
+- `af8e6f2`: existing `.github/workflows/desktop-build.yml` was corrected to be the separate main/PR/manual cross-platform build validator. It produces per-platform archives and build metadata.
+- `fe6ff73`: release checklist explains separation. This avoids ambiguity in GitHub Actions branch/tag filters and ensures manual builds do not publish a release.
+- New desktop validation run after this correction: [42502363536](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42502363536), triggered by commit `af8e6f2`; check completion and all three matrix jobs before declaring final build validation.
