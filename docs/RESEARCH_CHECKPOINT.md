@@ -68,3 +68,11 @@ New `experiments/helix_chiral_memory_inference.py`, `tests/test_helix_chiral_mem
 CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42506276081 passed **183 tests** on both Python 3.11 and 3.12. At midpoint flip (6/12), noise 0.08 rad, 100 seeds: anchored inferred labels 100% correct, exact payload recovery 100%, phase error 0.01900645 rad. At noise 0.4 rad: anchored mean label accuracy 93.25%, payload recovery 92%, phase error 0.13252048 rad.
 
 **Important caution:** The unanchored variant also reports 100% absolute label accuracy for the particular start=+1 benchmark at noise 0.08. This is NOT evidence that the global sign was inferred: the Viterbi tie-breaking picks a deterministic sign. The globally mirrored latent explanation produces identical observations. The appropriate metric is accuracy modulo global sign, and an external anchor is required to identify canonical payload sign. Added mirror-pair identifiability tests in commit `ceaa942d16695b3bcb67eed3549c4aa7c03f50b2`; CI must be rechecked.
+
+## 2026-11-08 17:54+ UTC — synthetic helical signal transmission
+
+Added `experiments/helix_chiral_signal.py`, `tests/test_helix_chiral_signal.py`, and `docs/HELIX_CHIRAL_SIGNAL.md` on the draft research branch. Model: angular phase `m*theta + QPSK_payload_phase + common_offset + Gaussian_noise`, with winding m=+/-1. Receiver jointly decodes chirality and payload from a ring of angular samples. Explicit controls: 1/2/4/12 receivers, angular aperture, noise, unknown/calibrated phase offset, mirror reflection.
+
+Local independent prototype (200 deterministic seeds, 0.12 rad noise) gave 12-sensor calibrated joint accuracy 100%; 1-sensor chirality accuracy 49.5% with score-margin zero; 12-sensor uncalibrated quarter-turn phase offset chirality 100% but payload 0%. These are *prototype outputs*, not yet GitHub CI results. New CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42507351434 pending when checkpoint written. Source/test commit `f46a2a17c8d6d91e5a4b013b17d637755e6d0789`, CI commit `89c718db01fb2c7ce07af92eb1df6d9f75e783b5`.
+
+Important: a helical spatial phase profile is not a claim that all natural signals form helical trajectories, and this synthetic model has no channel dynamics.
