@@ -1,0 +1,40 @@
+name: Helix-Lock AIRP tests
+
+on:
+  push:
+    paths:
+      - "helix_pro/**"
+      - "tests/test_helix_pro.py"
+      - "tests/test_adaptive_rotation.py"
+      - "tests/test_airp_monitor.py"
+      - "tests/test_airp_store.py"
+      - ".github/workflows/airp-tests.yml"
+  pull_request:
+    paths:
+      - "helix_pro/**"
+      - "tests/test_helix_pro.py"
+      - "tests/test_adaptive_rotation.py"
+      - "tests/test_airp_monitor.py"
+      - "tests/test_airp_store.py"
+      - ".github/workflows/airp-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip cryptography pytest
+      - name: Run core and AIRP tests
+        run: >-
+          python -m pytest -q
+          tests/test_helix_pro.py
+          tests/test_adaptive_rotation.py
+          tests/test_airp_monitor.py
+          tests/test_airp_store.py
