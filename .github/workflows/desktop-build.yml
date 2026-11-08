@@ -1,15 +1,16 @@
-name: Helix-Lock desktop builds
+name: Helix-Lock desktop build validation
 
 on:
   workflow_dispatch:
   push:
-    tags:
-      - "v*"
-    branches:
-      - "main"
+    branches: [main]
     paths:
       - "helix_lock_app.py"
-      - "helix_pro_gui.py"
+      - "helix_pro/**"
+      - ".github/workflows/desktop-build.yml"
+  pull_request:
+    paths:
+      - "helix_lock_app.py"
       - "helix_pro/**"
       - ".github/workflows/desktop-build.yml"
 
@@ -39,12 +40,33 @@ jobs:
         run: python -m pip install --upgrade pip cryptography pyinstaller
       - name: Build desktop application
         run: pyinstaller --noconfirm --clean --windowed --name HelixLock helix_lock_app.py
-      - name: Upload desktop artifact
+      - name: Package application
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a -tzip ../HelixLock-windows.zip HelixLock
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            ditto -c -k --sequesterRsrc --keepParent HelixLock.app ../HelixLock-macos.zip
+          else
+            tar -czf ../HelixLock-linux.tar.gz HelixLock
+          fi
+      - name: Record build environment
+        shell: bash
+        run: |
+          python --version > build-environment.txt
+          python -m pip freeze --all >> build-environment.txt
+          echo "runner_os=${{ runner.os }}" >> build-environment.txt
+          echo "runner_arch=$(uname -m)" >> build-environment.txt
+          echo "source_commit=${{ github.sha }}" >> build-environment.txt
+      - name: Upload platform package and build metadata
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: |
-            dist/HelixLock
-            dist/HelixLock.app
-            dist/HelixLock.exe
+            HelixLock-windows.zip
+            HelixLock-macos.zip
+            HelixLock-linux.tar.gz
+            build-environment.txt
           if-no-files-found: error
+          retention-days: 30
