@@ -16,6 +16,7 @@ on:
       - "experiments/helix_chiral_memory_reversal.py"
       - "experiments/helix_chiral_memory_inference.py"
       - "experiments/helix_chiral_signal.py"
+      - "experiments/helix_chiral_signal_channel.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -39,6 +40,7 @@ on:
       - "tests/test_helix_chiral_memory_reversal.py"
       - "tests/test_helix_chiral_memory_inference.py"
       - "tests/test_helix_chiral_signal.py"
+      - "tests/test_helix_chiral_signal_channel.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -91,6 +93,14 @@ jobs:
         run: python experiments/three_loop_information_retention.py --output three-loop-information-retention.json
       - name: Run helical tunnel chirality experiment
         run: python experiments/helical_tunnel_chirality.py --output helical-tunnel-chirality.json
+      - name: Run channel phase drift and reflection experiment
+        run: python -m experiments.helix_chiral_signal_channel --output helix-chiral-signal-channel.json
+      - name: Upload channel controls report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-chiral-signal-channel-${{ matrix.python-version }}
+          path: helix-chiral-signal-channel.json
+          retention-days: 30
       - name: Run synthetic helical signal experiment
         run: python -m experiments.helix_chiral_signal --output helix-chiral-signal.json
       - name: Upload helical signal report
@@ -175,3 +185,4 @@ jobs:
           tests/test_helix_chiral_memory_reversal.py
           tests/test_helix_chiral_memory_inference.py
           tests/test_helix_chiral_signal.py
+          tests/test_helix_chiral_signal_channel.py
