@@ -46,6 +46,7 @@ from .airp_transaction import AIRPFileTransaction, AIRPRecoveryError
 from .airp_ledger import AIRPIntegrityLedger, LedgerVerification, TrustAnchor
 from .airp_http_anchor import HTTPTrustAnchor
 from .airp_quorum import QuorumTrustAnchor
+from .airp_key_fingerprint import (KeyFingerprint, create_key_fingerprint, verify_key_fingerprint, representation_fingerprint, representation_fingerprint_file, public_key_fingerprint, create_rotation_link, verify_rotation_link)
 from .airp_counter import AIRPCounterLock
 from .airp_recovery import generate_recovery_key, wrap_data_key, unwrap_data_key
 from .counter_lock import (
@@ -85,6 +86,14 @@ __all__ = [
     "TrustAnchor",
     "HTTPTrustAnchor",
     "QuorumTrustAnchor",
+    "KeyFingerprint",
+    "create_key_fingerprint",
+    "verify_key_fingerprint",
+    "representation_fingerprint",
+    "representation_fingerprint_file",
+    "public_key_fingerprint",
+    "create_rotation_link",
+    "verify_rotation_link",
     "AIRPCounterLock",
     "generate_recovery_key",
     "wrap_data_key",
