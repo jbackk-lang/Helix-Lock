@@ -9,6 +9,7 @@ on:
       - "airp_fingerprint_gui.py"
       - "experiments/timdr_benchmark.py"
       - "experiments/three_loop_phase_memory.py"
+      - "experiments/three_loop_information_retention.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -25,6 +26,7 @@ on:
       - "tests/test_timdr_benchmark.py"
       - "tests/test_airp_history_memory.py"
       - "tests/test_three_loop_phase_memory.py"
+      - "tests/test_three_loop_information_retention.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -92,3 +94,4 @@ jobs:
           tests/test_timdr_benchmark.py
           tests/test_airp_history_memory.py
           tests/test_three_loop_phase_memory.py
+          tests/test_three_loop_information_retention.py
