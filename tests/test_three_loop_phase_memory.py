@@ -45,3 +45,25 @@ def test_disturbance_target_indices_are_validated():
             mode="coupling_only",
             disturbance_targets=(3,),
         )
+
+
+
+def test_stale_reference_feedback_opposes_a_legitimate_phase_transition():
+    from experiments.three_loop_phase_memory import reference_feedback_correction
+
+    stored_reference = 0.7
+    legitimate_new_phase = 1.1
+    correction = reference_feedback_correction(
+        legitimate_new_phase,
+        stored_reference,
+        gain=0.2,
+    )
+    assert correction < 0
+    assert correction * (legitimate_new_phase - stored_reference) < 0
+
+
+def test_seed_generators_are_reused_consistently_across_modes():
+    result = run(iter([11, 12, 13]))
+    assert result["trial_count_per_mode"] == 3
+    assert result["seed_values"] == [11, 12, 13]
+    assert all(len(trials) == 3 for trials in result["trials"].values())
