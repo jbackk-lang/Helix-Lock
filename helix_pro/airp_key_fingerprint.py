@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import os
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -103,6 +104,21 @@ def representation_fingerprint(blob: bytes) -> str:
     if not isinstance(blob, bytes):
         raise HelixProError("representation must be bytes")
     return hashlib.sha256(REP_FP_DOMAIN + blob).hexdigest()
+
+
+def representation_fingerprint_file(path: str, *, chunk_size: int = 1024 * 1024) -> str:
+    """Stream a file into the domain-separated representation fingerprint."""
+    if type(chunk_size) is not int or chunk_size < 4096 or chunk_size > 16 * 1024 * 1024:
+        raise HelixProError("chunk_size must be between 4096 and 16777216 bytes")
+    digest = hashlib.sha256()
+    digest.update(REP_FP_DOMAIN)
+    try:
+        with open(path, "rb") as stream:
+            for chunk in iter(lambda: stream.read(chunk_size), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise HelixProError(f"cannot fingerprint representation file: {exc}") from exc
+    return digest.hexdigest()
 
 
 def public_key_fingerprint(public_key: Ed25519PublicKey | bytes) -> str:
