@@ -2,6 +2,7 @@ import json
 import sqlite3
 
 import pytest
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from helix_pro.airp_ledger import AIRPIntegrityLedger, GENESIS_HASH
@@ -84,7 +85,9 @@ def test_local_suffix_is_reported_until_anchored(tmp_path):
 def test_checkpoint_rejects_wrong_pinned_public_key(tmp_path):
     ledger, _ = _ledger(tmp_path)
     checkpoint = ledger.create_checkpoint()
-    other_key = Ed25519PrivateKey.generate().public_key().public_bytes_raw()
+    other_key = Ed25519PrivateKey.generate().public_key().public_bytes(
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+    )
     with pytest.raises(HelixProError, match="signer"):
         AIRPIntegrityLedger.verify_checkpoint(checkpoint, other_key)
 
