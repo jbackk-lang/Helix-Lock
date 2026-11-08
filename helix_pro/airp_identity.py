@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .airp_key_fingerprint import (
     KeyFingerprint,
@@ -68,11 +68,10 @@ class AIRPIdentityManager:
                 fingerprint, "Odcisk zapisany, podpisany i potwierdzony przez skonfigurowane quorum.",
             )
         except Exception as exc:
-            verification = self.ledger.verify()
             return IdentityOperationResult(
                 event["sequence"], event["event_hash"], False,
                 f"pending_anchor:{type(exc).__name__}", fingerprint,
-                "Zdarzenie zapisane lokalnie, ale publikacja checkpointu nie uzyskała potwierdzenia quorum. "
+                "Zdarzenie zapisane lokalnie, ale publikacja lub odczyt checkpointu nie uzyskały potwierdzenia quorum. "
                 "Ponów zakotwiczenie po przywróceniu dostępności świadków.",
             )
 
