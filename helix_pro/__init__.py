@@ -43,6 +43,9 @@ from .adaptive_rotation import RotationResult, rotate_encrypted_blob
 from .airp_monitor import AIRPMonitor, RepresentationState, AccessEvent
 from .airp_store import AIRPStore, StoredRepresentation
 from .airp_transaction import AIRPFileTransaction, AIRPRecoveryError
+from .airp_ledger import AIRPIntegrityLedger, LedgerVerification, TrustAnchor
+from .airp_counter import AIRPCounterLock
+from .airp_recovery import generate_recovery_key, wrap_data_key, unwrap_data_key
 from .counter_lock import (
     CounterLock,
     encrypt_file_with_counter,
@@ -75,4 +78,11 @@ __all__ = [
     "StoredRepresentation",
     "AIRPFileTransaction",
     "AIRPRecoveryError",
+    "AIRPIntegrityLedger",
+    "LedgerVerification",
+    "TrustAnchor",
+    "AIRPCounterLock",
+    "generate_recovery_key",
+    "wrap_data_key",
+    "unwrap_data_key",
 ]
