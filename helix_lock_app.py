@@ -110,6 +110,100 @@ class HelixLockApp(tk.Tk):
             ttk.Button(row, text="Wybierz…", command=browse).pack(side="left")
         return entry
 
+
+    def _metric(self, parent, title, value, note):
+        card = tk.Frame(parent, bg=PANEL, highlightbackground="#2A3B53", highlightthickness=1)
+        card.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        tk.Label(card, text=title, bg=PANEL, fg=MUTED, font=("Segoe UI", 9, "bold")).pack(anchor="w", padx=12, pady=(10, 2))
+        tk.Label(card, textvariable=value, bg=PANEL, fg=ACCENT, font=("Segoe UI", 19, "bold")).pack(anchor="w", padx=12)
+        tk.Label(card, text=note, bg=PANEL, fg=MUTED, font=("Segoe UI", 8), wraplength=210, justify="left").pack(anchor="w", padx=12, pady=(0, 10))
+
+    def _build_dashboard(self):
+        intro = self._section(self.dashboard_tab, "CENTRUM BEZPIECZENSTWA", "Podglad lokalnego rejestru AIRP i wybranego pliku. Brak danych nie oznacza pozytywnego wyniku kontroli.")
+        ttk.Button(intro, text="Odswiez podglad", command=self.refresh_dashboard).pack(anchor="e", padx=14, pady=(0, 10))
+        row1 = tk.Frame(self.dashboard_tab, bg=BG); row1.pack(fill="x", padx=10)
+        row2 = tk.Frame(self.dashboard_tab, bg=BG); row2.pack(fill="x", padx=10)
+        self.dash_chain = tk.StringVar(value="—")
+        self.dash_sequence = tk.StringVar(value="—")
+        self.dash_anchor = tk.StringVar(value="NIEZNANY")
+        self.dash_counter = tk.StringVar(value="—")
+        self.dash_file = tk.StringVar(value="Nie wybrano")
+        self.dash_events = tk.StringVar(value="—")
+        self._metric(row1, "LANCUCH AIRP", self.dash_chain, "Dane lokalne; nie oznaczaja potwierdzenia quorum.")
+        self._metric(row1, "SEKWENCJA", self.dash_sequence, "Liczba zdarzen w lokalnym dzienniku.")
+        self._metric(row1, "CHECKPOINT", self.dash_anchor, "Stan zewnetrznego anchor wymaga osobnej weryfikacji.")
+        self._metric(row2, "LICZNIK COUNTERLOCK", self.dash_counter, "Ostatni licznik zapisany w lokalnym dzienniku AIRP.")
+        self._metric(row2, "FORMAT PLIKU", self.dash_file, "Rozpoznanie naglowka, nie weryfikacja kluczem.")
+        self._metric(row2, "ZDARZENIA", self.dash_events, "Liczba wpisow w dzienniku AIRP.")
+        history = self._section(self.dashboard_tab, "OS CZASU ZDARZEN", "Ostatnie wpisy AIRP; bez kluczy, hasel i tresci plikow.")
+        self.dash_history = tk.Text(history, height=9, bg="#0C1421", fg=FG, insertbackground=FG, relief="flat", wrap="word", font=("Consolas", 9), state="disabled")
+        self.dash_history.pack(fill="both", expand=True, padx=14, pady=(0, 12))
+        tk.Label(self.dashboard_tab, text="WAZNE: lokalna baza SQLite sama nie chroni przed cofaniem calej bazy. Ochrona przed rollbackiem wymaga niezaleznego Trust Anchor / quorum.", bg=BG, fg="#F2C879", font=("Segoe UI", 9), wraplength=730, justify="left").pack(fill="x", padx=18, pady=(4, 8))
+
+    def refresh_dashboard(self):
+        self.dash_file.set("Nie wybrano")
+        selected = self.source.get().strip() if hasattr(self, "source") else ""
+        if selected and os.path.isfile(selected):
+            try:
+                with open(selected, "rb") as stream:
+                    header = stream.read(13)
+                magic = header[:4]
+                if magic == b"HLXC" and len(header) == 13:
+                    file_counter = struct.unpack(">Q", header[5:13])[0]
+                    self.dash_file.set("CounterLock / HLXC")
+                    self.dash_counter.set(str(file_counter) + " (naglowek)")
+                elif magic == b"HLXN":
+                    self.dash_file.set("Helix named / HLXN")
+                elif magic == b"HLXP":
+                    self.dash_file.set("Helix / HLXP")
+                else:
+                    self.dash_file.set("Nieznany / zwykly")
+            except OSError:
+                self.dash_file.set("Nie mozna odczytac")
+        else:
+            self.dash_counter.set("—")
+
+        db_path = self.ledger_path.get().strip() if hasattr(self, "ledger_path") else DEFAULT_LEDGER
+        self.dash_chain.set("BRAK BAZY")
+        self.dash_sequence.set("—")
+        self.dash_anchor.set("NIEZNANY")
+        self.dash_events.set("—")
+        history_lines = ["Brak lokalnej bazy AIRP. Zarejestruj klucz w zakladce AIRP / Quorum."]
+        if db_path and os.path.isfile(db_path):
+            try:
+                uri = "file:" + quote(os.path.abspath(db_path).replace(os.sep, "/")) + "?mode=ro"
+                with sqlite3.connect(uri, uri=True, timeout=2) as db:
+                    tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                    if "airp_ledger_events" in tables:
+                        rows = db.execute("SELECT sequence,timestamp_utc,event_type,object_id,payload_json FROM airp_ledger_events ORDER BY sequence DESC LIMIT 8").fetchall()
+                        total = db.execute("SELECT COUNT(*) FROM airp_ledger_events").fetchone()[0]
+                        self.dash_events.set(str(total))
+                        self.dash_sequence.set(str(total))
+                        self.dash_chain.set("DANE LOKALNE")
+                        latest_counter = None
+                        history_lines = []
+                        for seq, stamp, event_type, object_id, payload_json in rows:
+                            payload = json.loads(payload_json)
+                            if event_type == "counter_observed" and latest_counter is None:
+                                latest_counter = payload.get("counter")
+                            history_lines.append("#%s  %s  %s  [%s]" % (seq, stamp, event_type, object_id))
+                        if latest_counter is not None:
+                            self.dash_counter.set(str(latest_counter))
+                        elif self.dash_file.get() != "CounterLock / HLXC":
+                            self.dash_counter.set("BRAK WPISOW")
+                        if not history_lines:
+                            history_lines = ["Dziennik jest pusty."]
+                        history_lines.extend(["", "Uwaga: lokalny odczyt nie potwierdza stanu zewnetrznego quorum."])
+                    else:
+                        history_lines = ["Wybrana baza nie zawiera tabeli dziennika AIRP."]
+            except (OSError, sqlite3.Error, ValueError, TypeError) as exc:
+                self.dash_chain.set("BLAD ODCZYTU")
+                history_lines = ["Nie udalo sie odczytac bazy AIRP: " + str(exc)]
+        self.dash_history.configure(state="normal")
+        self.dash_history.delete("1.0", "end")
+        self.dash_history.insert("1.0", "\\n".join(history_lines))
+        self.dash_history.configure(state="disabled")
+
     def _build_files(self):
         card = self._section(self.file_tab, "01  Szyfruj / odszyfruj", "Wybierz plik, sposób uwierzytelnienia i jedną operację. Program sam podpowie nazwę pliku wynikowego.")
         self._entry(card, "Plik źródłowy", self.source, browse=self._pick_source)
