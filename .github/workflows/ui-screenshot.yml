@@ -1,0 +1,46 @@
+name: Capture Helix-Lock desktop screenshot
+
+on:
+  push:
+    branches: [experiment/helix-native]
+    paths:
+      - "helix_lock_app.py"
+      - ".github/workflows/ui-screenshot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install application and screenshot dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb python3-tk
+          python -m pip install cryptography pillow
+      - name: Capture actual desktop window under virtual display
+        run: |
+          mkdir -p docs/screenshots
+          xvfb-run -a -s "-screen 0 1280x900x24" python scripts/capture_helix_ui.py docs/screenshots/helix-file-and-key.png
+      - name: Commit screenshot to experiment branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots/helix-file-and-key.png
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: capture actual Helix file-and-key desktop screen [skip ci]"
+            git push
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helix-file-and-key-screenshot
+          path: docs/screenshots/helix-file-and-key.png
+          retention-days: 30
