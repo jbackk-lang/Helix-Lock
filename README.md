@@ -541,3 +541,31 @@ print(ledger.verify())
 
 
 Aktualizacja warstwy rozproszonej: referencyjny serwer HTTP Trust Anchor i klient HTTPS znajdują się w `helix_pro/airp_anchor_service.py` oraz `helix_pro/airp_http_anchor.py`. Testy serwisu: `tests/test_airp_anchor_service.py`.
+
+
+### Wiele niezależnych punktów zaufania — quorum
+
+`QuorumTrustAnchor` pozwala wymagać ścisłej większości niezależnych usług checkpointów. Każdy anchor powinien działać w innym koncie/środowisku administracyjnym; trzy procesy na tym samym hoście nie są trzema niezależnymi świadkami.
+
+```python
+from helix_pro import HTTPTrustAnchor, QuorumTrustAnchor, AIRPIntegrityLedger
+
+witnesses = QuorumTrustAnchor([
+    HTTPTrustAnchor("https://anchor-a.example", token_a),
+    HTTPTrustAnchor("https://anchor-b.example", token_b),
+    HTTPTrustAnchor("https://anchor-c.example", token_c),
+])  # domyślnie 2 z 3
+
+ledger = AIRPIntegrityLedger(
+    "private_state/airp-ledger.sqlite3",
+    signing_key,
+    trust_anchor=witnesses,
+    trusted_public_key=pinned_public_key_bytes,
+)
+ledger.publish_checkpoint()
+verification = ledger.verify()
+```
+
+Publikacja jest uznana za udaną po potwierdzeniu przez quorum. Odczyt wymaga zgodnego checkpointu z quorum. Jeśli świadkowie są rozbieżni lub niedostępni i nie ma większości, operacja kończy się błędem — system nie wybiera po cichu jednego źródła. Częściowa publikacja jest możliwa; ponowienie tego samego checkpointu jest idempotentne na serwerze.
+
+To mechanizm większościowego świadkowania, nie pełny protokół konsensusu BFT: nie rozwiązuje problemu złośliwej większości ani nie zapewnia automatycznej synchronizacji/naprawy świadków. Wdrożenie wymaga osobnych administratorów, monitoringu, kopii zapasowych i procedury rotacji tokenów/kluczy.
