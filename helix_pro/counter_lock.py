@@ -135,3 +135,25 @@ def decrypt_file_with_counter(in_path: str, out_dir: str, *, key: bytes) -> tupl
         f.write(next_blob)
 
     return out_path, counter
+
+
+def rotate_counter_blob(
+    blob: bytes,
+    old_key: bytes,
+    new_key: bytes,
+) -> bytes:
+    """Re-encrypt a CounterLock blob under a new key, preserving payload/counter.
+
+    The returned blob must be durably stored as a new version before the old
+    key is retired. This function does not update files or external counters.
+    """
+    if old_key == new_key:
+        raise HelixProError("new_key must differ from old_key")
+    old_lock = CounterLock(old_key)
+    new_lock = CounterLock(new_key)
+    payload, counter = old_lock.unlock(blob)
+    rotated = new_lock.lock(payload, counter=counter)
+    recovered, recovered_counter = new_lock.unlock(rotated)
+    if recovered != payload or recovered_counter != counter:
+        raise HelixProError("post-rotation CounterLock verification failed")
+    return rotated
