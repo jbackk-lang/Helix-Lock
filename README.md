@@ -636,6 +636,24 @@ GitHub Actions workflow `.github/workflows/desktop-build.yml` buduje osobne arte
 
 Tkinter jest częścią standardowego środowiska Pythona, ale na niektórych dystrybucjach Linux może wymagać doinstalowania systemowego pakietu Tk (np. `python3-tk`). Na macOS użyj dystrybucji Pythona zawierającej Tcl/Tk.
 
+
+### Security Dashboard — główny ekran podglądu
+
+Po uruchomieniu aplikacji pierwszą zakładką jest **Przegląd bezpieczeństwa**. Pokazuje:
+- wynik lokalnej kontroli łańcucha hashy AIRP (CHAIN OK / CHAIN BLEDNY), liczbę zdarzeń i sekwencję;
+- ostatnie zdarzenia dziennika w osi czasu;
+- ostatni licznik counter_observed zapisany w lokalnym AIRP;
+- rozpoznany nagłówek wybranego pliku (HLXN, HLXP, HLXC);
+- ręczne odświeżenie podglądu.
+
+**Granice interpretacji wskaźników:**
+- CHAIN OK oznacza, że lokalne zdarzenia tworzą poprawny łańcuch hashy. Nie dowodzi, że lokalna baza nie została cofnięta do starszej, wewnętrznie poprawnej kopii.
+- CHECKPOINT: NIE SPRAWDZONO oznacza, że ekran podglądu nie odpytuje automatycznie zewnętrznych świadków. Potwierdzenie quorum wykonuje się w zakładce AIRP / Quorum.
+- licznik odczytany z nagłówka HLXC jest oznaczony jako niezweryfikowany. Sam nagłówek nie jest niezależnym źródłem prawdy; do wykrywania replay/rollbacku potrzebny jest wpis AIRPCounterLock w dzienniku i zewnętrzny anchor.
+- podgląd nie pokazuje fikcyjnych wartości dla niepodłączonych mechanizmów. Brak wpisu oznacza brak danych, a nie sukces kontroli.
+
+Plik źródłowy wybrany w zakładce Pliki jest analizowany po naciśnięciu „Odśwież podgląd”; po szyfrowaniu ekran wskazuje nowy plik wynikowy.
+
 ### Konfiguracja quorum w GUI
 
 W zakładce **AIRP / Quorum** wskaż klucz prywatny Ed25519 w PEM, lokalną bazę SQLite i co najmniej trzy niezależne endpointy. Każdy wpis świadka ma format:
