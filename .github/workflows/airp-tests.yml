@@ -11,6 +11,8 @@ on:
       - "tests/test_airp_monitor.py"
       - "tests/test_airp_store.py"
       - "tests/test_airp_transaction.py"
+      - "tests/test_airp_ledger.py"
+      - "tests/test_airp_recovery.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -45,3 +47,5 @@ jobs:
           tests/test_airp_monitor.py
           tests/test_airp_store.py
           tests/test_airp_transaction.py
+          tests/test_airp_ledger.py
+          tests/test_airp_recovery.py
