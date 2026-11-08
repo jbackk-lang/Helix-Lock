@@ -44,6 +44,7 @@ from .airp_monitor import AIRPMonitor, RepresentationState, AccessEvent
 from .airp_store import AIRPStore, StoredRepresentation
 from .airp_transaction import AIRPFileTransaction, AIRPRecoveryError
 from .airp_ledger import AIRPIntegrityLedger, LedgerVerification, TrustAnchor
+from .airp_http_anchor import HTTPTrustAnchor
 from .airp_counter import AIRPCounterLock
 from .airp_recovery import generate_recovery_key, wrap_data_key, unwrap_data_key
 from .counter_lock import (
@@ -81,6 +82,7 @@ __all__ = [
     "AIRPIntegrityLedger",
     "LedgerVerification",
     "TrustAnchor",
+    "HTTPTrustAnchor",
     "AIRPCounterLock",
     "generate_recovery_key",
     "wrap_data_key",
