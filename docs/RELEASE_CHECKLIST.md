@@ -51,3 +51,19 @@ v0.1.0 is a first desktop/application release candidate, not a claim of independ
 ## Current state
 
 The release workflow has been corrected so it publishes only on a `v*` tag and uses the actual tag name. Main-branch and pull-request changes to the desktop app now trigger cross-platform package builds as validation. The first such run must complete before this checklist can be considered satisfied. Manual GUI smoke tests on real Windows/macOS/Linux machines remain outstanding.
+
+## Automated build validation result (2026-11-08)
+
+Workflow run [42501965166](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42501965166) completed successfully for commit `bcbd1d584e4e9d8c4ba1465571960c7c6f5716b0`.
+
+All three packaging jobs passed:
+- Windows: PyInstaller build, ZIP packaging, build metadata upload.
+- macOS: PyInstaller app bundle, ZIP packaging, build metadata upload.
+- Linux: PyInstaller build, tar.gz packaging, build metadata upload.
+
+Artifacts were produced (not yet a public GitHub Release):
+- `HelixLock-windows` — 16,171,183 bytes.
+- `HelixLock-macos` — 14,940,876 bytes.
+- `HelixLock-linux` — 31,178,150 bytes.
+
+The release job was correctly skipped because this was a main-branch validation run, not a version tag. This confirms packaging/build steps, not runtime behavior on real desktop systems. Manual GUI smoke tests, code signing/notarization, downloaded-package hash verification, and independent security audit remain outstanding. Do not call v0.1.0 released yet.
