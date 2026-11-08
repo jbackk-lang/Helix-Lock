@@ -88,3 +88,14 @@
 
 
 - Canonical desktop matrix after trigger separation passed: [run 42502363536](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42502363536), commit `af8e6f2f48d39d472de85cb5d6c83dd14924c03f`; all Windows/macOS/Ubuntu build, package and artifact upload steps succeeded. Release checklist was updated in `0080aad`.
+
+
+## Helical-loop parameter audit (2026-11-08)
+
+- Added `docs/HELIX_LOOP_PARAMETER_BOUNDS.md` in commit `4af93ea`.
+- Audited GIA-TIMDR conceptual Tourosomobius note, trefoil Frenet-Serret geometry, G5 geometric resonance operator, triple-loop Mobius matrix model, Chronoprocess source and phase/duration experiments.
+- Key results: standard helix has coupled curvature/torsion `kappa=a/(a²+h²)`, `tau=h/(a²+h²)`; no universal numeric cap without physical scale. G5's explicit stability gate is SPD M, K, Gamma; with positive onsite curvature, positive masses and damping, nonnegative torsion magnitudes enter as a positive weighted ring Laplacian, so no upper |tau| bound follows from SPD alone. Current G5 uses |tau| and therefore drops handedness.
+- Proposed three-channel operator `J(lambda)=P-lambda P²` is not contractive for any real nonzero lambda; lambda=0 is norm-preserving. A damping/normalization law is required for bounded iteration.
+- Current Chronoprocess is three independent projections of shared T, not a coupled helical self-regulator. Full-cycle closure `P³=I` is not repair; common-mode coherence is not repair; Kuramoto coupling is an explicitly added toy law.
+- Tourosomobius 45°/60°/1/2 and Borromean claims remain conceptual in source note, without a derived admissible parameter region or empirical validation.
+- Next experiment: pre-register a boundary map over amplitude × duration × loop asymmetry × coupling, measure phase, coherence and payload decoding separately, test torsion sign/chirality and valid payload transitions.
