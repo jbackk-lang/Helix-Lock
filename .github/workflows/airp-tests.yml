@@ -12,6 +12,12 @@ on:
       - "experiments/three_loop_information_retention.py"
       - "experiments/helical_tunnel_chirality.py"
       - "experiments/chirality_resolving_operator.py"
+      - "experiments/helix_chiral_memory_retention.py"
+      - "experiments/helix_chiral_memory_reversal.py"
+      - "experiments/helix_chiral_memory_inference.py"
+      - "experiments/helix_chiral_signal.py"
+      - "experiments/helix_chiral_signal_channel.py"
+      - "experiments/helix_chiral_intelligence.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -31,6 +37,12 @@ on:
       - "tests/test_three_loop_information_retention.py"
       - "tests/test_helical_tunnel_chirality.py"
       - "tests/test_chirality_resolving_operator.py"
+      - "tests/test_helix_chiral_memory_retention.py"
+      - "tests/test_helix_chiral_memory_reversal.py"
+      - "tests/test_helix_chiral_memory_inference.py"
+      - "tests/test_helix_chiral_signal.py"
+      - "tests/test_helix_chiral_signal_channel.py"
+      - "tests/test_helix_chiral_intelligence.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -83,6 +95,46 @@ jobs:
         run: python experiments/three_loop_information_retention.py --output three-loop-information-retention.json
       - name: Run helical tunnel chirality experiment
         run: python experiments/helical_tunnel_chirality.py --output helical-tunnel-chirality.json
+      - name: Run channel phase drift and reflection experiment
+        run: python -m experiments.helix_chiral_signal_channel --output helix-chiral-signal-channel.json
+      - name: Upload channel controls report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-chiral-signal-channel-${{ matrix.python-version }}
+          path: helix-chiral-signal-channel.json
+          retention-days: 30
+      - name: Run synthetic helical signal experiment
+        run: python -m experiments.helix_chiral_signal --output helix-chiral-signal.json
+      - name: Upload helical signal report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-chiral-signal-${{ matrix.python-version }}
+          path: helix-chiral-signal.json
+          retention-days: 30
+      - name: Infer chirality from phase history
+        run: python -m experiments.helix_chiral_memory_inference --output helix-chiral-memory-inference.json
+      - name: Upload chirality inference report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-chiral-memory-inference-${{ matrix.python-version }}
+          path: helix-chiral-memory-inference.json
+          retention-days: 30
+      - name: Run helix chiral-memory reversal experiment
+        run: python -m experiments.helix_chiral_memory_reversal --output helix-chiral-memory-reversal.json
+      - name: Upload helix chiral-memory reversal report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-chiral-memory-reversal-${{ matrix.python-version }}
+          path: helix-chiral-memory-reversal.json
+          retention-days: 30
+      - name: Run helix chiral-memory retention experiment
+        run: python -m experiments.helix_chiral_memory_retention --output helix-chiral-memory-retention.json
+      - name: Upload helix chiral-memory retention report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-chiral-memory-retention-${{ matrix.python-version }}
+          path: helix-chiral-memory-retention.json
+          retention-days: 30
       - name: Run chirality-resolving operator experiment
         run: python -m experiments.chirality_resolving_operator --output chirality-resolving-operator.json
       - name: Upload chirality-resolving operator report
@@ -131,3 +183,9 @@ jobs:
           tests/test_three_loop_information_retention.py
           tests/test_helical_tunnel_chirality.py
           tests/test_chirality_resolving_operator.py
+          tests/test_helix_chiral_memory_retention.py
+          tests/test_helix_chiral_memory_reversal.py
+          tests/test_helix_chiral_memory_inference.py
+          tests/test_helix_chiral_signal.py
+          tests/test_helix_chiral_signal_channel.py
+          tests/test_helix_chiral_intelligence.py
