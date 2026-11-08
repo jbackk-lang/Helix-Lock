@@ -428,3 +428,67 @@ Moduł nie przechowuje kluczy ani plaintextu. Wywołujący odpowiada za kryptogr
 - Operacja `commit_rotation()` aktualizuje metadane, nie plik z ciphertextem. Wymagana jest bezpieczna koordynacja zapisu obiektu i rejestru.
 - To prototyp integracyjny; przed ochroną ważnych danych potrzebne są testy na docelowym środowisku, testy awarii i niezależny audyt bezpieczeństwa.
 
+
+
+## AIRP — łańcuch zaufania, CounterLock i odzyskiwanie kluczy
+
+### Łańcuch historii i punkty kontrolne
+
+Moduł `helix_pro.airp_ledger` prowadzi globalnie sekwencjonowany łańcuch zdarzeń SHA-256. Każde zdarzenie zawiera hash poprzednika, a punkty kontrolne są podpisywane Ed25519.
+
+```python
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from helix_pro import AIRPIntegrityLedger
+
+signing_key = Ed25519PrivateKey.generate()
+ledger = AIRPIntegrityLedger(
+    "private_state/airp-ledger.sqlite3",
+    signing_key,
+    trust_anchor=independently_administered_anchor,
+    trusted_public_key=pinned_public_key_bytes,
+)
+ledger.append("representation_registered", "document-42", {
+    "version": 1,
+    "blob_sha256": "…",
+})
+checkpoint = ledger.publish_checkpoint()
+result = ledger.verify()
+```
+
+`TrustAnchor` jest kontraktem dla usługi zewnętrznej, a nie atrapą lokalnego pliku. Implementacja produkcyjna musi przechowywać ostatni checkpoint poza kontrolą komputera, atomowo odrzucać niższe numery sekwencji i konflikty tego samego numeru, a klucz publiczny weryfikować względem niezależnie przypiętej wartości. Bez skonfigurowanego anchor status jest jawnie `local_only_unanchored`; sama baza SQLite nie chroni przed cofnięciem całej bazy.
+
+Weryfikacja rozróżnia: `fully_anchored`, `valid_with_unanchored_suffix`, `local_rollback_detected`, `anchored_history_fork_or_tampering`, `local_chain_invalid` i brak zewnętrznego checkpointu.
+
+### CounterLock spięty z rejestrem
+
+`AIRPCounterLock` zapisuje zaakceptowany licznik i hash szyfrogramu do łańcucha w jednej transakcji SQLite. Ponowne użycie tego samego lub niższego licznika dla obiektu jest odrzucane. Aby ta ochrona przetrwała cofnięcie lokalnej bazy, checkpointy muszą być regularnie publikowane do niezależnego anchor.
+
+```python
+from helix_pro import AIRPCounterLock
+
+guard = AIRPCounterLock(data_key, ledger, "document-42")
+plaintext, old_counter, next_blob = guard.unlock_and_advance(blob)
+# Trwale zapisz next_blob przed uznaniem operacji za zakończoną.
+```
+
+Licznik jest konsumowany w momencie zapisu zdarzenia. Awaria po tym zapisie, ale przed utrwaleniem `next_blob`, jest celowo fail-closed i wymaga odzyskania najnowszej prawidłowej reprezentacji lub jawnej naprawy administracyjnej.
+
+### Koperta odzyskiwania klucza
+
+`helix_pro.airp_recovery` umożliwia opakowanie 256-bitowego klucza danych pod osobnym 256-bitowym kluczem odzyskiwania za pomocą AES-256-GCM. Identyfikatory obiektu i klucza są uwierzytelnionym AAD, więc koperty nie można przenieść do innego obiektu ani przypisać do innej wersji klucza.
+
+```python
+from helix_pro import generate_recovery_key, wrap_data_key, unwrap_data_key
+
+recovery_key = generate_recovery_key()
+envelope = wrap_data_key(data_key, recovery_key,
+                         object_id="document-42", key_id="key-v1")
+restored_key = unwrap_data_key(envelope, recovery_key,
+                               object_id="document-42", key_id="key-v1")
+```
+
+Klucz odzyskiwania musi być przechowywany niezależnie (np. offline lub w KMS/HSM); biblioteka go nie zapisuje i nie odtwarza z hasła. Utrata klucza odzyskiwania oznacza brak możliwości odzyskania klucza danych z koperty. To mechanizm opakowania klucza, nie kompletna usługa escrow ani rotacji kluczy.
+
+### Granice wdrożenia
+
+Repozytorium zawiera kontrakt `TrustAnchor` i testowy fake w testach. Nie jest jeszcze podłączone do konkretnej zewnętrznej usługi. Do wdrożenia produkcyjnego potrzebny jest wybrany przez operatora niezależny serwis z uwierzytelnianiem, retencją, kontrolą monotoniczności i kopią klucza publicznego poza hostem. Nie należy deklarować ochrony przed rollbackiem, dopóki ten serwis nie jest faktycznie skonfigurowany i testowany.
