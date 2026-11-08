@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,9 +31,10 @@ class AIRPStore:
 
     def __init__(self, database_path: str | Path):
         self.database_path = str(database_path)
-        if self.database_path != ":memory:":
-            Path(self.database_path).parent.mkdir(parents=True, exist_ok=True)
-        with self._connect() as db:
+        if self.database_path == ":memory:":
+            raise HelixProError("AIRPStore requires a persistent SQLite file path")
+        Path(self.database_path).parent.mkdir(parents=True, exist_ok=True)
+        with closing(self._connect()) as db:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute("PRAGMA synchronous=FULL")
             db.executescript("""
@@ -85,7 +87,7 @@ class AIRPStore:
             raise HelixProError("object_id and key_id must be non-empty")
         now = self._now()
         digest = self.fingerprint(blob)
-        with self._connect() as db:
+        with closing(self._connect()) as db:
             db.execute("BEGIN IMMEDIATE")
             try:
                 db.execute(
