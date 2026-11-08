@@ -107,3 +107,22 @@ def test_counterlock_replay_is_rejected_by_ledger(tmp_path):
         guard.unlock_and_advance(original)
     plaintext2, counter2, _ = guard.unlock_and_advance(next_blob)
     assert (plaintext2, counter2) == (b"payload", 1)
+
+
+def test_external_checkpoint_detects_valid_but_forked_local_history(tmp_path):
+    anchor = MemoryAnchor()
+    key = Ed25519PrivateKey.generate()
+    trusted = key.public_key().public_bytes(
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+    )
+    trusted_ledger = AIRPIntegrityLedger(tmp_path / "trusted.sqlite3", key, trust_anchor=anchor)
+    trusted_ledger.append("registered", "object-1", {"version": 1})
+    trusted_ledger.publish_checkpoint()
+
+    forked_ledger = AIRPIntegrityLedger(
+        tmp_path / "forked.sqlite3", key, trust_anchor=anchor, trusted_public_key=trusted
+    )
+    forked_ledger.append("registered", "object-1", {"version": 99})
+    result = forked_ledger.verify()
+    assert not result.valid
+    assert result.status == "anchored_history_fork_or_tampering"
