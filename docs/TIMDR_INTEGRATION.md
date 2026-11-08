@@ -74,3 +74,8 @@ Dla każdej hipotezy należy przed testem zamrozić definicje, progi, okna, metr
 - Helix-Lock: `helix_pro/cipher.py`, `helix_pro/airp_store.py`, `helix_pro/airp_ledger.py`, `helix_pro/airp_monitor.py`, `helix_pro/adaptive_rotation.py`, `helix_pro/counter_lock.py`, `old/helix_lock_cipher.py`.
 
 **Zasada raportowania:** rozróżniaj „koncepcja pochodzi z TIMDR”, „adapter implementuje projekcję”, „test kodu przeszedł”, „hipoteza empiryczna wsparta” i „właściwość bezpieczeństwa udowodniona”. To pięć różnych twierdzeń.
+
+
+## 9. Ograniczona pamięć zdarzeń monitora (2026-11-08)
+
+`AIRPMonitor` przechowuje teraz ograniczony bufor ostatnich zdarzeń procesu (domyślnie 1024; konfigurowalny przez `max_events`). Po przekroczeniu limitu najstarsze wpisy wypadają z bufora, a licznik `dropped_events` jawnie pokazuje liczbę eksmisji. Bufor jest celowo nietrwały i stratny; **nie jest dziennikiem audytowym**. Zdarzenia wymagające trwałości należy niezależnie dopisywać do `AIRPIntegrityLedger` lub innego chronionego magazynu append-only. Ograniczenie bufora zapobiega nieograniczonemu wzrostowi pamięci procesu, ale samo w sobie nie ogranicza liczby zdarzeń przyjmowanych przez ledger.
