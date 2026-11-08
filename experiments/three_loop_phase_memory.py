@@ -10,6 +10,14 @@ from pathlib import Path
 def wrap(angle: float) -> float:
     return (angle + math.pi) % (2.0 * math.pi) - math.pi
 
+
+def reference_feedback_correction(current_relative_phase: float, stored_reference: float, gain: float) -> float:
+    """Return the explicit correction toward a stored relative-phase reference."""
+    if gain < 0:
+        raise ValueError("gain must be non-negative")
+    return -gain * wrap(current_relative_phase - stored_reference)
+
+
 def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int = 250, disturbance_end: int = 400, disturbance_targets: tuple[int, ...] = (2,)) -> dict:
     rng = random.Random(seed)
     dt = 0.02
@@ -59,14 +67,18 @@ def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int 
     }
 
 def run(seeds=range(100, 200)) -> dict:
+    seed_list = list(seeds)
+    if not seed_list:
+        raise ValueError("at least one seed is required")
     modes = ("no_memory_no_coupling", "coupling_only", "coupling_plus_memory")
-    rows = {mode: [run_trial(seed, mode=mode) for seed in seeds] for mode in modes}
+    rows = {mode: [run_trial(seed, mode=mode) for seed in seed_list] for mode in modes}
     means = {mode: round(sum(x["post_disturbance_mean_phase_error"] for x in values) / len(values), 8) for mode, values in rows.items()}
     return {
         "status": "synthetic_dynamical_toy_model_only",
         "model": "three_phase_oscillators_with_temporary_frequency_disturbance",
         "seeds": [100, 199],
         "trial_count_per_mode": len(rows[modes[0]]),
+        "seed_values": seed_list,
         "mean_post_disturbance_phase_error": means,
         "trials": rows,
         "interpretation_limits": [
