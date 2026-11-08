@@ -97,3 +97,12 @@ Wynik dla 100 stałych seedów (100–199), średni błąd bezwzględny relacji 
 W tym konkretnym modelu pamięć wzorca wraz z dodatkowym prawem sprzężenia zwrotnego zmniejszyła średni błąd o ok. 19.3% względem samego sprzężenia fazowego. To wynik syntetyczny, nie dowód samonaprawy TSI ani Helix. Pamięć nie odtwarza utraconych danych; zachowuje jedynie dwa względne kąty fazowe, a prawo korekty zostało jawnie dopisane do modelu. Wynik nie mówi nic o odporności kryptograficznej, atakach ani produkcyjnej stabilności.
 
 Następny etap: ablacją zmieniać siłę i czas zaburzenia, dodać szum i różnice częstotliwości, sprawdzić błędny/stary wzorzec oraz mierzyć przeregulowanie i stabilność. Nie wolno dobierać parametrów na tym samym zestawie seedów, na którym raportuje się wynik.
+
+
+## 10. Kontrola zaburzenia wspólnego trzech pętli (2026-11-08)
+
+Rozszerzono `experiments/three_loop_phase_memory.py` o parametr `disturbance_targets`, pozwalający wskazać jedną, dwie lub wszystkie trzy pętle. Dodano test kontrolny, w którym identyczne chwilowe odstrojenie częstotliwości obejmuje wszystkie kanały przy wyłączonym sprzężeniu i pamięci.
+
+Interpretacja: zaburzenie common-mode przesuwa wszystkie fazy jednakowo, więc względne różnice fazowe pozostają niemal niezmienione (z dokładnością do małego niezależnego szumu). Nie jest to samonaprawa — układ nie utracił relacji względnych. Ten test kontrolny chroni przed błędnym przypisaniem zachowania common-mode mechanizmowi regeneracji.
+
+Dodatkowo filtry `pull_request.paths` w workflow obejmują teraz plik eksperymentu i jego testy; wcześniej ta ścieżka była uwzględniona przy `push`, ale nie w Pull Request.
