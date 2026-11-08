@@ -87,3 +87,17 @@ def test_project_ledger_requires_events_method():
 
     with pytest.raises(TypeError, match="events"):
         project_ledger(object())
+
+
+def test_maps_current_airp_event_vocabulary():
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    events = [
+        {"sequence": 1, "timestamp_utc": start.isoformat(), "event_type": "registered", "payload": {}},
+        {"sequence": 2, "timestamp_utc": (start + timedelta(seconds=5)).isoformat(), "event_type": "access", "payload": {"outcome": "denied"}},
+        {"sequence": 3, "timestamp_utc": (start + timedelta(seconds=10)).isoformat(), "event_type": "rotated", "payload": {"version": 2}},
+        {"sequence": 4, "timestamp_utc": (start + timedelta(seconds=15)).isoformat(), "event_type": "access", "payload": {"outcome": "granted"}},
+    ]
+    result = project_airp_events(events, window_size=4)
+    assert len(result) == 1
+    assert result[0].denied_count == 1
+    assert result[0].rotation_count == 1
