@@ -1,12 +1,14 @@
-"""AIRP monitor: version/integrity state and access-event auditing.
+"""AIRP monitor: bounded in-memory view of representation and access state.
 
 This is a small policy helper, not an intrusion detector or durable trusted
-counter. Persist its state in a protected external store for rollback detection
-across process restarts. Never log plaintext, keys, passwords, or tokens.
+counter. Persist every security-relevant event in AIRPIntegrityLedger (or
+another protected append-only store); this monitor retains only a bounded
+recent-events view to avoid unbounded process-memory growth.
 """
 from __future__ import annotations
 
 import hashlib
+from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -30,16 +32,20 @@ class AccessEvent:
 
 
 class AIRPMonitor:
-    """Track one object's expected representation and append access events.
+    """Track one object's expected representation and a bounded event view.
 
     The caller supplies an independently protected initial state on startup.
-    For multi-process or persistent use, store/compare state transactionally
-    in a trusted database or remote append-only service.
+    For durable audit, append events to AIRPIntegrityLedger separately. The
+    in-memory buffer is deliberately lossy and exposes its eviction count.
     """
 
-    def __init__(self, state: RepresentationState):
+    def __init__(self, state: RepresentationState, *, max_events: int = 1024):
+        if not isinstance(max_events, int) or isinstance(max_events, bool) or max_events < 1:
+            raise HelixProError("max_events must be a positive integer")
         self._state = state
-        self._events: list[AccessEvent] = []
+        self._events: deque[AccessEvent] = deque(maxlen=max_events)
+        self._max_events = max_events
+        self._dropped_events = 0
 
     @staticmethod
     def fingerprint(blob: bytes) -> str:
@@ -53,6 +59,15 @@ class AIRPMonitor:
     def events(self) -> tuple[AccessEvent, ...]:
         return tuple(self._events)
 
+    @property
+    def dropped_events(self) -> int:
+        """Number of older events evicted from this process-local buffer."""
+        return self._dropped_events
+
+    @property
+    def max_events(self) -> int:
+        return self._max_events
+
     def verify_current(self, blob: bytes, *, version: int, key_id: str) -> bool:
         """Return true only for the exact currently registered representation."""
         return (
@@ -62,9 +77,11 @@ class AIRPMonitor:
         )
 
     def record_access(self, *, outcome: str) -> AccessEvent:
-        """Record 'granted' or 'denied'; callers decide outcome after auth."""
+        """Record 'granted' or 'denied' in the bounded recent-events view."""
         if outcome not in {"granted", "denied"}:
             raise HelixProError("outcome must be 'granted' or 'denied'")
+        if len(self._events) == self._max_events:
+            self._dropped_events += 1
         event = AccessEvent(
             timestamp_utc=datetime.now(timezone.utc).isoformat(),
             outcome=outcome,
