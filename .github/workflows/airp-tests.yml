@@ -10,6 +10,7 @@ on:
       - "experiments/timdr_benchmark.py"
       - "experiments/three_loop_phase_memory.py"
       - "experiments/three_loop_information_retention.py"
+      - "experiments/helical_tunnel_chirality.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -27,6 +28,7 @@ on:
       - "tests/test_airp_history_memory.py"
       - "tests/test_three_loop_phase_memory.py"
       - "tests/test_three_loop_information_retention.py"
+      - "tests/test_helical_tunnel_chirality.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -50,8 +52,12 @@ on:
       - "tests/test_timdr_adapter.py"
       - "tests/test_timdr_benchmark.py"
       - "experiments/three_loop_phase_memory.py"
+      - "experiments/three_loop_information_retention.py"
+      - "experiments/helical_tunnel_chirality.py"
       - "tests/test_airp_history_memory.py"
       - "tests/test_three_loop_phase_memory.py"
+      - "tests/test_three_loop_information_retention.py"
+      - "tests/test_helical_tunnel_chirality.py"
       - ".github/workflows/airp-tests.yml"
 
 jobs:
@@ -66,7 +72,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
-        run: python -m pip install --upgrade pip cryptography pytest
+        run: python -m pip install --upgrade pip cryptography pytest numpy
       - name: Run reproducible synthetic TIMDR benchmark
         run: python experiments/timdr_benchmark.py --output timdr-benchmark.json
       - name: Run three-loop information-retention experiment
@@ -103,3 +109,4 @@ jobs:
           tests/test_airp_history_memory.py
           tests/test_three_loop_phase_memory.py
           tests/test_three_loop_information_retention.py
+          tests/test_helical_tunnel_chirality.py
