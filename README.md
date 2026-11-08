@@ -1,3 +1,7 @@
+## Pamięć historii Chronoprocesu
+
+Eksperymentalna, ograniczona pamięć cech historycznych znajduje się w `helix_pro/airp_history_memory.py`. Przetwarza metadane AIRP w stałych oknach i emituje deterministyczne podsumowania bez przechowywania payloadów. Nie zastępuje AIRPIntegrityLedger, nie steruje autoryzacją i nie implementuje samonaprawy. Granice i wymagania walidacyjne opisano w [CHRONOPROCESS_MEMORY_BOUNDARIES.md](docs/CHRONOPROCESS_MEMORY_BOUNDARIES.md).
+
 # Helix‑Lock
 
 Warstwa ochronna świadomości i treści.
