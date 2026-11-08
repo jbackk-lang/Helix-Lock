@@ -75,11 +75,11 @@ def register_airp_representation(encrypted_path: str, *, database_path: str = AI
 
 def verify_airp_representation(encrypted_path: str, *, database_path: str = AIRP_DB_PATH) -> bool:
     """Fail closed when the encrypted file has no trusted local AIRP baseline."""
+    store = AIRPStore(database_path)
+    # Resolve an interrupted file/registry transaction before reading the file.
+    AIRPFileTransaction(store).recover(encrypted_path)
     with open(encrypted_path, "rb") as stream:
         blob = stream.read()
-    store = AIRPStore(database_path)
-    # Resolve an interrupted file/registry transaction before checking the hash.
-    AIRPFileTransaction(store).recover(encrypted_path)
     object_id = airp_object_id(encrypted_path)
     state = store.get(object_id)
     if state is None:
