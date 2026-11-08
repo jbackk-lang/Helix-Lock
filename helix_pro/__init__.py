@@ -39,6 +39,7 @@ from .cipher import (
     detect_format,
     HelixProError,
 )
+from .adaptive_rotation import RotationResult, rotate_encrypted_blob
 from .counter_lock import (
     CounterLock,
     encrypt_file_with_counter,
@@ -60,4 +61,6 @@ __all__ = [
     "CounterLock",
     "encrypt_file_with_counter",
     "decrypt_file_with_counter",
+    "RotationResult",
+    "rotate_encrypted_blob",
 ]
