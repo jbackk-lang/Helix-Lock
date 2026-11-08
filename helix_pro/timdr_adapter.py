@@ -11,10 +11,13 @@ from datetime import datetime
 from statistics import mean, pstdev
 from typing import Iterable, Mapping, Any
 
+# Event names currently emitted by AIRPIntegrityLedger plus explicit
+# forward-compatible names. "access" carries outcome in its payload.
 _ALLOWED_TYPES = {
-    "counter_observed", "access_granted", "access_denied",
-    "representation_verified", "rotation_committed", "rotation_rejected",
-    "checkpoint_created", "quorum_pending", "quorum_confirmed",
+    "registered", "rotated", "access", "counter_observed",
+    "access_granted", "access_denied", "representation_verified",
+    "rotation_committed", "rotation_rejected", "checkpoint_created",
+    "quorum_pending", "quorum_confirmed",
 }
 
 
@@ -64,13 +67,16 @@ def project_airp_events(
         if kind not in _ALLOWED_TYPES:
             # Unknown event types are not silently assigned security semantics.
             continue
-        rows.append((_timestamp(str(event["timestamp_utc"])), kind))
+        payload = event.get("payload")
+        outcome = payload.get("outcome") if isinstance(payload, Mapping) else None
+        if kind == "access" and outcome not in {"granted", "denied"}:
+            # Malformed/unknown access outcomes are excluded, not guessed.
+            continue
+        rows.append((_timestamp(str(event["timestamp_utc"])), kind, outcome))
     rows.sort(key=lambda item: item[0])
     if not rows:
         return ()
 
-    intervals = [(rows[i][0] - rows[i-1][0]).total_seconds()
-                 for i in range(1, len(rows))]
     rates = []
     for offset in range(0, len(rows), window_size):
         chunk = rows[offset:offset + window_size]
@@ -86,13 +92,17 @@ def project_airp_events(
     spread = pstdev(baseline) if len(baseline) > 1 else 0.0
     output = []
     for _, chunk, avg_gap, drift, rate in rates:
-        kinds = [kind for _, kind in chunk]
+        kinds = [kind for _, kind, _ in chunk]
+        denied = sum(
+            (kind == "access" and outcome == "denied") or kind in {"access_denied", "rotation_rejected"}
+            for _, kind, outcome in chunk
+        )
         output.append(TIMDRObservation(
             start_utc=chunk[0][0].isoformat(),
             end_utc=chunk[-1][0].isoformat(),
             event_count=len(chunk),
-            denied_count=sum(k in {"access_denied", "rotation_rejected"} for k in kinds),
-            rotation_count=sum(k == "rotation_committed" for k in kinds),
+            denied_count=denied,
+            rotation_count=sum(k in {"rotated", "rotation_committed"} for k in kinds),
             rejected_count=sum(k == "rotation_rejected" for k in kinds),
             mean_interarrival_seconds=avg_gap,
             interarrival_drift=drift,
