@@ -42,6 +42,7 @@ from .cipher import (
 from .adaptive_rotation import RotationResult, rotate_encrypted_blob
 from .airp_monitor import AIRPMonitor, RepresentationState, AccessEvent
 from .airp_store import AIRPStore, StoredRepresentation
+from .airp_transaction import AIRPFileTransaction, AIRPRecoveryError
 from .counter_lock import (
     CounterLock,
     encrypt_file_with_counter,
@@ -72,4 +73,6 @@ __all__ = [
     "AccessEvent",
     "AIRPStore",
     "StoredRepresentation",
+    "AIRPFileTransaction",
+    "AIRPRecoveryError",
 ]
