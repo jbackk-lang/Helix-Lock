@@ -195,7 +195,7 @@ class HelixLockApp(tk.Tk):
                                 break
                             expected_sequence += 1
                             previous_hash = stored_hash
-                        self.dash_chain.set("CHAIN OK" if chain_valid else "CHAIN BLEDNY")
+                        self.dash_chain.set(("PUSTY" if total == 0 else "CHAIN OK") if chain_valid else "CHAIN BLEDNY")
                         latest_counter = None
                         history_lines = []
                         for seq, stamp, event_type, object_id, payload_json, stored_previous, stored_hash in reversed(all_rows[-8:]):
@@ -419,6 +419,7 @@ class HelixLockApp(tk.Tk):
             key = self._read_key()["key"]
             manager = self._identity_manager()
             result = manager.register_key(key, object_id=self.object_id.get().strip(), key_id=self.key_id.get().strip())
+            self.refresh_dashboard()
             if result.anchored:
                 self.status.set("AIRP: odcisk zakotwiczony w quorum.")
                 messagebox.showinfo("AIRP / Quorum", result.message)
@@ -444,6 +445,7 @@ class HelixLockApp(tk.Tk):
                 old_key_id=self.old_key_id.get().strip(), new_key_id=self.key_id.get().strip(),
                 signer=signer,
             )
+            self.refresh_dashboard()
             if result.anchored:
                 self.status.set("AIRP: rotacja klucza potwierdzona przez quorum.")
                 messagebox.showinfo("AIRP / rotacja", result.message)
@@ -457,6 +459,7 @@ class HelixLockApp(tk.Tk):
         try:
             manager = self._identity_manager()
             result = manager.retry_anchor()
+            self.refresh_dashboard()
             self.status.set("AIRP status: " + result.status)
             messagebox.showinfo("AIRP / Quorum", f"Status: {result.status}\nLokalna sekwencja: {result.local_sequence}\nZakotwiczona sekwencja: {result.anchored_sequence}")
         except (OSError, ValueError, HelixProError) as exc: messagebox.showerror("AIRP / Quorum", str(exc))
