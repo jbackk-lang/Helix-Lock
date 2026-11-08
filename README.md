@@ -173,6 +173,10 @@ klucza) jest w zwykłych funkcjach modułu, przetestowanych w
 uruchomienia na Twoim komputerze, żeby je zobaczyć (środowisko, w
 którym to powstało, nie ma wyświetlacza).
 
+## Chronoproces i pamięć historyczna
+
+Granice pamięci operacyjnej, audytowej i cech historycznych oraz plan walidacji opisano w [CHRONOPROCESS_MEMORY_BOUNDARIES.md](docs/CHRONOPROCESS_MEMORY_BOUNDARIES.md). Ważne: obecny Chronoproces GIA-TIMDR orkiestruje trzy niezależne rzuty; sam nie implementuje sprzężonej samonaprawy ani adaptacyjnej pamięci. Nie należy mylić agregacji historii zdarzeń z odzyskiwaniem informacji.
+
 ## Co zastąpiono i dlaczego
 
 Audyt (2026-08) trzech oryginalnych modułów znalazł konkretne, nie
