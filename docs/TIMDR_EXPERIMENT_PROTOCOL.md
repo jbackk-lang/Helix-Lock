@@ -40,3 +40,10 @@ The AIRP ledger currently emits event names including `registered`, `rotated`, `
 
 ## Commercial-tool comparison (planned after the experiment)
 The final report will compare Helix-Lock/TIMDR only against products in clearly matched categories: endpoint protection/EDR (for host behavior alerts), file/data encryption tools (for confidentiality and key lifecycle), and audit/immutable-log platforms (for tamper evidence and external anchoring). These are not interchangeable product classes. The comparison will use public vendor documentation and independently verifiable product capabilities, distinguish feature presence from measured performance, record product/version/date/licensing assumptions, and avoid claims that synthetic Helix-Lock results establish superiority over commercial products. Candidate products will be selected and researched when the internal experiment is complete.
+
+
+## Executable synthetic benchmark harness
+
+The first reproducible harness is `experiments/timdr_benchmark.py`. It uses fixed, disjoint calibration seeds (1000–1099) and holdout seeds (9000–9099), with 6,400 labelled windows. CI runs the harness and archives `timdr-benchmark.json` for 30 days. A reproducibility test checks that repeated runs return identical metrics.
+
+Interpretation limits: this initial harness compares a simple rate/denied-count rule with the same rule plus an inter-arrival drift feature. It is deliberately a narrow ablation, not a complete implementation of the AIRP cryptographic-integrity baseline, not a validation on production traces, and not evidence of real-world attack detection. Synthetic scenario labels are not ground truth about adversaries. Results must be reported as exploratory.
