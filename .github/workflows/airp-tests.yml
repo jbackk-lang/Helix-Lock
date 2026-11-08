@@ -22,6 +22,7 @@ on:
       - "tests/test_airp_identity.py"
       - "tests/test_timdr_adapter.py"
       - "tests/test_timdr_benchmark.py"
+      - "tests/test_airp_history_memory.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -84,3 +85,4 @@ jobs:
           tests/test_airp_identity.py
           tests/test_timdr_adapter.py
           tests/test_timdr_benchmark.py
+          tests/test_airp_history_memory.py
