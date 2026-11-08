@@ -20,6 +20,8 @@ on:
       - "experiments/helix_chiral_intelligence.py"
       - "experiments/helix_native_codec.py"
       - "experiments/helix_native_benchmark.py"
+      - "experiments/helix_native_history_comparison.py"
+      - "experiments/helix_native_compact.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -47,6 +49,8 @@ on:
       - "tests/test_helix_chiral_intelligence.py"
       - "tests/test_helix_native_codec.py"
       - "tests/test_helix_native_benchmark.py"
+      - "tests/test_helix_native_history_comparison.py"
+      - "tests/test_helix_native_compact.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -173,6 +177,14 @@ jobs:
           name: helix-native-benchmark-${{ matrix.python-version }}
           path: helix-native-benchmark.json
           retention-days: 30
+      - name: Compare history-aware and instantaneous decoding
+        run: python -m experiments.helix_native_history_comparison --output helix-native-history-comparison.json
+      - name: Upload history comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-native-history-${{ matrix.python-version }}
+          path: helix-native-history-comparison.json
+          retention-days: 30
       - name: Run core and AIRP tests
         run: >-
           python -m pytest -q
@@ -203,3 +215,5 @@ jobs:
           tests/test_helix_chiral_intelligence.py
           tests/test_helix_native_codec.py
           tests/test_helix_native_benchmark.py
+          tests/test_helix_native_compact.py
+          tests/test_helix_native_history_comparison.py
