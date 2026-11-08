@@ -14,9 +14,6 @@ on:
       - "tests/test_airp_transaction.py"
       - "tests/test_airp_ledger.py"
       - "tests/test_airp_recovery.py"
-      - "tests/test_timdr_adapter.py"
-      - "tests/test_timdr_benchmark.py"
-      - "experiments/timdr_benchmark.py"
       - "tests/test_airp_anchor_service.py"
       - "tests/test_airp_quorum.py"
       - "tests/test_airp_key_fingerprint.py"
@@ -74,5 +71,7 @@ jobs:
           tests/test_airp_quorum.py
           tests/test_airp_key_fingerprint.py
           tests/test_airp_identity.py
+          tests/test_timdr_adapter.py
+          tests/test_timdr_benchmark.py
           tests/test_timdr_adapter.py
           tests/test_timdr_benchmark.py
