@@ -1,17 +1,13 @@
-name: Publish Helix-Lock desktop release
+name: Build and publish Helix-Lock desktop release
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-    paths:
-      - ".github/workflows/publish-release.yml"
     tags:
       - "v*"
 
 permissions:
   contents: write
-  actions: read
 
 jobs:
   build:
@@ -55,6 +51,7 @@ jobs:
           echo "runner_os=${{ runner.os }}" >> build-environment.txt
           echo "runner_arch=$(uname -m)" >> build-environment.txt
           echo "source_commit=${{ github.sha }}" >> build-environment.txt
+          echo "release_ref=${{ github.ref }}" >> build-environment.txt
       - name: Upload platform package and build metadata
         uses: actions/upload-artifact@v4
         with:
@@ -69,6 +66,7 @@ jobs:
 
   release:
     name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -83,8 +81,7 @@ jobs:
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.1.0
-          name: Helix-Lock v0.1.0
-          target_commitish: main
+          tag_name: ${{ github.ref_name }}
+          name: Helix-Lock ${{ github.ref_name }}
           generate_release_notes: true
           files: release-assets/**/*
