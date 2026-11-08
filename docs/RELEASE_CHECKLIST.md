@@ -67,3 +67,8 @@ Artifacts were produced (not yet a public GitHub Release):
 - `HelixLock-linux` — 31,178,150 bytes.
 
 The release job was correctly skipped because this was a main-branch validation run, not a version tag. This confirms packaging/build steps, not runtime behavior on real desktop systems. Manual GUI smoke tests, code signing/notarization, downloaded-package hash verification, and independent security audit remain outstanding. Do not call v0.1.0 released yet.
+
+
+## Workflow trigger separation
+
+Desktop package validation lives in `.github/workflows/desktop-build.yml` and runs on relevant main-branch changes, pull requests and manual dispatch. Publishing lives in `.github/workflows/publish-release.yml` and runs on `v*` tags (or can be manually dispatched for build-only validation); the release job itself is guarded by a `refs/tags/v` condition. This separation avoids ambiguous branch/tag path-filter combinations and prevents a manual build from creating a release.
