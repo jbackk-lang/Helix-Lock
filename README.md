@@ -352,6 +352,20 @@ python -m pytest tests/test_adaptive_rotation.py tests/test_airp_monitor.py test
 python -m pytest tests/ -q
 ```
 
+#### Windows PowerShell
+
+W katalogu repozytorium (jeśli używasz środowiska `.venv312`):
+
+```powershell
+.\.venv312\Scripts\Activate.ps1
+python -m pip install --upgrade cryptography pytest
+python -m pytest tests/test_adaptive_rotation.py tests/test_airp_monitor.py tests/test_airp_store.py -q
+# testy rdzenia + AIRP:
+python -m pytest tests/test_helix_pro.py tests/test_adaptive_rotation.py tests/test_airp_monitor.py tests/test_airp_store.py -q
+```
+
+Przykładowa lokalizacja bazy: `.`private_state\airp.sqlite3` (katalog powinien być prywatny dla konta użytkownika). Nie commituj bazy ani kluczy do Git — dodaj katalog stanu do lokalnego `.gitignore`.
+
 ### Granice bezpieczeństwa — przeczytaj przed wdrożeniem
 
 - SQLite daje trwałość i transakcyjność lokalnego rejestru, ale **nie jest odporny na rollback**, jeśli napastnik może podmienić bazę i kopie zapasowe. Dla silniejszego modelu zagrożeń użyj niezależnej usługi/rejestru append-only, z osobnymi uprawnieniami i ochroną przed cofnięciem.
