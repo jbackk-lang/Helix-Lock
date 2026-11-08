@@ -606,3 +606,46 @@ Ekran pokazuje wizualny przepływ: klucz → odcisk → weryfikacja → rejestr 
 
 
 **Walidacja CI GUI/fingerprint:** 105 testów zaliczonych na Pythonie 3.11 oraz 105 na Pythonie 3.12. Raport: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42474308493
+
+
+## Jedna aplikacja desktopowa — Windows, macOS i Linux
+
+Nowy interfejs `helix_lock_app.py` łączy trzy obszary w jednym oknie:
+- **Pliki** — podstawowe szyfrowanie i odszyfrowywanie AES-256-GCM.
+- **Odcisk klucza** — manifest odcisku, weryfikacja kontekstu i fingerprint szyfrogramu.
+- **AIRP / Quorum** — rejestracja odcisku, podpisana rotacja klucza i ponawianie checkpointu quorum.
+
+Uruchomienie z repozytorium:
+
+```bash
+python -m pip install cryptography
+python helix_lock_app.py
+```
+
+Dotychczasowy punkt wejścia `helix_pro_gui.py` uruchamia teraz ten uproszczony interfejs. Poprzednie zaawansowane okno pozostaje dostępne poleceniem:
+
+```bash
+python helix_pro_gui.py --legacy
+```
+
+### Budowanie natywnych aplikacji
+
+GitHub Actions workflow `.github/workflows/desktop-build.yml` buduje osobne artefakty na macOS, Windows i Linux (PyInstaller). Uruchom workflow ręcznie z zakładki Actions albo utwórz tag wersji `v*`. Każdy artefakt należy pobrać i uruchomić na odpowiadającym mu systemie — binaria PyInstaller nie są przenośne między systemami operacyjnymi.
+
+Tkinter jest częścią standardowego środowiska Pythona, ale na niektórych dystrybucjach Linux może wymagać doinstalowania systemowego pakietu Tk (np. `python3-tk`). Na macOS użyj dystrybucji Pythona zawierającej Tcl/Tk.
+
+### Konfiguracja quorum w GUI
+
+W zakładce **AIRP / Quorum** wskaż klucz prywatny Ed25519 w PEM, lokalną bazę SQLite i co najmniej trzy niezależne endpointy. Każdy wpis świadka ma format:
+
+```text
+https://witness-1.example | TOKEN_MIN_32_ZNAKI
+https://witness-2.example | TOKEN_MIN_32_ZNAKI
+https://witness-3.example | TOKEN_MIN_32_ZNAKI
+```
+
+Tokeny są używane tylko w bieżącej sesji GUI i nie są zapisywane w pliku konfiguracyjnym. Endpointy muszą być wcześniej uruchomione jako niezależnie administrowane usługi AIRP Trust Anchor i skonfigurowane z przypiętym publicznym kluczem Ed25519 odpowiadającym wybranemu kluczowi podpisującemu. Samo wpisanie trzech adresów nie tworzy niezależności administracyjnej.
+
+Rejestracja i rotacja klucza tworzą zdarzenie w lokalnym łańcuchu AIRP, a następnie próbują opublikować podpisany checkpoint przez quorum. Jeśli większość świadków jest niedostępna, GUI pokazuje status **pending / niezakotwiczone**. Zdarzenie lokalne pozostaje w bazie i można ponowić publikację po przywróceniu świadków. Nigdy nie traktuj lokalnego wpisu jako potwierdzenia quorum.
+
+**Zakres aktualnego GUI:** zakładka Pliki obsługuje podstawowy format nazwany i starszy format Helix Pro. Pliki CounterLock nadal wymagają zaawansowanego okna `--legacy`. To celowe zachowanie — GUI nie zmienia po cichu semantyki licznika ani nie nadpisuje szyfrogramu podczas zwykłego odszyfrowania.
