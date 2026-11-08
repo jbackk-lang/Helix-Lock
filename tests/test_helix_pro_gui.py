@@ -7,6 +7,7 @@ w środowisku bez wyświetlacza (jak to, w którym powstał ten plik) -
 patrz docstring modułu.
 """
 import os
+import pytest
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
