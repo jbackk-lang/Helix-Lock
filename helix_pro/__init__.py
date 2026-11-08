@@ -41,10 +41,12 @@ from .cipher import (
 )
 from .adaptive_rotation import RotationResult, rotate_encrypted_blob
 from .airp_monitor import AIRPMonitor, RepresentationState, AccessEvent
+from .airp_store import AIRPStore, StoredRepresentation
 from .counter_lock import (
     CounterLock,
     encrypt_file_with_counter,
     decrypt_file_with_counter,
+    rotate_counter_blob,
 )
 
 __all__ = [
@@ -62,9 +64,12 @@ __all__ = [
     "CounterLock",
     "encrypt_file_with_counter",
     "decrypt_file_with_counter",
+    "rotate_counter_blob",
     "RotationResult",
     "rotate_encrypted_blob",
     "AIRPMonitor",
     "RepresentationState",
     "AccessEvent",
+    "AIRPStore",
+    "StoredRepresentation",
 ]
