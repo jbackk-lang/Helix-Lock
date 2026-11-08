@@ -85,3 +85,6 @@
 - `af8e6f2`: existing `.github/workflows/desktop-build.yml` was corrected to be the separate main/PR/manual cross-platform build validator. It produces per-platform archives and build metadata.
 - `fe6ff73`: release checklist explains separation. This avoids ambiguity in GitHub Actions branch/tag filters and ensures manual builds do not publish a release.
 - New desktop validation run after this correction: [42502363536](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42502363536), triggered by commit `af8e6f2`; check completion and all three matrix jobs before declaring final build validation.
+
+
+- Canonical desktop matrix after trigger separation passed: [run 42502363536](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42502363536), commit `af8e6f2f48d39d472de85cb5d6c83dd14924c03f`; all Windows/macOS/Ubuntu build, package and artifact upload steps succeeded. Release checklist was updated in `0080aad`.
