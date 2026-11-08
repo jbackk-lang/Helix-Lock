@@ -55,6 +55,8 @@ on:
       - "tests/test_helix_native_evidence_gate.py"
       - "tests/test_helix_native_secure_envelope.py"
       - "tests/test_helix_lock_ui_priority.py"
+      - "tests/test_helix_memory_vs_accumulation.py"
+      - "experiments/helix_memory_vs_accumulation.py"
       - "tests/test_helix_native_compact.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
@@ -102,6 +104,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Test memory versus cumulative errors
+        run: python -m pytest -q tests/test_helix_memory_vs_accumulation.py
+      - name: Measure per-observation errors, sequence failures, runtime and RAM
+        run: python -m experiments.helix_memory_vs_accumulation --output helix-memory-vs-accumulation.json
+      - name: Upload memory and accumulation measurements
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-memory-vs-accumulation-${{ matrix.python-version }}
+          path: helix-memory-vs-accumulation.json
+          retention-days: 30
       - name: Run reproducible synthetic TIMDR benchmark
         run: python experiments/timdr_benchmark.py --output timdr-benchmark.json
       - name: Run three-loop information-retention experiment
