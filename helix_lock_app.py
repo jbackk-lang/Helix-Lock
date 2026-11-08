@@ -54,6 +54,10 @@ class HelixLockApp(tk.Tk):
         self._style()
         self._build()
 
+    def _tr(self, polish, english):
+        # Windows users asked for bilingual labels; Linux/macOS keep concise English UI.
+        return english + " / " + polish if os.name == "nt" else english
+
     def _style(self):
         style = ttk.Style(self)
         style.theme_use("clam")
@@ -74,18 +78,18 @@ class HelixLockApp(tk.Tk):
         head.pack(fill="x", padx=22, pady=(18, 12))
         self._logo(head)
         tk.Label(head, text="HELIX-LOCK", bg=BG, fg=FG, font=("Segoe UI", 22, "bold")).pack(anchor="w", padx=(78, 0), pady=(4, 0))
-        tk.Label(head, text="Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
+        tk.Label(head, text=self._tr("Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", "File encryption · Key identity · AIRP trust"), bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
         self.tabs = ttk.Notebook(self)
         self.tabs.pack(fill="both", expand=True, padx=20, pady=(0, 12))
-        self.dashboard_tab = ttk.Frame(self.tabs); self.tabs.add(self.dashboard_tab, text="Przegląd bezpieczeństwa")
-        self.file_tab = ttk.Frame(self.tabs); self.tabs.add(self.file_tab, text="Pliki")
-        self.fp_tab = ttk.Frame(self.tabs); self.tabs.add(self.fp_tab, text="Odcisk klucza")
-        self.trust_tab = ttk.Frame(self.tabs); self.tabs.add(self.trust_tab, text="AIRP / Quorum")
+        self.dashboard_tab = ttk.Frame(self.tabs); self.tabs.add(self.dashboard_tab, text=self._tr("Przegląd bezpieczeństwa", "Security overview"))
+        self.file_tab = ttk.Frame(self.tabs); self.tabs.add(self.file_tab, text=self._tr("Pliki", "Files"))
+        self.fp_tab = ttk.Frame(self.tabs); self.tabs.add(self.fp_tab, text=self._tr("Odcisk klucza", "Key fingerprint"))
+        self.trust_tab = ttk.Frame(self.tabs); self.tabs.add(self.trust_tab, text=self._tr("AIRP / Quorum", "AIRP / Quorum"))
         self._build_dashboard()
         self._build_files()
         self._build_fingerprint()
         self._build_trust()
-        self.status = tk.StringVar(value="Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.")
+        self.status = tk.StringVar(value=self._tr("Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.", "Ready. Keys stay on this device."))
         self.refresh_dashboard()
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
         tk.Label(bar, textvariable=self.status, bg="#0C1421", fg=MUTED, anchor="w", padx=16, pady=10).pack(fill="x")
@@ -110,7 +114,7 @@ class HelixLockApp(tk.Tk):
         entry = ttk.Entry(row, textvariable=variable, show="*" if secret else "")
         entry.pack(side="left", fill="x", expand=True, padx=6)
         if browse:
-            ttk.Button(row, text="Wybierz…", command=browse).pack(side="left")
+            ttk.Button(row, text=self._tr("Wybierz…", "Browse…"), command=browse).pack(side="left")
         return entry
 
 
@@ -122,8 +126,8 @@ class HelixLockApp(tk.Tk):
         tk.Label(card, text=note, bg=PANEL, fg=MUTED, font=("Segoe UI", 8), wraplength=210, justify="left").pack(anchor="w", padx=12, pady=(0, 10))
 
     def _build_dashboard(self):
-        intro = self._section(self.dashboard_tab, "CENTRUM BEZPIECZENSTWA", "Podglad lokalnego rejestru AIRP i wybranego pliku. Brak danych nie oznacza pozytywnego wyniku kontroli.")
-        ttk.Button(intro, text="Odswiez podglad", command=self.refresh_dashboard).pack(anchor="e", padx=14, pady=(0, 10))
+        intro = self._section(self.dashboard_tab, self._tr("CENTRUM BEZPIECZENSTWA", "SECURITY OVERVIEW"), self._tr("Podglad lokalnego rejestru AIRP i wybranego pliku. Brak danych nie oznacza pozytywnego wyniku kontroli.", "Local AIRP ledger and selected-file status. Missing data never means a passed security check."))
+        ttk.Button(intro, text=self._tr("Odswiez podglad", "Refresh overview"), command=self.refresh_dashboard).pack(anchor="e", padx=14, pady=(0, 10))
         row1 = tk.Frame(self.dashboard_tab, bg=BG); row1.pack(fill="x", padx=10)
         row2 = tk.Frame(self.dashboard_tab, bg=BG); row2.pack(fill="x", padx=10)
         self.dash_chain = tk.StringVar(value="—")
@@ -132,16 +136,16 @@ class HelixLockApp(tk.Tk):
         self.dash_counter = tk.StringVar(value="—")
         self.dash_file = tk.StringVar(value="Nie wybrano")
         self.dash_events = tk.StringVar(value="—")
-        self._metric(row1, "LANCUCH AIRP", self.dash_chain, "Dane lokalne; nie oznaczaja potwierdzenia quorum.")
-        self._metric(row1, "SEKWENCJA", self.dash_sequence, "Liczba zdarzen w lokalnym dzienniku.")
-        self._metric(row1, "CHECKPOINT", self.dash_anchor, "Stan zewnetrznego anchor wymaga osobnej weryfikacji.")
-        self._metric(row2, "LICZNIK COUNTERLOCK", self.dash_counter, "Ostatni licznik zapisany w lokalnym dzienniku AIRP.")
-        self._metric(row2, "FORMAT PLIKU", self.dash_file, "Rozpoznanie naglowka, nie weryfikacja kluczem.")
-        self._metric(row2, "ZDARZENIA", self.dash_events, "Liczba wpisow w dzienniku AIRP.")
-        history = self._section(self.dashboard_tab, "OS CZASU ZDARZEN", "Ostatnie wpisy AIRP; bez kluczy, hasel i tresci plikow.")
+        self._metric(row1, self._tr("LANCUCH AIRP", "AIRP CHAIN"), self.dash_chain, self._tr("Dane lokalne; nie oznaczaja potwierdzenia quorum.", "Local data; quorum is not confirmed."))
+        self._metric(row1, self._tr("SEKWENCJA", "SEQUENCE"), self.dash_sequence, self._tr("Liczba zdarzen w lokalnym dzienniku.", "Events in the local ledger."))
+        self._metric(row1, self._tr("CHECKPOINT", "CHECKPOINT"), self.dash_anchor, self._tr("Stan zewnetrznego anchor wymaga osobnej weryfikacji.", "External trust anchor must be checked separately."))
+        self._metric(row2, self._tr("LICZNIK COUNTERLOCK", "COUNTERLOCK COUNTER"), self.dash_counter, self._tr("Ostatni licznik zapisany w lokalnym dzienniku AIRP.", "Latest counter recorded in the AIRP ledger."))
+        self._metric(row2, self._tr("FORMAT PLIKU", "FILE FORMAT"), self.dash_file, self._tr("Rozpoznanie naglowka, nie weryfikacja kluczem.", "Header detection only; not key verification."))
+        self._metric(row2, self._tr("ZDARZENIA", "EVENTS"), self.dash_events, self._tr("Liczba wpisow w dzienniku AIRP.", "Number of AIRP ledger entries."))
+        history = self._section(self.dashboard_tab, self._tr("OS CZASU ZDARZEN", "EVENT TIMELINE"), self._tr("Ostatnie wpisy AIRP; bez kluczy, hasel i tresci plikow.", "Recent AIRP events; no keys, passwords, or file contents."))
         self.dash_history = tk.Text(history, height=9, bg="#0C1421", fg=FG, insertbackground=FG, relief="flat", wrap="word", font=("Consolas", 9), state="disabled")
         self.dash_history.pack(fill="both", expand=True, padx=14, pady=(0, 12))
-        tk.Label(self.dashboard_tab, text="WAZNE: lokalna baza SQLite sama nie chroni przed cofaniem calej bazy. Ochrona przed rollbackiem wymaga niezaleznego Trust Anchor / quorum.", bg=BG, fg="#F2C879", font=("Segoe UI", 9), wraplength=730, justify="left").pack(fill="x", padx=18, pady=(4, 8))
+        tk.Label(self.dashboard_tab, text=self._tr("WAZNE: lokalna baza SQLite sama nie chroni przed cofaniem calej bazy. Ochrona przed rollbackiem wymaga niezaleznego Trust Anchor / quorum.", "IMPORTANT: a local SQLite database cannot prevent rollback of the database itself. Rollback protection requires an independent trust anchor / quorum."), bg=BG, fg="#F2C879", font=("Segoe UI", 9), wraplength=730, justify="left").pack(fill="x", padx=18, pady=(4, 8))
 
     def refresh_dashboard(self):
         self.dash_file.set("Nie wybrano")
@@ -221,50 +225,50 @@ class HelixLockApp(tk.Tk):
         self.dash_history.configure(state="disabled")
 
     def _build_files(self):
-        card = self._section(self.file_tab, "01  Szyfruj / odszyfruj", "Wybierz plik, sposób uwierzytelnienia i jedną operację. Program sam podpowie nazwę pliku wynikowego.")
-        self._entry(card, "Plik źródłowy", self.source, browse=self._pick_source)
+        card = self._section(self.file_tab, self._tr("01  Szyfruj / odszyfruj", "01  Encrypt / decrypt"), self._tr("Wybierz plik, sposób uwierzytelnienia i jedną operację. Program sam podpowie nazwę pliku wynikowego.", "Choose a file and an authentication method, then encrypt or decrypt."))
+        self._entry(card, self._tr("Plik źródłowy", "Source file"), self.source, browse=self._pick_source)
         row = tk.Frame(card, bg=PANEL); row.pack(fill="x", padx=14, pady=7)
-        ttk.Radiobutton(row, text="Plik-klucz (zalecane)", variable=self.mode, value="key", command=self._refresh_mode).pack(side="left")
-        ttk.Radiobutton(row, text="Hasło", variable=self.mode, value="password", command=self._refresh_mode).pack(side="left", padx=18)
+        ttk.Radiobutton(row, text=self._tr("Plik-klucz (zalecane)", "Key file (recommended)"), variable=self.mode, value="key", command=self._refresh_mode).pack(side="left")
+        ttk.Radiobutton(row, text=self._tr("Hasło", "Password"), variable=self.mode, value="password", command=self._refresh_mode).pack(side="left", padx=18)
         self.key_row = tk.Frame(card, bg=PANEL); self.key_row.pack(fill="x")
         self._entry(self.key_row, "Plik klucza", self.key_file, browse=self._pick_key)
-        ttk.Button(card, text="Wygeneruj nowy klucz…", command=self._generate_key).pack(anchor="e", padx=14, pady=5)
+        ttk.Button(card, text=self._tr("Wygeneruj nowy klucz…", "Generate key…"), command=self._generate_key).pack(anchor="e", padx=14, pady=5)
         self.pass_row = tk.Frame(card, bg=PANEL)
-        self._entry(self.pass_row, "Hasło", self.password, secret=True)
+        self._entry(self.pass_row, self._tr("Hasło", "Password"), self.password, secret=True)
         actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))
         ttk.Button(actions, text="🔒  Szyfruj", style="Accent.TButton", command=self._encrypt).pack(side="left", expand=True, fill="x", padx=(0, 6))
         ttk.Button(actions, text="🔓  Odszyfruj", command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
         self._refresh_mode()
-        note = self._section(self.file_tab, "Ważne", "Zachowaj kopię klucza poza komputerem z zaszyfrowanymi danymi. Bez klucza lub hasła odzyskanie treści nie będzie możliwe. Odcisk klucza nie zastępuje klucza.")
+        note = self._section(self.file_tab, self._tr("Ważne", "Important"), self._tr("Zachowaj kopię klucza poza komputerem z zaszyfrowanymi danymi. Bez klucza lub hasła odzyskanie treści nie będzie możliwe. Odcisk klucza nie zastępuje klucza.", "Keep a backup of the key away from the encrypted data. Without the key or password, the data cannot be recovered. A fingerprint is not a key."))
 
     def _build_fingerprint(self):
-        card = self._section(self.fp_tab, "02  Tożsamość klucza", "Utwórz odcisk powiązany z identyfikatorem obiektu i klucza. Manifest nie zawiera klucza ani hasła.")
+        card = self._section(self.fp_tab, self._tr("02  Tożsamość klucza", "02  Key identity"), self._tr("Utwórz odcisk powiązany z identyfikatorem obiektu i klucza. Manifest nie zawiera klucza ani hasła.", "Create a fingerprint bound to object and key IDs. The manifest contains no key or password."))
         self._entry(card, "Plik klucza", self.key_file, browse=self._pick_key)
-        self._entry(card, "ID obiektu", self.object_id)
-        self._entry(card, "ID klucza", self.key_id)
+        self._entry(card, self._tr("ID obiektu", "Object ID"), self.object_id)
+        self._entry(card, self._tr("ID klucza", "Key ID"), self.key_id)
         actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=10)
-        ttk.Button(actions, text="Utwórz manifest…", style="Accent.TButton", command=self._create_fingerprint).pack(side="left", padx=(0, 8))
-        ttk.Button(actions, text="Zweryfikuj manifest…", command=self._verify_fingerprint).pack(side="left")
+        ttk.Button(actions, text=self._tr("Utwórz manifest…", "Create manifest…"), style="Accent.TButton", command=self._create_fingerprint).pack(side="left", padx=(0, 8))
+        ttk.Button(actions, text=self._tr("Zweryfikuj manifest…", "Verify manifest…"), command=self._verify_fingerprint).pack(side="left")
         self.fp_output = tk.Text(card, height=5, bg="#0C1421", fg=ACCENT, insertbackground=FG, relief="flat", wrap="word", font=("Consolas", 9))
         self.fp_output.pack(fill="x", padx=14, pady=(0, 14))
-        rep = self._section(self.fp_tab, "Odcisk szyfrogramu", "Policz SHA-256 z domenowym rozdzieleniem dla dowolnego pliku szyfrogramu — także dużego pliku, bez wczytywania go w całości do RAM.")
-        ttk.Button(rep, text="Wybierz szyfrogram i oblicz odcisk…", command=self._representation).pack(anchor="w", padx=14, pady=(0, 12))
+        rep = self._section(self.fp_tab, self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), self._tr("Policz SHA-256 z domenowym rozdzieleniem dla dowolnego pliku szyfrogramu — także dużego pliku, bez wczytywania go w całości do RAM.", "Calculate a domain-separated SHA-256 fingerprint, including for large files, without loading the whole file into memory."))
+        ttk.Button(rep, text=self._tr("Wybierz szyfrogram i oblicz odcisk…", "Select ciphertext and calculate fingerprint…"), command=self._representation).pack(anchor="w", padx=14, pady=(0, 12))
 
     def _build_trust(self):
-        card = self._section(self.trust_tab, "03  AIRP · zewnętrzne zaufanie", "Ta sekcja łączy odciski z podpisanym dziennikiem AIRP i quorum niezależnych świadków. Każdy endpoint powinien być zarządzany w osobnej domenie administracyjnej.")
-        self._entry(card, "Klucz podpisujący", self.signer_file, browse=self._pick_signer)
-        self._entry(card, "Stary plik klucza", self.old_key_file, browse=self._pick_old_key)
-        self._entry(card, "ID starego klucza", self.old_key_id)
-        self._entry(card, "Hasło PEM", self.signer_password, secret=True)
-        self._entry(card, "Baza AIRP", self.ledger_path, browse=self._pick_ledger)
-        tk.Label(card, text="Świadkowie — jeden wpis na linię: HTTPS_URL | BEARER_TOKEN (tokeny nie są zapisywane)", bg=PANEL, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", padx=14, pady=(8, 3))
+        card = self._section(self.trust_tab, self._tr("03  AIRP · zewnętrzne zaufanie", "03  AIRP · External trust"), self._tr("Ta sekcja łączy odciski z podpisanym dziennikiem AIRP i quorum niezależnych świadków. Każdy endpoint powinien być zarządzany w osobnej domenie administracyjnej.", "Connect fingerprints to the signed AIRP ledger and independent witness quorum. Each endpoint should have separate administration."))
+        self._entry(card, self._tr("Klucz podpisujący", "Signing key"), self.signer_file, browse=self._pick_signer)
+        self._entry(card, self._tr("Stary plik klucza", "Previous key file"), self.old_key_file, browse=self._pick_old_key)
+        self._entry(card, self._tr("ID starego klucza", "Previous key ID"), self.old_key_id)
+        self._entry(card, self._tr("Hasło PEM", "PEM password"), self.signer_password, secret=True)
+        self._entry(card, self._tr("Baza AIRP", "AIRP database"), self.ledger_path, browse=self._pick_ledger)
+        tk.Label(card, text=self._tr("Świadkowie — jeden wpis na linię: HTTPS_URL | BEARER_TOKEN (tokeny nie są zapisywane)", "Witnesses — one per line: HTTPS_URL | BEARER_TOKEN (tokens are not saved)"), bg=PANEL, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", padx=14, pady=(8, 3))
         self.anchors = tk.Text(card, height=5, bg="#0C1421", fg=FG, insertbackground=FG, relief="flat", wrap="none", font=("Consolas", 9))
         self.anchors.pack(fill="x", padx=14, pady=(0, 10))
         row = tk.Frame(card, bg=PANEL); row.pack(fill="x", padx=14, pady=(0, 12))
-        ttk.Button(row, text="Zarejestruj klucz", style="Accent.TButton", command=self._register_identity).pack(side="left", padx=(0, 6))
-        ttk.Button(row, text="Rotuj klucz", command=self._rotate_identity).pack(side="left", padx=6)
-        ttk.Button(row, text="Sprawdź / ponów quorum", command=self._verify_quorum).pack(side="left", padx=6)
-        info = self._section(self.trust_tab, "Polityka bezpieczeństwa", "Quorum to ścisła większość skonfigurowanych świadków. Dla odporności administracyjnej skonfiguruj co najmniej 3 niezależne endpointy. Przy braku quorum zdarzenie pozostaje lokalne i jest jawnie oznaczone jako niezakotwiczone — aplikacja nie pokazuje fałszywego sukcesu.")
+        ttk.Button(row, text=self._tr("Zarejestruj klucz", "Register key"), style="Accent.TButton", command=self._register_identity).pack(side="left", padx=(0, 6))
+        ttk.Button(row, text=self._tr("Rotuj klucz", "Rotate key"), command=self._rotate_identity).pack(side="left", padx=6)
+        ttk.Button(row, text=self._tr("Sprawdź / ponów quorum", "Check / retry quorum"), command=self._verify_quorum).pack(side="left", padx=6)
+        info = self._section(self.trust_tab, self._tr("Polityka bezpieczeństwa", "Security policy"), self._tr("Quorum to ścisła większość skonfigurowanych świadków. Dla odporności administracyjnej skonfiguruj co najmniej 3 niezależne endpointy. Przy braku quorum zdarzenie pozostaje lokalne i jest jawnie oznaczone jako niezakotwiczone — aplikacja nie pokazuje fałszywego sukcesu.", "Quorum requires a strict majority of configured witnesses. Use at least 3 independently administered endpoints. Without quorum, events remain local and are marked unanchored."))
 
     def _refresh_mode(self):
         if self.mode.get() == "key":
@@ -281,133 +285,133 @@ class HelixLockApp(tk.Tk):
             self.refresh_dashboard()
 
     def _pick_key(self):
-        p = filedialog.askopenfilename(title="Wybierz 32-bajtowy plik klucza")
+        p = filedialog.askopenfilename(title=self._tr("Wybierz 32-bajtowy plik klucza", "Select a 32-byte key file"))
         if p: self.key_file.set(p)
 
     def _pick_old_key(self):
-        p = filedialog.askopenfilename(title="Wybierz poprzedni plik klucza")
+        p = filedialog.askopenfilename(title=self._tr("Wybierz poprzedni plik klucza", "Select previous key file"))
         if p: self.old_key_file.set(p)
 
     def _pick_signer(self):
-        p = filedialog.askopenfilename(title="Wybierz klucz podpisujący Ed25519 (PEM)")
+        p = filedialog.askopenfilename(title=self._tr("Wybierz klucz podpisujący Ed25519 (PEM)", "Select Ed25519 signing key (PEM)"))
         if p: self.signer_file.set(p)
 
     def _pick_ledger(self):
-        p = filedialog.asksaveasfilename(title="Lokalna baza AIRP", initialfile="identity.sqlite3")
+        p = filedialog.asksaveasfilename(title=self._tr("Lokalna baza AIRP", "Local AIRP database"), initialfile="identity.sqlite3")
         if p: self.ledger_path.set(p)
 
     def _read_key(self):
         if self.mode.get() == "password":
             value = self.password.get()
-            if not value: raise HelixProError("Wpisz hasło.")
+            if not value: raise HelixProError(self._tr("Wpisz hasło.", "Enter a password."))
             return {"password": value}
         path = self.key_file.get()
-        if not path: raise HelixProError("Wybierz plik klucza.")
+        if not path: raise HelixProError(self._tr("Wybierz plik klucza.", "Select a key file."))
         with open(path, "rb") as f: key = f.read(33)
-        if len(key) != 32: raise HelixProError("Klucz musi mieć dokładnie 32 bajty.")
+        if len(key) != 32: raise HelixProError(self._tr("Klucz musi mieć dokładnie 32 bajty.", "Key must be exactly 32 bytes."))
         return {"key": key}
 
     def _generate_key(self):
-        path = filedialog.asksaveasfilename(title="Zapisz nowy klucz", defaultextension=".key", initialfile="helix.key")
+        path = filedialog.asksaveasfilename(title=self._tr("Zapisz nowy klucz", "Save new key"), defaultextension=".key", initialfile="helix.key")
         if not path: return
         if os.path.exists(path):
-            messagebox.showerror("Plik istnieje", "Wybierz inną nazwę. Istniejący klucz nie został nadpisany."); return
+            messagebox.showerror("Plik istnieje", self._tr("Wybierz inną nazwę. Istniejący klucz nie został nadpisany.", "Choose another name. Existing key was not overwritten.")); return
         with open(path, "xb") as f: f.write(generate_key())
         self.key_file.set(path); self.mode.set("key"); self._refresh_mode()
-        self.status.set("Wygenerowano klucz. Zrób bezpieczną kopię poza urządzeniem.")
+        self.status.set(self._tr("Wygenerowano klucz. Zrób bezpieczną kopię poza urządzeniem.", "Key generated. Store a secure backup away from this device."))
 
     def _encrypt(self):
         try:
             src = self.source.get()
-            if not src or not os.path.isfile(src): raise HelixProError("Wybierz istniejący plik.")
+            if not src or not os.path.isfile(src): raise HelixProError(self._tr("Wybierz istniejący plik.", "Select an existing file."))
             kwargs = self._read_key()
-            out = filedialog.asksaveasfilename(title="Zapisz zaszyfrowany plik", initialfile=os.path.basename(src)+".helixpro", defaultextension=".helixpro")
+            out = filedialog.asksaveasfilename(title=self._tr("Zapisz zaszyfrowany plik", "Save encrypted file"), initialfile=os.path.basename(src)+".helixpro", defaultextension=".helixpro")
             if not out: return
-            if os.path.abspath(out) == os.path.abspath(src): raise HelixProError("Plik wynikowy nie może być źródłowym.")
-            if os.path.exists(out) and not messagebox.askyesno("Nadpisanie", "Plik istnieje. Nadpisać?"): return
+            if os.path.abspath(out) == os.path.abspath(src): raise HelixProError(self._tr("Plik wynikowy nie może być źródłowym.", "Output file must differ from source file."))
+            if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
             encrypt_file_with_name(src, out, compress=True, **kwargs)
             self.source.set(out)
             self.refresh_dashboard()
-            self.status.set("Szyfrowanie zakończone. Oryginalna nazwa jest zapisana wewnątrz szyfrogramu.")
-            messagebox.showinfo("Helix-Lock", "Plik został zaszyfrowany.")
+            self.status.set(self._tr("Szyfrowanie zakończone. Oryginalna nazwa jest zapisana wewnątrz szyfrogramu.", "Encryption complete. Original filename is stored inside the ciphertext."))
+            messagebox.showinfo("Helix-Lock", self._tr("Plik został zaszyfrowany.", "File encrypted."))
         except (OSError, HelixProError) as exc: messagebox.showerror("Szyfrowanie", str(exc))
 
     def _decrypt(self):
         try:
             src = self.source.get()
-            if not src or not os.path.isfile(src): raise HelixProError("Wybierz istniejący plik.")
+            if not src or not os.path.isfile(src): raise HelixProError(self._tr("Wybierz istniejący plik.", "Select an existing file."))
             fmt = detect_format(src)
-            if fmt == "unknown": raise HelixProError("Nie rozpoznano formatu Helix-Lock.")
-            if fmt == "counter": raise HelixProError("Format CounterLock wymaga weryfikacji licznika przez AIRPCounterLock i trwały rejestr. Odszyfrowanie bez tej kontroli jest zablokowane.")
+            if fmt == "unknown": raise HelixProError(self._tr("Nie rozpoznano formatu Helix-Lock.", "Unrecognized Helix-Lock format."))
+            if fmt == "counter": raise HelixProError(self._tr("Format CounterLock wymaga weryfikacji licznika przez AIRPCounterLock i trwały rejestr. Odszyfrowanie bez tej kontroli jest zablokowane.", "CounterLock requires AIRPCounterLock and a durable ledger check. Decryption is blocked without that check."))
             kwargs = self._read_key()
             if fmt == "named":
                 name, data = decrypt_bytes_with_name(src, **kwargs)
-                out = filedialog.asksaveasfilename(title="Zapisz odszyfrowany plik", initialfile=name)
+                out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=name)
                 if not out: return
-                if os.path.exists(out) and not messagebox.askyesno("Nadpisanie", "Plik istnieje. Nadpisać?"): return
+                if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
                 with open(out, "xb" if not os.path.exists(out) else "wb") as f: f.write(data)
             else:
-                out = filedialog.asksaveasfilename(title="Zapisz odszyfrowany plik", initialfile=os.path.basename(src).removesuffix(".helixpro"))
+                out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=os.path.basename(src).removesuffix(".helixpro"))
                 if not out: return
-                if os.path.exists(out) and not messagebox.askyesno("Nadpisanie", "Plik istnieje. Nadpisać?"): return
+                if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
                 decrypt_file(src, out, **kwargs)
             self.refresh_dashboard()
-            self.status.set("Deszyfrowanie zakończone.")
-            messagebox.showinfo("Helix-Lock", "Plik został odszyfrowany.")
+            self.status.set(self._tr("Deszyfrowanie zakończone.", "Decryption complete."))
+            messagebox.showinfo("Helix-Lock", self._tr("Plik został odszyfrowany.", "File decrypted."))
         except (OSError, HelixProError) as exc: messagebox.showerror("Deszyfrowanie", str(exc))
 
     def _create_fingerprint(self):
         try:
-            if self.mode.get() == "password": raise HelixProError("Odcisk klucza wymaga pliku klucza 32 B, nie hasła.")
+            if self.mode.get() == "password": raise HelixProError(self._tr("Odcisk klucza wymaga pliku klucza 32 B, nie hasła.", "Key fingerprint requires a 32-byte key file, not a password."))
             key = self._read_key()["key"]
             fp = create_key_fingerprint(key, object_id=self.object_id.get().strip(), key_id=self.key_id.get().strip())
             raw = json.dumps(fp.to_dict(), indent=2, ensure_ascii=False)
-            path = filedialog.asksaveasfilename(title="Zapisz manifest", defaultextension=".json", initialfile="airp-key-fingerprint.json")
+            path = filedialog.asksaveasfilename(title=self._tr("Zapisz manifest", "Save manifest"), defaultextension=".json", initialfile="airp-key-fingerprint.json")
             if not path: return
-            if os.path.exists(path): raise HelixProError("Manifest już istnieje. Wybierz inną nazwę; nie nadpisuję go.")
+            if os.path.exists(path): raise HelixProError(self._tr("Manifest już istnieje. Wybierz inną nazwę; nie nadpisuję go.", "Manifest already exists. Choose another name; it will not be overwritten."))
             with open(path, "x", encoding="utf-8") as f: f.write(raw + "\n")
             self.fp_output.delete("1.0", "end"); self.fp_output.insert("1.0", raw)
-            self.status.set("Manifest odcisku zapisany. Nie zawiera sekretnego klucza.")
-        except (OSError, HelixProError) as exc: messagebox.showerror("Odcisk klucza", str(exc))
+            self.status.set(self._tr("Manifest odcisku zapisany. Nie zawiera sekretnego klucza.", "Fingerprint manifest saved. It contains no secret key."))
+        except (OSError, HelixProError) as exc: messagebox.showerror(self._tr("Odcisk klucza", "Key fingerprint"), str(exc))
 
     def _verify_fingerprint(self):
         try:
-            if self.mode.get() == "password": raise HelixProError("Wybierz tryb pliku-klucza.")
-            path = filedialog.askopenfilename(title="Wczytaj manifest", filetypes=[("JSON", "*.json")])
+            if self.mode.get() == "password": raise HelixProError(self._tr("Wybierz tryb pliku-klucza.", "Select key-file mode."))
+            path = filedialog.askopenfilename(title=self._tr("Wczytaj manifest", "Load manifest"), filetypes=[("JSON", "*.json")])
             if not path: return
             with open(path, encoding="utf-8") as f: fp = KeyFingerprint.from_dict(json.load(f))
             key = self._read_key()["key"]
             ok = verify_key_fingerprint(key, fp, object_id=self.object_id.get().strip(), key_id=self.key_id.get().strip())
             if ok:
-                self.status.set("Odcisk zgodny.")
-                messagebox.showinfo("Weryfikacja", "Klucz i kontekst pasują do manifestu. To nie jest dowód uprawnień.")
+                self.status.set(self._tr("Odcisk zgodny.", "Fingerprint matches."))
+                messagebox.showinfo("Weryfikacja", self._tr("Klucz i kontekst pasują do manifestu. To nie jest dowód uprawnień.", "Key and context match the manifest. This does not prove authorization."))
             else:
-                self.status.set("Niezgodność odcisku.")
-                messagebox.showwarning("Weryfikacja", "Klucz lub identyfikator obiektu/klucza nie pasuje.")
+                self.status.set(self._tr("Niezgodność odcisku.", "Fingerprint mismatch."))
+                messagebox.showwarning("Weryfikacja", self._tr("Klucz lub identyfikator obiektu/klucza nie pasuje.", "Key or object/key ID does not match."))
         except (OSError, ValueError, HelixProError) as exc: messagebox.showerror("Weryfikacja", str(exc))
 
     def _representation(self):
-        path = filedialog.askopenfilename(title="Wybierz szyfrogram")
+        path = filedialog.askopenfilename(title=self._tr("Wybierz szyfrogram", "Select ciphertext"))
         if not path: return
         try:
             value = representation_fingerprint_file(path)
             self.clipboard_clear(); self.clipboard_append(value)
             self.status.set("Odcisk reprezentacji skopiowano do schowka: " + value)
-            messagebox.showinfo("Odcisk szyfrogramu", value + "\n\nSkopiowano do schowka.")
-        except HelixProError as exc: messagebox.showerror("Odcisk szyfrogramu", str(exc))
+            messagebox.showinfo(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), value + "\n\nSkopiowano do schowka.")
+        except HelixProError as exc: messagebox.showerror(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), str(exc))
 
     def _identity_manager(self):
         signer_path = self.signer_file.get().strip()
-        if not signer_path or not os.path.isfile(signer_path): raise HelixProError("Wybierz prywatny klucz podpisujący Ed25519 w formacie PEM.")
+        if not signer_path or not os.path.isfile(signer_path): raise HelixProError(self._tr("Wybierz prywatny klucz podpisujący Ed25519 w formacie PEM.", "Select an Ed25519 private signing key in PEM format."))
         password = self.signer_password.get().encode("utf-8") if self.signer_password.get() else None
         with open(signer_path, "rb") as f: signer = serialization.load_pem_private_key(f.read(), password=password)
-        if not isinstance(signer, Ed25519PrivateKey): raise HelixProError("Klucz podpisujący musi być Ed25519.")
+        if not isinstance(signer, Ed25519PrivateKey): raise HelixProError(self._tr("Klucz podpisujący musi być Ed25519.", "Signing key must be Ed25519."))
         lines = [x.strip() for x in self.anchors.get("1.0", "end").splitlines() if x.strip()]
-        if len(lines) < 3: raise HelixProError("Skonfiguruj co najmniej 3 niezależne endpointy quorum.")
+        if len(lines) < 3: raise HelixProError(self._tr("Skonfiguruj co najmniej 3 niezależne endpointy quorum.", "Configure at least 3 independent quorum endpoints."))
         anchors = []
         for line in lines:
             parts = [x.strip() for x in line.split("|", 1)]
-            if len(parts) != 2: raise HelixProError("Każdy świadek musi mieć format HTTPS_URL | BEARER_TOKEN.")
+            if len(parts) != 2: raise HelixProError(self._tr("Każdy świadek musi mieć format HTTPS_URL | BEARER_TOKEN.", "Each witness must use HTTPS_URL | BEARER_TOKEN format."))
             anchors.append(HTTPTrustAnchor(parts[0], parts[1]))
         quorum = QuorumTrustAnchor(anchors)
         ledger = AIRPIntegrityLedger(self.ledger_path.get(), signer, trust_anchor=quorum)
@@ -415,27 +419,27 @@ class HelixLockApp(tk.Tk):
 
     def _register_identity(self):
         try:
-            if self.mode.get() == "password": raise HelixProError("Rejestracja fingerprint wymaga pliku klucza.")
+            if self.mode.get() == "password": raise HelixProError(self._tr("Rejestracja fingerprint wymaga pliku klucza.", "Fingerprint registration requires a key file."))
             key = self._read_key()["key"]
             manager = self._identity_manager()
             result = manager.register_key(key, object_id=self.object_id.get().strip(), key_id=self.key_id.get().strip())
             self.refresh_dashboard()
             if result.anchored:
-                self.status.set("AIRP: odcisk zakotwiczony w quorum.")
-                messagebox.showinfo("AIRP / Quorum", result.message)
+                self.status.set(self._tr("AIRP: odcisk zakotwiczony w quorum.", "AIRP: fingerprint anchored by quorum."))
+                messagebox.showinfo(self._tr("AIRP / Quorum", "AIRP / Quorum"), result.message)
             else:
-                self.status.set("AIRP: lokalny wpis oczekuje na quorum.")
-                messagebox.showwarning("AIRP / Quorum — pending", result.message + "\n\nStatus: " + result.anchor_status)
-        except (OSError, ValueError, TypeError, HelixProError) as exc: messagebox.showerror("AIRP / Quorum", str(exc))
+                self.status.set(self._tr("AIRP: lokalny wpis oczekuje na quorum.", "AIRP: local event is waiting for quorum."))
+                messagebox.showwarning(self._tr("AIRP / Quorum — pending", "AIRP / Quorum — pending"), result.message + "\n\nStatus: " + result.anchor_status)
+        except (OSError, ValueError, TypeError, HelixProError) as exc: messagebox.showerror(self._tr("AIRP / Quorum", "AIRP / Quorum"), str(exc))
 
     def _rotate_identity(self):
         try:
             old_path = self.old_key_file.get().strip()
             if not old_path or not os.path.isfile(old_path):
-                raise HelixProError("Wskaż poprzedni plik klucza.")
+                raise HelixProError(self._tr("Wskaż poprzedni plik klucza.", "Select the previous key file."))
             with open(old_path, "rb") as f: old_key = f.read(33)
             new_key = self._read_key()["key"]
-            if len(old_key) != 32: raise HelixProError("Poprzedni klucz musi mieć dokładnie 32 bajty.")
+            if len(old_key) != 32: raise HelixProError(self._tr("Poprzedni klucz musi mieć dokładnie 32 bajty.", "Previous key must be exactly 32 bytes."))
             manager = self._identity_manager()
             signer_path = self.signer_file.get().strip()
             password = self.signer_password.get().encode("utf-8") if self.signer_password.get() else None
@@ -447,11 +451,11 @@ class HelixLockApp(tk.Tk):
             )
             self.refresh_dashboard()
             if result.anchored:
-                self.status.set("AIRP: rotacja klucza potwierdzona przez quorum.")
+                self.status.set(self._tr("AIRP: rotacja klucza potwierdzona przez quorum.", "AIRP: key rotation confirmed by quorum."))
                 messagebox.showinfo("AIRP / rotacja", result.message)
             else:
-                self.status.set("AIRP: rotacja lokalna — oczekuje na quorum.")
-                messagebox.showwarning("AIRP / rotacja — pending", result.message + "\n\nStatus: " + result.anchor_status)
+                self.status.set(self._tr("AIRP: rotacja lokalna — oczekuje na quorum.", "AIRP: local rotation — waiting for quorum."))
+                messagebox.showwarning(self._tr("AIRP / rotacja — pending", "AIRP / rotation — pending"), result.message + "\n\nStatus: " + result.anchor_status)
         except (OSError, ValueError, TypeError, HelixProError) as exc:
             messagebox.showerror("AIRP / rotacja", str(exc))
 
@@ -460,9 +464,9 @@ class HelixLockApp(tk.Tk):
             manager = self._identity_manager()
             result = manager.retry_anchor()
             self.refresh_dashboard()
-            self.status.set("AIRP status: " + result.status)
-            messagebox.showinfo("AIRP / Quorum", f"Status: {result.status}\nLokalna sekwencja: {result.local_sequence}\nZakotwiczona sekwencja: {result.anchored_sequence}")
-        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror("AIRP / Quorum", str(exc))
+            self.status.set(self._tr("AIRP status: ", "AIRP status: ") + result.status)
+            messagebox.showinfo(self._tr("AIRP / Quorum", "AIRP / Quorum"), f"Status: {result.status}\nLokalna sekwencja: {result.local_sequence}\nZakotwiczona sekwencja: {result.anchored_sequence}")
+        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("AIRP / Quorum", "AIRP / Quorum"), str(exc))
 
 
 def main():
