@@ -66,6 +66,8 @@ on:
       - "tests/test_helix_replay_adversarial.py"
       - "tests/test_helix_replay_state_checkpoint.py"
       - "experiments/helix_replay_state_checkpoint.py"
+      - "experiments/helix_guarded_replay_receiver.py"
+      - "tests/test_helix_guarded_replay_receiver.py"
       - "tests/test_helix_security_performance_gate.py"
       - "experiments/helix_qpsk_repeated_observations.py"
       - "experiments/helix_qpsk_memory_benchmark.py"
@@ -117,6 +119,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Test fail-closed replay admission and checkpoint failure
+        run: python -m pytest -q tests/test_helix_guarded_replay_receiver.py
       - name: Test trusted replay-state checkpoint and rollback detection
         run: python -m pytest -q tests/test_helix_replay_state_checkpoint.py
       - name: Test adversarial replay and concurrency behavior
