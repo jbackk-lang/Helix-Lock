@@ -8,8 +8,9 @@ This verifies automated tests, not production security or a release tag.
 
 Release scope is frozen: HNA1 file envelope, experimental HNS1 streaming
 file envelope, and existing decoding experiments. No new algorithm work.
-Do not enable replay-sensitive network receiving as a production feature
-without an independent trusted checkpoint authority.
+Replay receiver is EXCLUDED from this release. Its experimental files remain
+in the research branch but are not part of the supported release surface.
+Do not include replay receiver code in packaging or enabled runtime paths.
 
 ## Decisions
 
@@ -20,24 +21,18 @@ without an independent trusted checkpoint authority.
    `tests/test_helix_release_blockers.py` demonstrates that seven unanimous
    observations can still be wrong when all share a phase-biased reflection.
    Do not promote the consensus path as an anti-echo security feature.
-3. **Replay state is not production-ready.** The SQLite guard can reject
-   duplicates under tested concurrency, but persistent rollback resistance
-   requires an external non-rollbackable checkpoint authority with a durable
-   compare-and-swap operation. The current synchronized in-memory test double
-   is not such an authority.
-4. **Crash recovery is fail-closed, not automatic.** An external checkpoint
-   advance followed by an uncommitted SQLite transaction can lock out the
-   receiver. Recovery must independently establish whether the message was
-   consumed. Never reset the checkpoint to match a rolled-back DB.
-5. **CI success is necessary but insufficient.** Synthetic deterministic tests
+3. **Release boundary:** the replay receiver and its checkpoint/recovery
+   subsystem are excluded from the supported release. They do not block
+   file encryption/decryption release once their absence from runtime and
+   packaging has been verified.
+4. **CI success is necessary but insufficient.** Synthetic deterministic tests
    do not prove real-world echo handling, key lifecycle, file-write durability,
    or resistance to compromise of the checkpoint authority.
 
 ## Required before main merge
 
-- [ ] Specify and implement a real trusted checkpoint backend, its threat
-      model, crash recovery, key rotation, and durable CAS semantics.
-- [ ] Add process-level crash injection and recovery tests against that backend.
+- [ ] Verify the replay receiver is absent from release entry points,
+      package contents, and supported execution paths.
 - [ ] Validate echo/reflection behavior against independent real or calibrated
       channel traces; compare error rate AND abstention/coverage.
 - [ ] Define release thresholds for accuracy, false acceptance, coverage,
