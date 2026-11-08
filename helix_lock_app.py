@@ -134,7 +134,7 @@ class HelixLockApp(tk.Tk):
         self.dash_sequence = tk.StringVar(value="—")
         self.dash_anchor = tk.StringVar(value="NIEZNANY")
         self.dash_counter = tk.StringVar(value="—")
-        self.dash_file = tk.StringVar(value="Nie wybrano")
+        self.dash_file = tk.StringVar(value=self._tr("Nie wybrano", "No file selected"))
         self.dash_events = tk.StringVar(value="—")
         self._metric(row1, self._tr("LANCUCH AIRP", "AIRP CHAIN"), self.dash_chain, self._tr("Dane lokalne; nie oznaczaja potwierdzenia quorum.", "Local data; quorum is not confirmed."))
         self._metric(row1, self._tr("SEKWENCJA", "SEQUENCE"), self.dash_sequence, self._tr("Liczba zdarzen w lokalnym dzienniku.", "Events in the local ledger."))
@@ -148,7 +148,7 @@ class HelixLockApp(tk.Tk):
         tk.Label(self.dashboard_tab, text=self._tr("WAZNE: lokalna baza SQLite sama nie chroni przed cofaniem calej bazy. Ochrona przed rollbackiem wymaga niezaleznego Trust Anchor / quorum.", "IMPORTANT: a local SQLite database cannot prevent rollback of the database itself. Rollback protection requires an independent trust anchor / quorum."), bg=BG, fg="#F2C879", font=("Segoe UI", 9), wraplength=730, justify="left").pack(fill="x", padx=18, pady=(4, 8))
 
     def refresh_dashboard(self):
-        self.dash_file.set("Nie wybrano")
+        self.dash_file.set(self._tr("Nie wybrano", "No file selected"))
         selected = self.source.get().strip() if hasattr(self, "source") else ""
         if selected and os.path.isfile(selected):
             try:
@@ -164,18 +164,18 @@ class HelixLockApp(tk.Tk):
                 elif magic == b"HLXP":
                     self.dash_file.set("Helix / HLXP")
                 else:
-                    self.dash_file.set("Nieznany / zwykly")
+                    self.dash_file.set(self._tr("Nieznany / zwykly", "Unknown / plain file"))
             except OSError:
-                self.dash_file.set("Nie mozna odczytac")
+                self.dash_file.set(self._tr("Nie mozna odczytac", "Cannot read file"))
         else:
             self.dash_counter.set("—")
 
         db_path = self.ledger_path.get().strip() if hasattr(self, "ledger_path") else DEFAULT_LEDGER
-        self.dash_chain.set("BRAK BAZY")
+        self.dash_chain.set(self._tr("BRAK BAZY", "NO DATABASE"))
         self.dash_sequence.set("—")
-        self.dash_anchor.set("NIE SPRAWDZONO")
+        self.dash_anchor.set(self._tr("NIE SPRAWDZONO", "NOT CHECKED"))
         self.dash_events.set("—")
-        history_lines = ["Brak lokalnej bazy AIRP. Zarejestruj klucz w zakladce AIRP / Quorum."]
+        history_lines = [self._tr("Brak lokalnej bazy AIRP. Zarejestruj klucz w zakladce AIRP / Quorum.", "No local AIRP database. Register a key in AIRP / Quorum.")]
         if db_path and os.path.isfile(db_path):
             try:
                 uri = "file:" + quote(os.path.abspath(db_path).replace(os.sep, "/")) + "?mode=ro"
@@ -210,15 +210,15 @@ class HelixLockApp(tk.Tk):
                         if latest_counter is not None:
                             self.dash_counter.set(str(latest_counter))
                         elif self.dash_file.get() != "CounterLock / HLXC":
-                            self.dash_counter.set("BRAK WPISOW")
+                            self.dash_counter.set(self._tr("BRAK WPISOW", "NO ENTRIES"))
                         if not history_lines:
-                            history_lines = ["Dziennik jest pusty."]
+                            history_lines = [self._tr("Dziennik jest pusty.", "Ledger is empty.")]
                         history_lines.extend(["", "Uwaga: lokalny odczyt nie potwierdza stanu zewnetrznego quorum."])
                     else:
-                        history_lines = ["Wybrana baza nie zawiera tabeli dziennika AIRP."]
+                        history_lines = [self._tr("Wybrana baza nie zawiera tabeli dziennika AIRP.", "Selected database has no AIRP ledger table.")]
             except (OSError, sqlite3.Error, ValueError, TypeError) as exc:
-                self.dash_chain.set("BLAD ODCZYTU")
-                history_lines = ["Nie udalo sie odczytac bazy AIRP: " + str(exc)]
+                self.dash_chain.set(self._tr("BLAD ODCZYTU", "READ ERROR"))
+                history_lines = [self._tr("Nie udalo sie odczytac bazy AIRP: ", "Could not read AIRP database: ") + str(exc)]
         self.dash_history.configure(state="normal")
         self.dash_history.delete("1.0", "end")
         self.dash_history.insert("1.0", "\\n".join(history_lines))
@@ -236,8 +236,8 @@ class HelixLockApp(tk.Tk):
         self.pass_row = tk.Frame(card, bg=PANEL)
         self._entry(self.pass_row, self._tr("Hasło", "Password"), self.password, secret=True)
         actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))
-        ttk.Button(actions, text="🔒  Szyfruj", style="Accent.TButton", command=self._encrypt).pack(side="left", expand=True, fill="x", padx=(0, 6))
-        ttk.Button(actions, text="🔓  Odszyfruj", command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
+        ttk.Button(actions, text=self._tr("🔒  Szyfruj", "🔒  Encrypt"), style="Accent.TButton", command=self._encrypt).pack(side="left", expand=True, fill="x", padx=(0, 6))
+        ttk.Button(actions, text=self._tr("🔓  Odszyfruj", "🔓  Decrypt"), command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
         self._refresh_mode()
         note = self._section(self.file_tab, self._tr("Ważne", "Important"), self._tr("Zachowaj kopię klucza poza komputerem z zaszyfrowanymi danymi. Bez klucza lub hasła odzyskanie treści nie będzie możliwe. Odcisk klucza nie zastępuje klucza.", "Keep a backup of the key away from the encrypted data. Without the key or password, the data cannot be recovered. A fingerprint is not a key."))
 
@@ -334,7 +334,7 @@ class HelixLockApp(tk.Tk):
             self.refresh_dashboard()
             self.status.set(self._tr("Szyfrowanie zakończone. Oryginalna nazwa jest zapisana wewnątrz szyfrogramu.", "Encryption complete. Original filename is stored inside the ciphertext."))
             messagebox.showinfo("Helix-Lock", self._tr("Plik został zaszyfrowany.", "File encrypted."))
-        except (OSError, HelixProError) as exc: messagebox.showerror("Szyfrowanie", str(exc))
+        except (OSError, HelixProError) as exc: messagebox.showerror(self._tr("Szyfrowanie", "Encryption"), str(exc))
 
     def _decrypt(self):
         try:
@@ -358,7 +358,7 @@ class HelixLockApp(tk.Tk):
             self.refresh_dashboard()
             self.status.set(self._tr("Deszyfrowanie zakończone.", "Decryption complete."))
             messagebox.showinfo("Helix-Lock", self._tr("Plik został odszyfrowany.", "File decrypted."))
-        except (OSError, HelixProError) as exc: messagebox.showerror("Deszyfrowanie", str(exc))
+        except (OSError, HelixProError) as exc: messagebox.showerror(self._tr("Deszyfrowanie", "Decryption"), str(exc))
 
     def _create_fingerprint(self):
         try:
@@ -388,7 +388,7 @@ class HelixLockApp(tk.Tk):
             else:
                 self.status.set(self._tr("Niezgodność odcisku.", "Fingerprint mismatch."))
                 messagebox.showwarning("Weryfikacja", self._tr("Klucz lub identyfikator obiektu/klucza nie pasuje.", "Key or object/key ID does not match."))
-        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror("Weryfikacja", str(exc))
+        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("Weryfikacja", "Verification"), str(exc))
 
     def _representation(self):
         path = filedialog.askopenfilename(title=self._tr("Wybierz szyfrogram", "Select ciphertext"))
@@ -396,7 +396,7 @@ class HelixLockApp(tk.Tk):
         try:
             value = representation_fingerprint_file(path)
             self.clipboard_clear(); self.clipboard_append(value)
-            self.status.set("Odcisk reprezentacji skopiowano do schowka: " + value)
+            self.status.set(self._tr("Odcisk reprezentacji skopiowano do schowka: ", "Representation fingerprint copied: ") + value)
             messagebox.showinfo(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), value + "\n\nSkopiowano do schowka.")
         except HelixProError as exc: messagebox.showerror(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), str(exc))
 
@@ -452,12 +452,12 @@ class HelixLockApp(tk.Tk):
             self.refresh_dashboard()
             if result.anchored:
                 self.status.set(self._tr("AIRP: rotacja klucza potwierdzona przez quorum.", "AIRP: key rotation confirmed by quorum."))
-                messagebox.showinfo("AIRP / rotacja", result.message)
+                messagebox.showinfo(self._tr("AIRP / rotacja", "AIRP / rotation"), result.message)
             else:
                 self.status.set(self._tr("AIRP: rotacja lokalna — oczekuje na quorum.", "AIRP: local rotation — waiting for quorum."))
                 messagebox.showwarning(self._tr("AIRP / rotacja — pending", "AIRP / rotation — pending"), result.message + "\n\nStatus: " + result.anchor_status)
         except (OSError, ValueError, TypeError, HelixProError) as exc:
-            messagebox.showerror("AIRP / rotacja", str(exc))
+            messagebox.showerror(self._tr("AIRP / rotacja", "AIRP / rotation"), str(exc))
 
     def _verify_quorum(self):
         try:
