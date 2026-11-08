@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import sys
+import uuid
 from dataclasses import dataclass
 from typing import Optional
 
@@ -40,8 +41,38 @@ from helix_pro.cipher import (
     HelixProError,
 )
 from helix_pro.counter_lock import encrypt_file_with_counter, decrypt_file_with_counter
+from helix_pro.airp_store import AIRPStore
 
 ENCRYPTED_SUFFIX = ".helixpro"
+
+AIRP_DB_PATH = os.path.join(os.path.expanduser("~"), ".helix_lock", "airp.sqlite3")
+
+
+def airp_object_id(encrypted_path: str) -> str:
+    """Stable registry identity for this local file location (moving it changes identity)."""
+    return os.path.normcase(os.path.abspath(encrypted_path))
+
+
+def register_airp_representation(encrypted_path: str, *, database_path: str = AIRP_DB_PATH) -> str:
+    """Register a newly encrypted representation; returns its random key identifier."""
+    with open(encrypted_path, "rb") as stream:
+        blob = stream.read()
+    key_id = uuid.uuid4().hex
+    AIRPStore(database_path).register(airp_object_id(encrypted_path), blob, key_id=key_id)
+    return key_id
+
+
+def verify_airp_representation(encrypted_path: str, *, database_path: str = AIRP_DB_PATH) -> bool:
+    """Fail closed when the encrypted file has no trusted local AIRP baseline."""
+    with open(encrypted_path, "rb") as stream:
+        blob = stream.read()
+    store = AIRPStore(database_path)
+    object_id = airp_object_id(encrypted_path)
+    state = store.get(object_id)
+    if state is None:
+        return False
+    return store.verify(object_id, blob, version=state.version, key_id=state.key_id)
+
 
 
 # ---------------------------------------------------------------------
@@ -140,6 +171,7 @@ def _build_gui():
             self.show_password = tk.BooleanVar(value=False)
             self.compress = tk.BooleanVar(value=True)
             self.use_counter = tk.BooleanVar(value=False)
+            self.use_airp = tk.BooleanVar(value=True)
 
             self._build_ui()
 
@@ -182,6 +214,16 @@ def _build_gui():
                 text="Kompresuj przed szyfrowaniem (gzip) — tylko przy szyfrowaniu; "
                      "pomijany automatycznie, gdyby powiększał plik",
                 variable=self.compress,
+            ).pack(side="left")
+
+
+            frame_airp = ttk.Frame(self)
+            frame_airp.pack(fill="x", padx=10, pady=(4, 0))
+            ttk.Checkbutton(
+                frame_airp,
+                text="AIRP — rejestruj szyfrogram i sprawdzaj wersję przed odszyfrowaniem "
+                     "(lokalna baza; przeniesienie pliku wymaga osobnej rejestracji)",
+                variable=self.use_airp,
             ).pack(side="left")
 
             frame_counter = ttk.Frame(self)
@@ -331,12 +373,18 @@ def _build_gui():
                     encrypt_file_with_name(
                         self.source_path.get(), out_path, compress=self.compress.get(), **key_result.kwargs
                     )
+                airp_note = ""
+                if self.use_airp.get() and not with_counter:
+                    key_id = register_airp_representation(out_path)
+                    airp_note = f" [AIRP: zarejestrowano wersję 1, key ID {key_id[:8]}…]"
+                elif self.use_airp.get() and with_counter:
+                    airp_note = " [AIRP pominięty: CounterLock sam zmienia plik przy odczycie]"
                 out_size = os.path.getsize(out_path)
                 ratio_note = ""
                 if self.compress.get() and src_size > 0:
                     ratio_note = f" (kompresja: {src_size} B → {out_size} B, {out_size / src_size:.0%} oryginału)"
                 counter_note = " [z licznikiem odczytów, start=0]" if with_counter else ""
-                self._log(f"Zaszyfrowano{ratio_note}{counter_note}:\n{self.source_path.get()}\n→ {out_path}")
+                self._log(f"Zaszyfrowano{ratio_note}{counter_note}{airp_note}:\n{self.source_path.get()}\n→ {out_path}")
                 self._reset_after_action()
             except HelixProError as exc:
                 messagebox.showerror("Błąd — szyfrowanie", str(exc))
@@ -363,6 +411,24 @@ def _build_gui():
             if not key_result.ok:
                 messagebox.showerror("Błąd", key_result.error)
                 return
+
+
+            if self.use_airp.get() and fmt in {"named", "plain"}:
+                try:
+                    if not verify_airp_representation(src):
+                        messagebox.showerror(
+                            "AIRP — odmowa dostępu",
+                            "Brak zarejestrowanej lub zgodnej wersji pliku w lokalnym rejestrze AIRP. "
+                            "Odszyfrowanie zostało zablokowane. Jeśli plik został przeniesiony albo "
+                            "pochodzi ze starszej wersji programu, wyłącz AIRP świadomie lub "
+                            "zarejestruj plik ponownie po niezależnej weryfikacji jego pochodzenia.",
+                        )
+                        self._log(f"AIRP: odmowa — brak wpisu lub niezgodny hash: {src}")
+                        return
+                except (HelixProError, OSError) as exc:
+                    messagebox.showerror("AIRP — błąd rejestru", str(exc))
+                    self._log(f"AIRP: błąd rejestru: {exc}")
+                    return
 
             if fmt == "counter":
                 if self.mode.get() != "key":
