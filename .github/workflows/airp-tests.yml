@@ -57,6 +57,8 @@ on:
       - "tests/test_helix_lock_ui_priority.py"
       - "tests/test_helix_memory_vs_accumulation.py"
       - "tests/test_helix_qpsk_memory_benchmark.py"
+      - "tests/test_helix_qpsk_repeated_observations.py"
+      - "experiments/helix_qpsk_repeated_observations.py"
       - "experiments/helix_qpsk_memory_benchmark.py"
       - "experiments/helix_memory_vs_accumulation.py"
       - "tests/test_helix_native_compact.py"
@@ -106,6 +108,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Test repeated same-symbol observations
+        run: python -m pytest -q tests/test_helix_qpsk_repeated_observations.py
+      - name: Measure repeated same-symbol recovery and cost
+        run: python -m experiments.helix_qpsk_repeated_observations --output helix-qpsk-repeated-observations.json
+      - name: Upload repeated-observation benchmark
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-qpsk-repeated-observations-${{ matrix.python-version }}
+          path: helix-qpsk-repeated-observations.json
+          retention-days: 30
       - name: Test QPSK symbol and file recovery
         run: python -m pytest -q tests/test_helix_qpsk_memory_benchmark.py
       - name: Measure QPSK recovery versus temporal memory
