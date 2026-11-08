@@ -28,3 +28,22 @@ def test_input_validation():
         infer_labels([(0.1, 0.2)], initial_handedness=0)
     with pytest.raises(ValueError):
         trial(1, flip_after=13)
+
+def test_unanchored_absolute_handedness_is_not_identifiable_from_mirror_pair():
+    # Identical observed phases admit two globally mirrored latent explanations.
+    # The decoder cannot be right about the absolute sign in both explanations.
+    samples = [(0.3, 0.9), (0.31, 0.88), (-0.29, -0.91)]
+    predicted = infer_labels(samples, initial_handedness=None)
+    truth_a = [1, 1, -1]
+    truth_b = [-1, -1, 1]
+    assert predicted == truth_a or predicted == truth_b
+    assert not (predicted == truth_a and predicted == truth_b)
+
+
+def test_unanchored_absolute_accuracy_depends_on_arbitrary_global_sign():
+    # A single selected sign convention must not be mistaken for sign inference.
+    a = trial(41, flip_after=6, initial_handedness=1, anchored=False, measurement_noise=0)
+    b = trial(41, flip_after=6, initial_handedness=-1, anchored=False, measurement_noise=0)
+    assert a["label_accuracy_mod_global_sign"] == 1
+    assert b["label_accuracy_mod_global_sign"] == 1
+    assert a["label_accuracy"] + b["label_accuracy"] == pytest.approx(1)
