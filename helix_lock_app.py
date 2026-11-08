@@ -2,6 +2,7 @@
 """Helix-Lock — one lightweight Tk desktop app for Windows, macOS and Linux."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sqlite3
@@ -150,10 +151,10 @@ class HelixLockApp(tk.Tk):
                 with open(selected, "rb") as stream:
                     header = stream.read(13)
                 magic = header[:4]
-                if magic == b"HLXC" and len(header) == 13:
+                if magic == b"HLXC" and len(header) == 13 and header[4] == 1:
                     file_counter = struct.unpack(">Q", header[5:13])[0]
                     self.dash_file.set("CounterLock / HLXC")
-                    self.dash_counter.set(str(file_counter) + " (naglowek)")
+                    self.dash_counter.set(str(file_counter) + " (naglowek; niezweryfikowany)")
                 elif magic == b"HLXN":
                     self.dash_file.set("Helix named / HLXN")
                 elif magic == b"HLXP":
@@ -168,7 +169,7 @@ class HelixLockApp(tk.Tk):
         db_path = self.ledger_path.get().strip() if hasattr(self, "ledger_path") else DEFAULT_LEDGER
         self.dash_chain.set("BRAK BAZY")
         self.dash_sequence.set("—")
-        self.dash_anchor.set("NIEZNANY")
+        self.dash_anchor.set("NIE SPRAWDZONO")
         self.dash_events.set("—")
         history_lines = ["Brak lokalnej bazy AIRP. Zarejestruj klucz w zakladce AIRP / Quorum."]
         if db_path and os.path.isfile(db_path):
@@ -177,14 +178,27 @@ class HelixLockApp(tk.Tk):
                 with sqlite3.connect(uri, uri=True, timeout=2) as db:
                     tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                     if "airp_ledger_events" in tables:
-                        rows = db.execute("SELECT sequence,timestamp_utc,event_type,object_id,payload_json FROM airp_ledger_events ORDER BY sequence DESC LIMIT 8").fetchall()
-                        total = db.execute("SELECT COUNT(*) FROM airp_ledger_events").fetchone()[0]
+                        all_rows = db.execute("SELECT sequence,timestamp_utc,event_type,object_id,payload_json,previous_hash,event_hash FROM airp_ledger_events ORDER BY sequence").fetchall()
+                        total = len(all_rows)
                         self.dash_events.set(str(total))
                         self.dash_sequence.set(str(total))
-                        self.dash_chain.set("DANE LOKALNE")
+                        expected_sequence = 1
+                        previous_hash = "0" * 64
+                        chain_valid = True
+                        for seq, stamp, event_type, object_id, payload_json, stored_previous, stored_hash in all_rows:
+                            payload = json.loads(payload_json)
+                            material = {"sequence": seq, "timestamp_utc": stamp, "event_type": event_type, "object_id": object_id, "payload": payload, "previous_hash": stored_previous}
+                            canonical = json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+                            calculated_hash = hashlib.sha256(canonical).hexdigest()
+                            if seq != expected_sequence or stored_previous != previous_hash or calculated_hash != stored_hash:
+                                chain_valid = False
+                                break
+                            expected_sequence += 1
+                            previous_hash = stored_hash
+                        self.dash_chain.set("CHAIN OK" if chain_valid else "CHAIN BLEDNY")
                         latest_counter = None
                         history_lines = []
-                        for seq, stamp, event_type, object_id, payload_json in rows:
+                        for seq, stamp, event_type, object_id, payload_json, stored_previous, stored_hash in reversed(all_rows[-8:]):
                             payload = json.loads(payload_json)
                             if event_type == "counter_observed" and latest_counter is None:
                                 latest_counter = payload.get("counter")
@@ -262,7 +276,9 @@ class HelixLockApp(tk.Tk):
 
     def _pick_source(self):
         p = filedialog.askopenfilename()
-        if p: self.source.set(p)
+        if p:
+            self.source.set(p)
+            self.refresh_dashboard()
 
     def _pick_key(self):
         p = filedialog.askopenfilename(title="Wybierz 32-bajtowy plik klucza")
