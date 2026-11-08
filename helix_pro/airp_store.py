@@ -62,6 +62,8 @@ class AIRPStore:
     def _connect(self) -> sqlite3.Connection:
         db = sqlite3.connect(self.database_path, timeout=15, isolation_level=None)
         db.row_factory = sqlite3.Row
+        db.execute("PRAGMA busy_timeout=15000")
+        db.execute("PRAGMA synchronous=FULL")
         return db
 
     @staticmethod
@@ -112,16 +114,32 @@ class AIRPStore:
             ).fetchone())
 
     def verify(self, object_id: str, blob: bytes, *, version: int, key_id: str) -> bool:
-        state = self.get(object_id)
-        valid = bool(
-            state and state.version == version and state.key_id == key_id
-            and state.blob_sha256 == self.fingerprint(blob)
-        )
-        self.record_event(
-            object_id, outcome="granted" if valid else "denied",
-            detail="representation verified" if valid else "version/key/hash mismatch",
-        )
-        return valid
+        """Check state and append its decision atomically against concurrent rotations."""
+        now = self._now()
+        digest = self.fingerprint(blob)
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            try:
+                row = db.execute(
+                    "SELECT * FROM airp_objects WHERE object_id=?", (object_id,)
+                ).fetchone()
+                if row is None:
+                    raise HelixProError("unknown AIRP object_id")
+                valid = bool(
+                    row["version"] == version and row["key_id"] == key_id
+                    and row["blob_sha256"] == digest
+                )
+                db.execute(
+                    "INSERT INTO airp_events(object_id,timestamp_utc,outcome,version,key_id,blob_sha256,detail) VALUES (?,?,?,?,?,?,?)",
+                    (object_id, now, "granted" if valid else "denied",
+                     row["version"], row["key_id"], row["blob_sha256"],
+                     "representation verified" if valid else "version/key/hash mismatch"),
+                )
+                db.execute("COMMIT")
+                return valid
+            except Exception:
+                db.execute("ROLLBACK")
+                raise
 
     def record_event(self, object_id: str, *, outcome: str, detail: str = "") -> None:
         if outcome not in {"granted", "denied", "rotated", "rejected"}:
