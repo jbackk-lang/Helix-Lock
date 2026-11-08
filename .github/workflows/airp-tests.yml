@@ -18,6 +18,7 @@ on:
       - "experiments/helix_chiral_signal.py"
       - "experiments/helix_chiral_signal_channel.py"
       - "experiments/helix_chiral_intelligence.py"
+      - "experiments/helix_native_codec.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -43,6 +44,7 @@ on:
       - "tests/test_helix_chiral_signal.py"
       - "tests/test_helix_chiral_signal_channel.py"
       - "tests/test_helix_chiral_intelligence.py"
+      - "tests/test_helix_native_codec.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -189,3 +191,4 @@ jobs:
           tests/test_helix_chiral_signal.py
           tests/test_helix_chiral_signal_channel.py
           tests/test_helix_chiral_intelligence.py
+          tests/test_helix_native_codec.py
