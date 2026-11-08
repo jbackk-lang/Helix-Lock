@@ -62,7 +62,7 @@ def run_trial(seed: int, *, mode: str, amplitude: float = 0.85, duration: int = 
         if disturbed:
             for index in disturbance_targets:
                 velocities[index] += amplitude
-        if reference is not None:
+        if reference is not None and not disturbed:
             e1 = wrap(theta[1] - theta[0] - reference[0])
             e2 = wrap(theta[2] - theta[0] - reference[1])
             # Explicit reference-feedback law; not an emergent Chronoprocess property.
