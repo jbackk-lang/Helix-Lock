@@ -27,7 +27,7 @@ def test_opposite_winding_strong_echo_can_flip_decoded_handedness():
 
 def test_reproducible_channel():
     assert run([42, 43]) == run([42, 43])
-    assert len(run([42, 43])["results"]) == 16
+    assert len(run([42, 43])["results"]) == 12  # zero-drift calibration cases coincide
 
 
 def test_invalid_echo():
