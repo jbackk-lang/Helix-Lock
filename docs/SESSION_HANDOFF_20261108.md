@@ -55,3 +55,12 @@
 - Distinguish source-code facts, toy-model results, and hypotheses.
 - Do not promise ongoing background work between turns.
 - Continue in Polish unless user changes language.
+
+## Additional work after initial handoff (2026-11-08)
+
+- `a4270f6`: exposed `reference_feedback_correction()` for direct analysis of the stale-reference effect; fixed `run()` so generator/iterator seeds are materialized once and reused across all modes; records actual seed values.
+- `b1eecde`: tests that a stale reference produces a correction opposing a legitimate phase shift, and that generator seeds are applied consistently to all modes.
+- `9e247b6`: documents the stale-reference hazard and iterator regression.
+- Earlier in the same continuation: `ca9a8ed` fixed pull_request path filters; `a4568b2` added disturbance target selection; `358e2e0` added common-mode control tests; `cdffc85` documented them.
+- IMPORTANT: check Actions after the latest commits. The previously observed successful run was for commit `358e2e0`, before the newer stale-reference commits. Do not claim the newest code passed CI until its run completes.
+- Next: run Actions, fix any failures, then implement a pre-registered amplitude/duration/frequency heterogeneity sweep with held-out seeds and report median/p90/max/recovery fraction/recovery time/overshoot. Also model legitimate state transition as a first-class case, not only the correction sign.
