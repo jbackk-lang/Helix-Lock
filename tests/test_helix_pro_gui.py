@@ -166,3 +166,46 @@ def test_full_flow_key_mode_encrypt_then_decrypt_to_different_directory(tmp_path
 
     assert dec_validation.output_path == str(dec_dir / "dane.txt")
     assert open(dec_validation.output_path, "rb").read() == src.read_bytes()
+
+
+# ── AIRP integration helpers ─────────────────────────────────────────
+
+def test_airp_register_and_verify_encrypted_representation(tmp_path):
+    from helix_pro_gui import register_airp_representation, verify_airp_representation
+
+    encrypted = tmp_path / "document.helixpro"
+    database = tmp_path / "airp.sqlite3"
+    encrypted.write_bytes(b"authenticated ciphertext version one")
+
+    key_id = register_airp_representation(str(encrypted), database_path=str(database))
+    assert len(key_id) == 32
+    assert verify_airp_representation(str(encrypted), database_path=str(database))
+
+
+def test_airp_rejects_modified_or_rolled_back_representation(tmp_path):
+    from helix_pro_gui import register_airp_representation, verify_airp_representation
+
+    encrypted = tmp_path / "document.helixpro"
+    database = tmp_path / "airp.sqlite3"
+    encrypted.write_bytes(b"ciphertext version one")
+    register_airp_representation(str(encrypted), database_path=str(database))
+
+    encrypted.write_bytes(b"ciphertext modified or rolled back")
+    assert not verify_airp_representation(str(encrypted), database_path=str(database))
+
+
+def test_airp_reenrollment_advances_version_when_output_is_overwritten(tmp_path):
+    from helix_pro_gui import register_airp_representation, verify_airp_representation
+    from helix_pro.airp_store import AIRPStore
+
+    encrypted = tmp_path / "document.helixpro"
+    database = tmp_path / "airp.sqlite3"
+    encrypted.write_bytes(b"ciphertext version one")
+    register_airp_representation(str(encrypted), database_path=str(database))
+    first = AIRPStore(database).get(os.path.normcase(os.path.abspath(encrypted)))
+    encrypted.write_bytes(b"ciphertext version two")
+    register_airp_representation(str(encrypted), database_path=str(database))
+    second = AIRPStore(database).get(os.path.normcase(os.path.abspath(encrypted)))
+
+    assert second.version == first.version + 1
+    assert verify_airp_representation(str(encrypted), database_path=str(database))
