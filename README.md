@@ -239,3 +239,23 @@ Pełna lista projektów: https://jbackk-lang.github.io
 ## Licencja
 
 MIT — patrz `LICENSE`.
+
+## Adaptacyjna rotacja reprezentacji (AIRP — prototyp)
+
+Moduł `helix_pro.adaptive_rotation` dodaje bezpieczną operację **rotacji klucza** dla blobów AES-GCM utworzonych przez `encrypt_bytes()`:
+
+```python
+from helix_pro.cipher import generate_key, encrypt_bytes, decrypt_bytes
+from helix_pro.adaptive_rotation import rotate_encrypted_blob
+
+old_key, new_key = generate_key(), generate_key()
+blob = encrypt_bytes(b"oryginalna tresc", old_key, aad=b"record:1")
+result = rotate_encrypted_blob(blob, old_key, new_key, aad=b"record:1")
+assert decrypt_bytes(result.blob, new_key, aad=b"record:1") == b"oryginalna tresc"
+```
+
+Funkcja uwierzytelnia i odszyfrowuje blob starym kluczem, szyfruje tę samą treść nowym kluczem z nowym losowym nonce, weryfikuje wynik i zwraca nowy blob oraz skróty SHA-256 starego blobu, nowego blobu i plaintextu. Plaintext nie jest zwracany przez API (istnieje przejściowo w pamięci procesu).
+
+Testy: `pytest tests/test_adaptive_rotation.py -q`.
+
+**Granice bezpieczeństwa:** to prototyp rotacji klucza, nie automatyczny detektor włamania ani mechanizm unieważniania skradzionych kopii. Po udanej rotacji aplikacja musi atomowo przełączyć aktywny rekord na nowy blob, ograniczyć dostęp do starego klucza i zgodnie z polityką retencji usunąć/wycofać stare kopie. Kopii ciphertextu i klucza, które napastnik już posiada, sama rotacja nie unieważnia. Nie wolno modyfikować ani podmieniać plaintextu w reakcji na błędne hasło lub nieudaną autentykację — operacja kończy się błędem bez ujawnienia treści. Aktualne formaty plikowe HLXP/HLXN i CounterLock nie są automatycznie migrowane przez ten moduł.
