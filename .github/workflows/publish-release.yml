@@ -1,0 +1,77 @@
+name: Publish Helix-Lock desktop release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-release.yml"
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: HelixLock-linux
+          - os: macos-latest
+            artifact: HelixLock-macos
+          - os: windows-latest
+            artifact: HelixLock-windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build dependencies
+        run: python -m pip install --upgrade pip cryptography pyinstaller
+      - name: Build desktop application
+        run: pyinstaller --noconfirm --clean --windowed --name HelixLock helix_lock_app.py
+      - name: Package application
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a ../HelixLock-windows.zip HelixLock.exe
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            ditto -c -k --sequesterRsrc --keepParent HelixLock.app ../HelixLock-macos.zip
+          else
+            tar -czf ../HelixLock-linux.tar.gz HelixLock
+          fi
+      - name: Upload platform package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            HelixLock-windows.zip
+            HelixLock-macos.zip
+            HelixLock-linux.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download platform packages
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0
+          name: Helix-Lock v0.1.0
+          target_commitish: main
+          generate_release_notes: true
+          files: release-assets/**/*
