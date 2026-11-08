@@ -60,6 +60,8 @@ on:
       - "tests/test_helix_qpsk_repeated_observations.py"
       - "tests/test_helix_resonance_filter.py"
       - "experiments/helix_resonance_filter.py"
+      - "experiments/helix_security_performance_gate.py"
+      - "tests/test_helix_security_performance_gate.py"
       - "experiments/helix_qpsk_repeated_observations.py"
       - "experiments/helix_qpsk_memory_benchmark.py"
       - "experiments/helix_memory_vs_accumulation.py"
@@ -110,6 +112,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Test authenticated-envelope security regression
+        run: python -m pytest -q tests/test_helix_security_performance_gate.py tests/test_helix_native_secure_envelope.py
+      - name: Measure authenticated-envelope security and throughput
+        run: python -m experiments.helix_security_performance_gate --output helix-security-performance.json
+      - name: Upload security-performance measurements
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-security-performance-${{ matrix.python-version }}
+          path: helix-security-performance.json
+          retention-days: 30
       - name: Test robust resonance filter
         run: python -m pytest -q tests/test_helix_resonance_filter.py
       - name: Compare resonance filter with circular mean
