@@ -13,7 +13,7 @@ def test_deterministic_matched_comparison():
 
 
 def test_window_one_matches_instantaneous_when_decided():
-    report = compare(seeds=range(4), samples=12, window=1)
+    report = compare(seeds=range(4), samples=12, window=1, noise=0)
     assert report["metrics"]["instant"]["accuracy_with_abstentions"] == report["metrics"]["history"]["accuracy_with_abstentions"]
 
 
