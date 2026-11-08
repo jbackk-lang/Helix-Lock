@@ -66,6 +66,32 @@ def chirality_probe(chiral, mode: int = 1) -> float:
     return float(np.vdot(q, chiral @ q).real)
 
 
+
+def reverse_cycle_orientation(kappa, tau):
+    """Reindex the same oriented ring in the opposite traversal direction."""
+    kappa = np.asarray(kappa, dtype=float)
+    tau = np.asarray(tau, dtype=float)
+    if kappa.ndim != 1 or tau.ndim != 1 or len(kappa) != len(tau) or len(kappa) < 3:
+        raise ValueError("kappa and tau must be equal-length 1D arrays with N >= 3")
+    n = len(kappa)
+    indices = (-np.arange(n)) % n
+    reversed_kappa = kappa[indices]
+    reversed_tau = -tau[(-np.arange(n) - 1) % n]
+    return reversed_kappa, reversed_tau
+
+
+def real_doubled_representation(operator):
+    """Represent a Hermitian complex matrix as an equivalent real symmetric matrix."""
+    operator = np.asarray(operator, dtype=complex)
+    if operator.ndim != 2 or operator.shape[0] != operator.shape[1]:
+        raise ValueError("operator must be square")
+    if not np.allclose(operator, operator.conj().T, atol=1e-12, rtol=0):
+        raise ValueError("operator must be Hermitian")
+    real = operator.real
+    imag = operator.imag
+    return np.block([[real, -imag], [imag, real]])
+
+
 def run(samples: int = 128, radius: float = 1.0,
         pitch_parameter: float = 0.35, chirality_scale: float = 0.25) -> dict:
     if samples < 8:
