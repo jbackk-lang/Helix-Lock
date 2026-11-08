@@ -3,8 +3,18 @@ name: Build and publish Helix-Lock desktop release
 on:
   workflow_dispatch:
   push:
+    branches: [main]
+    paths:
+      - "helix_lock_app.py"
+      - "helix_pro/**"
+      - ".github/workflows/publish-release.yml"
     tags:
       - "v*"
+  pull_request:
+    paths:
+      - "helix_lock_app.py"
+      - "helix_pro/**"
+      - ".github/workflows/publish-release.yml"
 
 permissions:
   contents: write
