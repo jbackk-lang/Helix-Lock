@@ -5,6 +5,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - "main"
     paths:
       - "helix_lock_app.py"
       - "helix_pro_gui.py"
@@ -16,7 +18,7 @@ permissions:
 
 jobs:
   build:
-    name: Build \${{ matrix.os }}
+    name: Build ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +29,7 @@ jobs:
             artifact: HelixLock-macos
           - os: windows-latest
             artifact: HelixLock-windows
-    runs-on: \${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -40,7 +42,7 @@ jobs:
       - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
-          name: \${{ matrix.artifact }}
+          name: ${{ matrix.artifact }}
           path: |
             dist/HelixLock
             dist/HelixLock.app
