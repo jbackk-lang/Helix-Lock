@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
+import struct
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
