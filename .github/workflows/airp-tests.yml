@@ -54,6 +54,7 @@ on:
       - "tests/test_helix_native_history_comparison.py"
       - "tests/test_helix_native_evidence_gate.py"
       - "tests/test_helix_native_secure_envelope.py"
+      - "tests/test_helix_lock_ui_priority.py"
       - "tests/test_helix_native_compact.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
@@ -231,3 +232,4 @@ jobs:
           tests/test_helix_native_history_comparison.py
           tests/test_helix_native_evidence_gate.py
           tests/test_helix_native_secure_envelope.py
+          tests/test_helix_lock_ui_priority.py
