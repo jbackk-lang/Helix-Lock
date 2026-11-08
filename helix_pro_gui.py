@@ -58,7 +58,16 @@ def register_airp_representation(encrypted_path: str, *, database_path: str = AI
     with open(encrypted_path, "rb") as stream:
         blob = stream.read()
     key_id = uuid.uuid4().hex
-    AIRPStore(database_path).register(airp_object_id(encrypted_path), blob, key_id=key_id)
+    store = AIRPStore(database_path)
+    object_id = airp_object_id(encrypted_path)
+    previous = store.get(object_id)
+    if previous is None:
+        store.register(object_id, blob, key_id=key_id)
+    else:
+        store.commit_rotation(
+            object_id, blob, expected_version=previous.version,
+            expected_blob_sha256=previous.blob_sha256, new_key_id=key_id,
+        )
     return key_id
 
 
