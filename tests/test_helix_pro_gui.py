@@ -209,3 +209,17 @@ def test_airp_reenrollment_advances_version_when_output_is_overwritten(tmp_path)
 
     assert second.version == first.version + 1
     assert verify_airp_representation(str(encrypted), database_path=str(database))
+
+
+def test_airp_fails_closed_for_unregistered_or_moved_file(tmp_path):
+    from helix_pro_gui import register_airp_representation, verify_airp_representation
+
+    database = tmp_path / "airp.sqlite3"
+    original = tmp_path / "original.helixpro"
+    moved = tmp_path / "moved.helixpro"
+    original.write_bytes(b"ciphertext")
+    assert not verify_airp_representation(str(original), database_path=str(database))
+
+    register_airp_representation(str(original), database_path=str(database))
+    moved.write_bytes(original.read_bytes())
+    assert not verify_airp_representation(str(moved), database_path=str(database))
