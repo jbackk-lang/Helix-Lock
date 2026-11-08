@@ -5,6 +5,11 @@ on:
   push:
     tags:
       - "v*"
+    paths:
+      - "helix_lock_app.py"
+      - "helix_pro_gui.py"
+      - "helix_pro/**"
+      - ".github/workflows/desktop-build.yml"
 
 permissions:
   contents: read
