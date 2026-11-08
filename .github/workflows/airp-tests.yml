@@ -19,6 +19,7 @@ on:
       - "tests/test_adaptive_rotation.py"
       - "tests/test_airp_monitor.py"
       - "tests/test_airp_store.py"
+      - "tests/test_airp_transaction.py"
       - ".github/workflows/airp-tests.yml"
 
 jobs:
