@@ -582,9 +582,15 @@ def _build_gui():
 
 
 def main():
-    HelixProGUI = _build_gui()
-    app = HelixProGUI()
-    app.mainloop()
+    # The unified cross-platform desktop app is now the default. Keep the
+    # former advanced window available for compatibility and diagnostics.
+    if "--legacy" in sys.argv:
+        HelixProGUI = _build_gui()
+        app = HelixProGUI()
+        app.mainloop()
+        return
+    from helix_lock_app import main as desktop_main
+    desktop_main()
 
 
 if __name__ == "__main__":
