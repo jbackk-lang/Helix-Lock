@@ -80,10 +80,12 @@ class HelixLockApp(tk.Tk):
         self.file_tab = ttk.Frame(self.tabs); self.tabs.add(self.file_tab, text="Pliki")
         self.fp_tab = ttk.Frame(self.tabs); self.tabs.add(self.fp_tab, text="Odcisk klucza")
         self.trust_tab = ttk.Frame(self.tabs); self.tabs.add(self.trust_tab, text="AIRP / Quorum")
+        self._build_dashboard()
         self._build_files()
         self._build_fingerprint()
         self._build_trust()
         self.status = tk.StringVar(value="Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.")
+        self.refresh_dashboard()
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
         tk.Label(bar, textvariable=self.status, bg="#0C1421", fg=MUTED, anchor="w", padx=16, pady=10).pack(fill="x")
 
@@ -308,6 +310,8 @@ class HelixLockApp(tk.Tk):
             if os.path.abspath(out) == os.path.abspath(src): raise HelixProError("Plik wynikowy nie może być źródłowym.")
             if os.path.exists(out) and not messagebox.askyesno("Nadpisanie", "Plik istnieje. Nadpisać?"): return
             encrypt_file_with_name(src, out, compress=True, **kwargs)
+            self.source.set(out)
+            self.refresh_dashboard()
             self.status.set("Szyfrowanie zakończone. Oryginalna nazwa jest zapisana wewnątrz szyfrogramu.")
             messagebox.showinfo("Helix-Lock", "Plik został zaszyfrowany.")
         except (OSError, HelixProError) as exc: messagebox.showerror("Szyfrowanie", str(exc))
@@ -318,7 +322,7 @@ class HelixLockApp(tk.Tk):
             if not src or not os.path.isfile(src): raise HelixProError("Wybierz istniejący plik.")
             fmt = detect_format(src)
             if fmt == "unknown": raise HelixProError("Nie rozpoznano formatu Helix-Lock.")
-            if fmt == "counter": raise HelixProError("Format CounterLock wymaga zaawansowanego GUI: uruchom python helix_pro_gui.py --legacy.")
+            if fmt == "counter": raise HelixProError("Format CounterLock wymaga weryfikacji licznika przez AIRPCounterLock i trwały rejestr. Odszyfrowanie bez tej kontroli jest zablokowane.")
             kwargs = self._read_key()
             if fmt == "named":
                 name, data = decrypt_bytes_with_name(src, **kwargs)
@@ -331,6 +335,7 @@ class HelixLockApp(tk.Tk):
                 if not out: return
                 if os.path.exists(out) and not messagebox.askyesno("Nadpisanie", "Plik istnieje. Nadpisać?"): return
                 decrypt_file(src, out, **kwargs)
+            self.refresh_dashboard()
             self.status.set("Deszyfrowanie zakończone.")
             messagebox.showinfo("Helix-Lock", "Plik został odszyfrowany.")
         except (OSError, HelixProError) as exc: messagebox.showerror("Deszyfrowanie", str(exc))
