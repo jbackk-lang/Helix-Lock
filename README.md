@@ -603,3 +603,6 @@ GUI umożliwia:
 Ekran pokazuje wizualny przepływ: klucz → odcisk → weryfikacja → rejestr AIRP. Manifest zawiera wyłącznie identyfikatory, algorytm i odcisk — nigdy materiał klucza. Nie wysyła klucza do sieci ani nie zapisuje go w rejestrze.
 
 **Uwaga:** GUI tworzy i weryfikuje lokalny manifest. Nie zastępuje jeszcze zarejestrowania zdarzenia w zewnętrznym Trust Anchor ani podpisanej polityki autoryzacji. Plik manifestu nie jest sam w sobie dowodem zaufania; jego pochodzenie musi być potwierdzone niezależnym kanałem lub rejestrem.
+
+
+**Walidacja CI GUI/fingerprint:** 105 testów zaliczonych na Pythonie 3.11 oraz 105 na Pythonie 3.12. Raport: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42474308493
