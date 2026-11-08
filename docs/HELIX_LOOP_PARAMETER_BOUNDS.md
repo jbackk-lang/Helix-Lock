@@ -161,3 +161,29 @@ Hipoteza: jeżeli geometria jest nośnikiem kierunku sygnału, pominięcie chira
 ### 9.4 Czego nie wolno jeszcze twierdzić
 
 Nie ma jeszcze dowodu, że oryginalny TIMDR koduje sygnał w taki sposób ani że zmiana chiralności powoduje określoną zmianę widma. To nowy, falsyfikowalny wymóg modelu, zgłoszony przez użytkownika i wymagający implementacji oraz testów. Aktualny G5 go nie spełnia, ponieważ redukuje torsję do wartości bezwzględnej.
+
+## 10. Wynik eksperymentu chiralności tunelu helisy (2026-11-08)
+
+Dodano `experiments/helical_tunnel_chirality.py` oraz `tests/test_helical_tunnel_chirality.py`.
+
+Model analityczny używa helisy `r(t)=(a cos t, a sin t, σ h t)`, gdzie `σ∈{−1,+1}` oznacza lewo-/prawoskrętność. Sygnał jest poprzecznym wektorem w lokalnej ramie Freneta: `S(t)=cos(φ)N(t)+sin(φ)B(t)`. Wariant zgodny z orientacją tunelu używa `φ=σ q t`; kontrola naiwna używa `φ=q t` dla obu chiralności.
+
+### Oczekiwane i testowane własności
+
+- odbicie lustrzane przez płaszczyznę XY zachowuje krzywiznę;
+- odbicie odwraca znak torsji;
+- przy transformacji fazy zgodnej z chiralnością pole sygnału jest kowariantne względem odbicia (wektor sygnału lewego tunelu jest odbiciem wektora prawego);
+- przy tej samej konwencji znaku fazy dla obu tuneli kowariancja jest tracona;
+- obecny G5 daje identyczną macierz sztywności i widmo dla lustrzanej pary, ponieważ segmentowe sprzężenie używa `abs(tau)`.
+
+To ostatnie jest konkretnym wynikiem audytu implementacji: obecny G5 jest niewrażliwy na znak torsji, więc samo jego widmo nie może rozstrzygnąć, czy sygnał jest zgodny z chiralnością tunelu.
+
+### Interpretacja i ograniczenia
+
+Reguła `φ=σ q t` jest kandydacką konwencją zapewniającą kowariancję lustrzaną w tej analitycznej konstrukcji. Nie została wyprowadzona z oryginalnego TSI/TIMDR. Eksperyment mierzy geometryczną zgodność pola sygnału, a nie odtworzenie dowolnego payloadu ani danych kryptograficznych. Idealna rama Freneta jest poprawna dla tej regularnej helisy; dla ogólnych krzywych należy uwzględnić stabilny transport ramy (np. ramę Bishopa) i obszary małej krzywizny.
+
+Nie należy jeszcze zmieniać produkcyjnego G5 przez podmianę `abs(tau)` na `tau`: znakowa waga krawędzi może naruszyć dodatnią określoność macierzy K. Chiralność powinna wejść jako jawna orientacja ramy/fazy lub jako osobny operator, z osobnym dowodem stabilności.
+
+### Następny test rozstrzygający
+
+Zmapować `phase_rate × pitch × loop asymmetry × noise`, dodać niezależne odwrócenie kierunku indeksowania oraz legalną zmianę payloadu w trakcie obiegu. Porównać: kowariancję sygnału, widmo, koherencję i dokładność dekodowania. Wynik modelu syntetycznego nie zastępuje walidacji na oryginalnym TSI.
