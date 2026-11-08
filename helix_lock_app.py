@@ -41,6 +41,8 @@ class HelixLockApp(tk.Tk):
         self.mode = tk.StringVar(value="key")
         self.object_id = tk.StringVar(value="my-object")
         self.key_id = tk.StringVar(value="key-v1")
+        self.old_key_id = tk.StringVar(value="key-v0")
+        self.old_key_file = tk.StringVar()
         self.signer_file = tk.StringVar()
         self.signer_password = tk.StringVar()
         self.ledger_path = tk.StringVar(value=DEFAULT_LEDGER)
@@ -137,14 +139,17 @@ class HelixLockApp(tk.Tk):
     def _build_trust(self):
         card = self._section(self.trust_tab, "03  AIRP · zewnętrzne zaufanie", "Ta sekcja łączy odciski z podpisanym dziennikiem AIRP i quorum niezależnych świadków. Każdy endpoint powinien być zarządzany w osobnej domenie administracyjnej.")
         self._entry(card, "Klucz podpisujący", self.signer_file, browse=self._pick_signer)
+        self._entry(card, "Stary plik klucza", self.old_key_file, browse=self._pick_old_key)
+        self._entry(card, "ID starego klucza", self.old_key_id)
         self._entry(card, "Hasło PEM", self.signer_password, secret=True)
         self._entry(card, "Baza AIRP", self.ledger_path, browse=self._pick_ledger)
         tk.Label(card, text="Świadkowie — jeden wpis na linię: HTTPS_URL | BEARER_TOKEN (tokeny nie są zapisywane)", bg=PANEL, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", padx=14, pady=(8, 3))
         self.anchors = tk.Text(card, height=5, bg="#0C1421", fg=FG, insertbackground=FG, relief="flat", wrap="none", font=("Consolas", 9))
         self.anchors.pack(fill="x", padx=14, pady=(0, 10))
         row = tk.Frame(card, bg=PANEL); row.pack(fill="x", padx=14, pady=(0, 12))
-        ttk.Button(row, text="Zarejestruj wybrany klucz w AIRP", style="Accent.TButton", command=self._register_identity).pack(side="left", padx=(0, 6))
-        ttk.Button(row, text="Sprawdź / ponów quorum", command=self._verify_quorum).pack(side="left")
+        ttk.Button(row, text="Zarejestruj klucz", style="Accent.TButton", command=self._register_identity).pack(side="left", padx=(0, 6))
+        ttk.Button(row, text="Rotuj klucz", command=self._rotate_identity).pack(side="left", padx=6)
+        ttk.Button(row, text="Sprawdź / ponów quorum", command=self._verify_quorum).pack(side="left", padx=6)
         info = self._section(self.trust_tab, "Polityka bezpieczeństwa", "Quorum to ścisła większość skonfigurowanych świadków. Dla odporności administracyjnej skonfiguruj co najmniej 3 niezależne endpointy. Przy braku quorum zdarzenie pozostaje lokalne i jest jawnie oznaczone jako niezakotwiczone — aplikacja nie pokazuje fałszywego sukcesu.")
 
     def _refresh_mode(self):
@@ -162,6 +167,10 @@ class HelixLockApp(tk.Tk):
     def _pick_key(self):
         p = filedialog.askopenfilename(title="Wybierz 32-bajtowy plik klucza")
         if p: self.key_file.set(p)
+
+    def _pick_old_key(self):
+        p = filedialog.askopenfilename(title="Wybierz poprzedni plik klucza")
+        if p: self.old_key_file.set(p)
 
     def _pick_signer(self):
         p = filedialog.askopenfilename(title="Wybierz klucz podpisujący Ed25519 (PEM)")
@@ -297,7 +306,33 @@ class HelixLockApp(tk.Tk):
             else:
                 self.status.set("AIRP: lokalny wpis oczekuje na quorum.")
                 messagebox.showwarning("AIRP / Quorum — pending", result.message + "\n\nStatus: " + result.anchor_status)
-        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror("AIRP / Quorum", str(exc))
+        except (OSError, ValueError, TypeError, HelixProError) as exc: messagebox.showerror("AIRP / Quorum", str(exc))
+
+    def _rotate_identity(self):
+        try:
+            old_path = self.old_key_file.get().strip()
+            if not old_path or not os.path.isfile(old_path):
+                raise HelixProError("Wskaż poprzedni plik klucza.")
+            with open(old_path, "rb") as f: old_key = f.read(33)
+            new_key = self._read_key()["key"]
+            if len(old_key) != 32: raise HelixProError("Poprzedni klucz musi mieć dokładnie 32 bajty.")
+            manager = self._identity_manager()
+            signer_path = self.signer_file.get().strip()
+            password = self.signer_password.get().encode("utf-8") if self.signer_password.get() else None
+            with open(signer_path, "rb") as f: signer = serialization.load_pem_private_key(f.read(), password=password)
+            result = manager.rotate_key(
+                old_key, new_key, object_id=self.object_id.get().strip(),
+                old_key_id=self.old_key_id.get().strip(), new_key_id=self.key_id.get().strip(),
+                signer=signer,
+            )
+            if result.anchored:
+                self.status.set("AIRP: rotacja klucza potwierdzona przez quorum.")
+                messagebox.showinfo("AIRP / rotacja", result.message)
+            else:
+                self.status.set("AIRP: rotacja lokalna — oczekuje na quorum.")
+                messagebox.showwarning("AIRP / rotacja — pending", result.message + "\n\nStatus: " + result.anchor_status)
+        except (OSError, ValueError, TypeError, HelixProError) as exc:
+            messagebox.showerror("AIRP / rotacja", str(exc))
 
     def _verify_quorum(self):
         try:
