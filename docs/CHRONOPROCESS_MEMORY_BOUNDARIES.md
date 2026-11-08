@@ -106,3 +106,12 @@ Rozszerzono `experiments/three_loop_phase_memory.py` o parametr `disturbance_tar
 Interpretacja: zaburzenie common-mode przesuwa wszystkie fazy jednakowo, więc względne różnice fazowe pozostają niemal niezmienione (z dokładnością do małego niezależnego szumu). Nie jest to samonaprawa — układ nie utracił relacji względnych. Ten test kontrolny chroni przed błędnym przypisaniem zachowania common-mode mechanizmowi regeneracji.
 
 Dodatkowo filtry `pull_request.paths` w workflow obejmują teraz plik eksperymentu i jego testy; wcześniej ta ścieżka była uwzględniona przy `push`, ale nie w Pull Request.
+
+
+## 11. Ryzyko nieaktualnego wzorca i poprawka reprodukowalności (2026-11-08)
+
+Dodano jawny helper `reference_feedback_correction()` oraz test pokazujący kierunek działania sprzężenia, gdy prawidłowy stan relacji fazowej zmieni się, a pamięć nadal przechowuje stary wzorzec. Korekta ma wtedy znak przeciwny do nowej zmiany i może utrudniać zaakceptowanie legalnej zmiany stanu. To celowo test ryzyka, a nie dowód zachowania produkcyjnego systemu.
+
+Poprawiono także obsługę iteratora seedów w `run()`: wejściowy iterator jest materializowany raz, dzięki czemu wszystkie tryby porównawcze dostają dokładnie ten sam zestaw seedów. Wcześniejsza implementacja mogła zużyć generator podczas pierwszego trybu i pozostawić kolejne tryby bez prób. Dodano test regresyjny dla generatora.
+
+Wniosek projektowy: pamięć wzorca wymaga warunku aktualności, jawnego zatwierdzania zmiany stanu lub mechanizmu adaptacji. Nie może bezterminowo wymuszać historycznego wzorca. Ten problem trzeba rozwiązać i przetestować przed rozważaniem jakiegokolwiek połączenia z logiką bezpieczeństwa.
