@@ -24,7 +24,7 @@ def test_no_flip_final_only_equals_per_sample():
 
 def test_reversal_summary_is_reproducible():
     assert run([7, 8]) == run([7, 8])
-    assert len(run([7, 8])["results"]) == 30
+    assert len(run([7, 8])["results"]) == 40
 
 def test_invalid_reversal_inputs():
     with pytest.raises(ValueError):
@@ -33,3 +33,18 @@ def test_invalid_reversal_inputs():
         run_trial(1, readout="unknown")
     with pytest.raises(ValueError):
         run_trial(1, start_handedness=0)
+
+def test_shuffled_handedness_labels_are_worse_than_true_labels_at_midpoint():
+    seeds = range(1000, 1100)
+    correct = [run_trial(s, flip_after=6, readout="per_sample")["mean_reference_error_rad"]
+               for s in seeds]
+    shuffled = [run_trial(s, flip_after=6, readout="shuffled_labels")["mean_reference_error_rad"]
+                for s in seeds]
+    assert sum(correct) < sum(shuffled)
+
+
+def test_shuffled_labels_have_no_effect_without_a_flip():
+    for flip_after in (0, 12):
+        x = run_trial(17, flip_after=flip_after, readout="per_sample")
+        y = run_trial(17, flip_after=flip_after, readout="shuffled_labels")
+        assert x["mean_reference_error_rad"] == pytest.approx(y["mean_reference_error_rad"])
