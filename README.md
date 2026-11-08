@@ -366,6 +366,19 @@ python -m pytest tests/test_helix_pro.py tests/test_adaptive_rotation.py tests/t
 
 Przykładowa lokalizacja bazy: `.`private_state\airp.sqlite3` (katalog powinien być prywatny dla konta użytkownika). Nie commituj bazy ani kluczy do Git — dodaj katalog stanu do lokalnego `.gitignore`.
 
+### Integracja AIRP z GUI
+
+GUI (`helix_pro_gui.py`) ma domyślnie włączony checkbox AIRP:
+
+- po szyfrowaniu w trybie HLXN/HLXP rejestruje hash szyfrogramu, wersję i losowy identyfikator klucza;
+- przed odszyfrowaniem HLXN/HLXP sprawdza, czy plik odpowiada dokładnie zarejestrowanej reprezentacji;
+- brak wpisu lub niezgodny hash oznacza odmowę dostępu; użytkownik może świadomie wyłączyć checkbox, np. dla starszego pliku lub pliku przeniesionego z innego komputera;
+- ponowne szyfrowanie do tej samej ścieżki przesuwa wersję rejestru przez compare-and-swap.
+
+Domyślna baza GUI: `%USERPROFILE%\\.helix_lock\\airp.sqlite3` w Windows lub `~/.helix_lock/airp.sqlite3` w systemach Unix. To lokalna baza przypisana do ścieżki pliku: przeniesienie lub zmiana nazwy zaszyfrowanego pliku wymaga osobnego, kontrolowanego procesu migracji wpisu. Nie kopiuj bazy do publicznego repozytorium.
+
+**Ważne:** kontrola GUI obejmuje obecnie formaty HLXN i HLXP. CounterLock (`HLXC`) pomija tę kontrolę, ponieważ istniejąca funkcja odczytu sama nadpisuje szyfrogram z inkrementowanym licznikiem; jego bezpieczna integracja wymaga osobnego przepływu transakcyjnego, aby baza AIRP i plik nie rozjechały się po awarii. Sam licznik w nagłówku nie jest niezależnym, odpornym na rollback źródłem prawdy.
+
 ### Granice bezpieczeństwa — przeczytaj przed wdrożeniem
 
 - SQLite daje trwałość i transakcyjność lokalnego rejestru, ale **nie jest odporny na rollback**, jeśli napastnik może podmienić bazę i kopie zapasowe. Dla silniejszego modelu zagrożeń użyj niezależnej usługi/rejestru append-only, z osobnymi uprawnieniami i ochroną przed cofnięciem.
