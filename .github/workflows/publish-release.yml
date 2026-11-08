@@ -47,7 +47,15 @@ jobs:
           else
             tar -czf ../HelixLock-linux.tar.gz HelixLock
           fi
-      - name: Upload platform package
+      - name: Record build environment
+        shell: bash
+        run: |
+          python --version > build-environment.txt
+          python -m pip freeze --all >> build-environment.txt
+          echo "runner_os=${{ runner.os }}" >> build-environment.txt
+          echo "runner_arch=$(uname -m)" >> build-environment.txt
+          echo "source_commit=${{ github.sha }}" >> build-environment.txt
+      - name: Upload platform package and build metadata
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
@@ -55,6 +63,7 @@ jobs:
             HelixLock-windows.zip
             HelixLock-macos.zip
             HelixLock-linux.tar.gz
+            build-environment.txt
           if-no-files-found: error
           retention-days: 30
 
@@ -67,6 +76,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-assets
+      - name: Generate SHA-256 manifest
+        shell: bash
+        run: |
+          find release-assets -type f -print0 | sort -z | xargs -0 sha256sum > release-assets/SHA256SUMS.txt
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
