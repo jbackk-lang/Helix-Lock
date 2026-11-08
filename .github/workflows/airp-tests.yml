@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "helix_pro/**"
+      - "helix_pro_gui.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
