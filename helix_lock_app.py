@@ -81,14 +81,20 @@ class HelixLockApp(tk.Tk):
         tk.Label(head, text=self._tr("Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", "File encryption · Key identity · AIRP trust"), bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
         self.tabs = ttk.Notebook(self)
         self.tabs.pack(fill="both", expand=True, padx=20, pady=(0, 12))
+        # Primary workflow comes first: file -> key -> operation.
+        self.file_tab = ttk.Frame(self.tabs); self.tabs.add(self.file_tab, text=self._tr("Plik i klucz", "File & key"))
+        self.settings_tab = ttk.Frame(self.tabs); self.tabs.add(self.settings_tab, text=self._tr("Ustawienia", "Settings"))
+        self.info_tab = ttk.Frame(self.tabs); self.tabs.add(self.info_tab, text=self._tr("Informacje", "Information"))
         self.dashboard_tab = ttk.Frame(self.tabs); self.tabs.add(self.dashboard_tab, text=self._tr("Przegląd bezpieczeństwa", "Security overview"))
-        self.file_tab = ttk.Frame(self.tabs); self.tabs.add(self.file_tab, text=self._tr("Pliki", "Files"))
         self.fp_tab = ttk.Frame(self.tabs); self.tabs.add(self.fp_tab, text=self._tr("Odcisk klucza", "Key fingerprint"))
         self.trust_tab = ttk.Frame(self.tabs); self.tabs.add(self.trust_tab, text=self._tr("AIRP / Quorum", "AIRP / Quorum"))
-        self._build_dashboard()
         self._build_files()
+        self._build_settings()
+        self._build_information()
+        self._build_dashboard()
         self._build_fingerprint()
         self._build_trust()
+        self.tabs.select(self.file_tab)
         self.status = tk.StringVar(value=self._tr("Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.", "Ready. Keys stay on this device."))
         self.refresh_dashboard()
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
@@ -240,6 +246,46 @@ class HelixLockApp(tk.Tk):
         ttk.Button(actions, text=self._tr("🔓  Odszyfruj", "🔓  Decrypt"), command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
         self._refresh_mode()
         note = self._section(self.file_tab, self._tr("Ważne", "Important"), self._tr("Zachowaj kopię klucza poza komputerem z zaszyfrowanymi danymi. Bez klucza lub hasła odzyskanie treści nie będzie możliwe. Odcisk klucza nie zastępuje klucza.", "Keep a backup of the key away from the encrypted data. Without the key or password, the data cannot be recovered. A fingerprint is not a key."))
+
+    def _build_settings(self):
+        card = self._section(
+            self.settings_tab,
+            self._tr("USTAWIENIA", "SETTINGS"),
+            self._tr("Wybierz sposób pracy z kluczem. Ustawienie jest współdzielone z ekranem plików.",
+                     "Choose how to use your key. This setting is shared with the file screen."),
+        )
+        ttk.Radiobutton(
+            card, text=self._tr("Plik klucza", "Key file"), variable=self.mode,
+            value="key", command=self._refresh_mode,
+        ).pack(anchor="w", padx=14, pady=5)
+        ttk.Radiobutton(
+            card, text=self._tr("Hasło", "Password"), variable=self.mode,
+            value="password", command=self._refresh_mode,
+        ).pack(anchor="w", padx=14, pady=(0, 12))
+        ttk.Button(
+            card, text=self._tr("Wróć do pliku i klucza", "Back to file & key"),
+            command=lambda: self.tabs.select(self.file_tab),
+        ).pack(anchor="w", padx=14, pady=(0, 12))
+
+    def _build_information(self):
+        card = self._section(
+            self.info_tab,
+            self._tr("INFORMACJE", "INFORMATION"),
+            self._tr("Najpierw wybierz plik i klucz na pierwszej karcie. Moduły AIRP są opcjonalne.",
+                     "Start with a file and key on the first tab. AIRP modules are optional."),
+        )
+        tk.Label(
+            card, text=self._tr(
+                "Klucz przechowuj oddzielnie od zaszyfrowanych danych. "
+                "Utrata klucza może uniemożliwić odzyskanie pliku.",
+                "Store your key separately from encrypted data. "
+                "Losing the key can make file recovery impossible."),
+            bg=PANEL, fg=FG, wraplength=680, justify="left",
+        ).pack(anchor="w", padx=14, pady=(0, 12))
+        ttk.Button(
+            card, text=self._tr("Przejdź do pracy z plikiem", "Go to file workflow"),
+            command=lambda: self.tabs.select(self.file_tab),
+        ).pack(anchor="w", padx=14, pady=(0, 12))
 
     def _build_fingerprint(self):
         card = self._section(self.fp_tab, self._tr("02  Tożsamość klucza", "02  Key identity"), self._tr("Utwórz odcisk powiązany z identyfikatorem obiektu i klucza. Manifest nie zawiera klucza ani hasła.", "Create a fingerprint bound to object and key IDs. The manifest contains no key or password."))
