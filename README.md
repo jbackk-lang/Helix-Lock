@@ -181,6 +181,10 @@ którym to powstało, nie ma wyświetlacza).
 
 Granice pamięci operacyjnej, audytowej i cech historycznych oraz plan walidacji opisano w [CHRONOPROCESS_MEMORY_BOUNDARIES.md](docs/CHRONOPROCESS_MEMORY_BOUNDARIES.md). Ważne: obecny Chronoproces GIA-TIMDR orkiestruje trzy niezależne rzuty; sam nie implementuje sprzężonej samonaprawy ani adaptacyjnej pamięci. Nie należy mylić agregacji historii zdarzeń z odzyskiwaniem informacji.
 
+## Wydanie desktopowe i kontrola gotowości
+
+Procedura wydania, testy ręczne dla Windows/macOS/Linux, weryfikacja SHA-256, podpisywanie paczek i jawne ograniczenia bezpieczeństwa są opisane w [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md). Paczki CI są obecnie niepodpisane; przed uruchomieniem należy zweryfikować ich sumy SHA-256. Samo przejście CI nie zastępuje testów GUI na rzeczywistych komputerach ani niezależnego audytu bezpieczeństwa.
+
 ## Co zastąpiono i dlaczego
 
 Audyt (2026-08) trzech oryginalnych modułów znalazł konkretne, nie
