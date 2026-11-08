@@ -124,4 +124,10 @@ class AIRPIdentityManager:
         return self.ledger.verify()
 
     def status(self) -> LedgerVerification:
-        return self.ledger.verify()
+        try:
+            return self.ledger.verify()
+        except HelixProError:
+            sequence, head_hash = self.ledger.head()
+            return LedgerVerification(
+                False, "anchor_unavailable_or_no_quorum", sequence, 0, head_hash,
+            )
