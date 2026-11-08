@@ -73,6 +73,8 @@ on:
       - "tests/test_helix_replay_recovery.py"
       - "experiments/helix_phase_coherence.py"
       - "tests/test_helix_phase_coherence.py"
+      - "experiments/helix_symbol_consensus.py"
+      - "tests/test_helix_symbol_consensus.py"
       - "tests/test_helix_security_performance_gate.py"
       - "experiments/helix_qpsk_repeated_observations.py"
       - "experiments/helix_qpsk_memory_benchmark.py"
@@ -124,6 +126,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Test quorum-based symbol consensus
+        run: python -m pytest -q tests/test_helix_symbol_consensus.py
       - name: Test phase coherence adaptive estimator
         run: python -m pytest -q tests/test_helix_phase_coherence.py
       - name: Test fail-closed replay recovery classification
