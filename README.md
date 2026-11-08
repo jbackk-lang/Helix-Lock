@@ -261,6 +261,15 @@ Testy: `pytest tests/test_adaptive_rotation.py -q`.
 **Granice bezpieczeństwa:** to prototyp rotacji klucza, nie automatyczny detektor włamania ani mechanizm unieważniania skradzionych kopii. Po udanej rotacji aplikacja musi atomowo przełączyć aktywny rekord na nowy blob, ograniczyć dostęp do starego klucza i zgodnie z polityką retencji usunąć/wycofać stare kopie. Kopii ciphertextu i klucza, które napastnik już posiada, sama rotacja nie unieważnia. Nie wolno modyfikować ani podmieniać plaintextu w reakcji na błędne hasło lub nieudaną autentykację — operacja kończy się błędem bez ujawnienia treści. Aktualne formaty plikowe HLXP/HLXN i CounterLock nie są automatycznie migrowane przez ten moduł.
 
 
+
+## TIMDR — pochodzenie architektury i integracja
+
+Helix-Lock rozwija się w ekosystemie GIA/TIMDR. Należy jednak rozdzielać pochodzenie koncepcji i architektury od implementacji prymitywu kryptograficznego: szyfrowanie danych realizuje standardowe AES-256-GCM z biblioteki `cryptography`; TIMDR nie zastępuje ani nie modyfikuje tego prymitywu.
+
+Plan mapowania TIMDR na AIRP, dziennik zdarzeń, wersjonowanie, CounterLock, fingerprinty i rotację reprezentacji — wraz z ograniczeniami, hipotezami i protokołem falsyfikacji — znajduje się w [docs/TIMDR_INTEGRATION.md](docs/TIMDR_INTEGRATION.md).
+
+Integracja TIMDR jest na tym etapie warstwą projektową/kandydatem diagnostycznym. Nie należy opisywać jej jako zwalidowanego detektora ataków ani mechanizmu kryptograficznego.
+
 ## AIRP — gdzie co jest i jak używać
 
 AIRP (Adaptive Information Representation Protection) to prototyp rotacji kluczy, kontroli wersji ciphertextu i rejestracji zdarzeń. Nie zmienia oryginalnej treści przy błędnym dostępie. Nie jest samodzielnym detektorem włamania ani kompletnym systemem KMS.
