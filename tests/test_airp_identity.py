@@ -34,7 +34,7 @@ class Anchor:
 
 def make_manager(tmp_path, *, failing=False):
     signer = Ed25519PrivateKey.generate()
-    anchors = [Anchor(), Anchor(), Anchor(fail=failing)]
+    anchors = [Anchor(fail=failing), Anchor(fail=failing), Anchor()]
     quorum = QuorumTrustAnchor(anchors)
     ledger = AIRPIntegrityLedger(tmp_path / "identity.sqlite3", signer, trust_anchor=quorum)
     return AIRPIdentityManager(ledger), signer, anchors
@@ -83,7 +83,8 @@ def test_quorum_outage_is_reported_as_pending_not_success(tmp_path):
 def test_retry_anchor_anchors_pending_local_event(tmp_path):
     manager, _, anchors = make_manager(tmp_path, failing=True)
     manager.register_key(b"a" * 32, object_id="doc", key_id="key-1")
-    anchors[2].fail = False
+    anchors[0].fail = False
+    anchors[1].fail = False
     result = manager.retry_anchor()
     assert result.valid is True
     assert result.status == "fully_anchored"
