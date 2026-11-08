@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import Counter
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from statistics import mean, pstdev
 from typing import Any, Iterable, Mapping
@@ -70,15 +70,10 @@ class AIRPHistoryMemory:
         self.window_size = window_size
         self._expected_sequence = first_sequence
         self._buffer: list[tuple[int, datetime, str, str | None]] = []
-        self._summaries: list[HistoryWindow] = []
 
     @property
     def pending_events(self) -> int:
         return len(self._buffer)
-
-    @property
-    def summaries(self) -> tuple[HistoryWindow, ...]:
-        return tuple(self._summaries)
 
     @property
     def retained_event_count(self) -> int:
@@ -109,7 +104,6 @@ class AIRPHistoryMemory:
             self._expected_sequence += 1
             if len(self._buffer) == self.window_size:
                 summary = self._summarize(source_checkpoint_sha256)
-                self._summaries.append(summary)
                 emitted.append(summary)
                 self._buffer.clear()
         return tuple(emitted)
