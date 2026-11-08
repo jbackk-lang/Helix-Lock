@@ -77,6 +77,14 @@ jobs:
         run: python experiments/timdr_benchmark.py --output timdr-benchmark.json
       - name: Run three-loop information-retention experiment
         run: python experiments/three_loop_information_retention.py --output three-loop-information-retention.json
+      - name: Run helical tunnel chirality experiment
+        run: python experiments/helical_tunnel_chirality.py --output helical-tunnel-chirality.json
+      - name: Upload helical tunnel chirality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helical-tunnel-chirality-${{ matrix.python-version }}
+          path: helical-tunnel-chirality.json
+          retention-days: 30
       - name: Upload three-loop experiment report
         uses: actions/upload-artifact@v4
         with:
