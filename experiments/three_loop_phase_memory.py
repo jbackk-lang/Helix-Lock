@@ -10,7 +10,7 @@ from pathlib import Path
 def wrap(angle: float) -> float:
     return (angle + math.pi) % (2.0 * math.pi) - math.pi
 
-def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int = 250, disturbance_end: int = 400) -> dict:
+def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int = 250, disturbance_end: int = 400, disturbance_targets: tuple[int, ...] = (2,)) -> dict:
     rng = random.Random(seed)
     dt = 0.02
     omega = [1.0, 1.0, 1.0]
@@ -21,9 +21,12 @@ def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int 
     memory_gain = 0.0 if mode != "coupling_plus_memory" else 0.10
     errors = []
     for step in range(steps):
-        disturbance = 0.0
+        disturbance = [0.0, 0.0, 0.0]
         if disturbance_start <= step < disturbance_end:
-            disturbance = 0.85
+            for target in disturbance_targets:
+                if target not in (0, 1, 2):
+                    raise ValueError("disturbance targets must be loop indices 0, 1, or 2")
+                disturbance[target] = 0.85
         phase_errors = [wrap(theta[1] - theta[0] - reference[0]), wrap(theta[2] - theta[0] - reference[1])]
         # Symmetric nearest-neighbour coupling is a candidate phase model.
         coupling_terms = [
@@ -40,7 +43,7 @@ def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int 
             omega[i] + coupling * coupling_terms[i] + correction[i] + noise[i]
             for i in range(3)
         ]
-        velocity[2] += disturbance
+        velocity = [velocity[i] + disturbance[i] for i in range(3)]
         theta = [theta[i] + dt * velocity[i] for i in range(3)]
         if step >= disturbance_end:
             e1 = wrap(theta[1] - theta[0] - reference[0])
@@ -52,6 +55,7 @@ def run_trial(seed: int, *, mode: str, steps: int = 900, disturbance_start: int 
         "post_disturbance_final_phase_error": round(errors[-1], 8),
         "reference_relative_phases": [round(x, 8) for x in reference],
         "disturbance_steps": disturbance_end - disturbance_start,
+        "disturbance_targets": list(disturbance_targets),
     }
 
 def run(seeds=range(100, 200)) -> dict:
