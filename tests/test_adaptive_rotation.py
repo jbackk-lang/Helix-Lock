@@ -40,3 +40,25 @@ def test_rotation_rejects_wrong_aad():
     blob = encrypt_bytes(b"secret", old_key, aad=b"correct")
     with pytest.raises(HelixProError):
         rotate_encrypted_blob(blob, old_key, new_key, aad=b"wrong")
+
+
+def test_counterlock_rotation_preserves_payload_and_counter():
+    from helix_pro.counter_lock import CounterLock, rotate_counter_blob
+
+    old_key, new_key = generate_key(), generate_key()
+    original = CounterLock(old_key).lock(b"payload with count", counter=17)
+    rotated = rotate_counter_blob(original, old_key, new_key)
+    payload, counter = CounterLock(new_key).unlock(rotated)
+    assert payload == b"payload with count"
+    assert counter == 17
+    with pytest.raises(HelixProError):
+        CounterLock(old_key).unlock(rotated)
+
+
+def test_counterlock_rotation_rejects_same_key():
+    from helix_pro.counter_lock import CounterLock, rotate_counter_blob
+
+    key = generate_key()
+    blob = CounterLock(key).lock(b"payload", counter=0)
+    with pytest.raises(HelixProError, match="must differ"):
+        rotate_counter_blob(blob, key, key)
