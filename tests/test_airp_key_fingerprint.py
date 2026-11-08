@@ -9,6 +9,7 @@ from helix_pro.airp_key_fingerprint import (
     create_rotation_link,
     public_key_fingerprint,
     representation_fingerprint,
+    representation_fingerprint_file,
     verify_key_fingerprint,
     verify_rotation_link,
 )
@@ -70,3 +71,10 @@ def test_rotation_link_rejects_reused_key_identifier():
             object_id="doc", old_key_id="same", new_key_id="same",
             signer=Ed25519PrivateKey.generate(),
         )
+
+
+def test_streaming_representation_fingerprint_matches_bytes(tmp_path):
+    path = tmp_path / 'ciphertext.bin'
+    data = b'ciphertext' * 10000
+    path.write_bytes(data)
+    assert representation_fingerprint_file(str(path), chunk_size=4096) == representation_fingerprint(data)
