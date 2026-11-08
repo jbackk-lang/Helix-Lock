@@ -116,12 +116,15 @@ class AIRPFileTransaction:
             "new_key_id": new_key_id,
         }
 
-        # Stage and journal are durable before changing the trusted registry.
+        # Journal first: a crash before the stage exists is recoverable as an
+        # uncommitted transaction, rather than leaving an untracked orphan stage.
+        _write_durable(journal, json.dumps(record, sort_keys=True).encode("utf-8"))
         _write_durable(staged, new_blob)
         if _sha256_file(staged) != new_hash:
             staged.unlink(missing_ok=True)
+            journal.unlink(missing_ok=True)
+            _fsync_directory(target.parent)
             raise HelixProError("staged representation failed its SHA-256 check")
-        _write_durable(journal, json.dumps(record, sort_keys=True).encode("utf-8"))
 
         try:
             committed = self.store.commit_rotation(
