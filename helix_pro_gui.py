@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import subprocess
 import sys
 import uuid
 from dataclasses import dataclass
@@ -256,11 +257,24 @@ def _build_gui():
             frame_actions.pack(fill="x", **pad)
             ttk.Button(frame_actions, text="🔒 Szyfruj", command=self._encrypt).pack(side="left", padx=6, expand=True, fill="x")
             ttk.Button(frame_actions, text="🔓 Deszyfruj", command=self._decrypt).pack(side="left", padx=6, expand=True, fill="x")
+            ttk.Button(frame_actions, text="🧬 Odciski AIRP", command=self._open_fingerprint_gui).pack(side="left", padx=6, expand=True, fill="x")
 
             frame_status = ttk.LabelFrame(self, text="Status")
             frame_status.pack(fill="both", expand=True, **pad)
             self.status_text = tk.Text(frame_status, height=8, wrap="word", state="disabled")
             self.status_text.pack(fill="both", expand=True, padx=6, pady=6)
+
+        def _open_fingerprint_gui(self):
+            """Launch the visual key-fingerprint manager as a companion window."""
+            gui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "airp_fingerprint_gui.py")
+            if not os.path.isfile(gui_path):
+                messagebox.showerror("AIRP Fingerprint", f"Nie znaleziono modułu GUI:\\n{gui_path}")
+                return
+            try:
+                subprocess.Popen([sys.executable, gui_path], cwd=os.path.dirname(gui_path))
+                self._log("Uruchomiono AIRP Key Fingerprint — osobne okno odcisków kluczy.")
+            except OSError as exc:
+                messagebox.showerror("AIRP Fingerprint", str(exc))
 
         def _refresh_mode(self):
             if self.mode.get() == "key":
