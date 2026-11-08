@@ -77,7 +77,7 @@ def test_quorum_outage_is_reported_as_pending_not_success(tmp_path):
     result = manager.register_key(b"a" * 32, object_id="doc", key_id="key-1")
     assert result.anchored is False
     assert result.anchor_status.startswith("pending_anchor:")
-    assert manager.status().status == "local_only_unanchored"
+    assert manager.status().status == "anchor_unavailable_or_no_quorum"
 
 
 def test_retry_anchor_anchors_pending_local_event(tmp_path):
