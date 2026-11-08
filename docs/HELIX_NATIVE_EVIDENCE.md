@@ -19,3 +19,15 @@
 5. Keep legacy authenticated encryption available for actual confidential files; no user testing can substitute for security evidence.
 
 Run: `python -m pytest -q tests/test_helix_native_codec.py`.
+
+## 2026-11-08 — key-management decision
+
+The user decided that **Helix will use established solutions for keys**, rather than inventing its own key generation or key-management scheme. Recommended engineering boundaries:
+
+- Use a cryptographically secure random number generator for fresh keys/nonces; established password-based KDFs (e.g. Argon2id where appropriate), and standard key storage/rotation mechanisms.
+- Treat Helix-native chirality/phase/memory algorithms as a separately validated research layer, not as proof of confidentiality or authentication.
+- Keep a reviewed authenticated-encryption primitive for actual confidential file protection until an independently validated alternative exists.
+- Specify key derivation, domain separation, nonce uniqueness, metadata authentication, versioning, recovery and migration in a future implementation design; do not improvise cryptographic primitives.
+- No user passwords or keys in experiment logs or public CI artifacts.
+
+Decision scope: **Helix for Helix**, not TSI.
