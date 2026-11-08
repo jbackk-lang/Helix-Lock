@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 from urllib.request import (
     HTTPRedirectHandler,
     Request,
@@ -28,8 +29,12 @@ class HTTPTrustAnchor(TrustAnchor):
 
     def __init__(self, base_url: str, bearer_token: str, *, timeout: float = 5.0):
         base_url = base_url.rstrip("/")
-        if not base_url.startswith(("https://", "http://127.0.0.1", "http://localhost")):
-            raise HelixProError("TrustAnchor requires HTTPS except on loopback")
+        parsed = urlsplit(base_url)
+        loopback_hosts = {"127.0.0.1", "localhost", "::1"}
+        if (
+            parsed.scheme != "https" and not (parsed.scheme == "http" and parsed.hostname in loopback_hosts)
+        ) or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
+            raise HelixProError("TrustAnchor requires HTTPS except on loopback and rejects URL credentials/query/fragment")
         if not bearer_token or len(bearer_token) < 32:
             raise HelixProError("TrustAnchor bearer token must contain at least 32 characters")
         if timeout <= 0 or timeout > 60:
