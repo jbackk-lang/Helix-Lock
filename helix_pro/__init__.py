@@ -40,6 +40,7 @@ from .cipher import (
     HelixProError,
 )
 from .adaptive_rotation import RotationResult, rotate_encrypted_blob
+from .airp_monitor import AIRPMonitor, RepresentationState, AccessEvent
 from .counter_lock import (
     CounterLock,
     encrypt_file_with_counter,
@@ -63,4 +64,7 @@ __all__ = [
     "decrypt_file_with_counter",
     "RotationResult",
     "rotate_encrypted_blob",
+    "AIRPMonitor",
+    "RepresentationState",
+    "AccessEvent",
 ]
