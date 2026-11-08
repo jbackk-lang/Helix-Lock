@@ -99,3 +99,20 @@ def project_airp_events(
             event_rate_anomaly=bool(spread > 0 and rate > center + 2 * spread),
         ))
     return tuple(output)
+
+
+
+def project_ledger(
+    ledger: Any, *, object_id: str | None = None, window_size: int = 16,
+) -> tuple[TIMDRObservation, ...]:
+    """Read AIRPIntegrityLedger.events() and project its metadata.
+
+    The adapter is intentionally pull-only: it does not subscribe to or alter
+    ledger writes, and it cannot affect encryption, key rotation, or access
+    decisions. The ledger remains the source of truth.
+    """
+    events_method = getattr(ledger, "events", None)
+    if not callable(events_method):
+        raise TypeError("ledger must expose events(object_id=None)")
+    events = events_method(object_id)
+    return project_airp_events(events, window_size=window_size)
