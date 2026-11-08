@@ -366,6 +366,8 @@ python -m pytest tests/test_helix_pro.py tests/test_adaptive_rotation.py tests/t
 
 Przykładowa lokalizacja bazy: `.`private_state\airp.sqlite3` (katalog powinien być prywatny dla konta użytkownika). Nie commituj bazy ani kluczy do Git — dodaj katalog stanu do lokalnego `.gitignore`.
 
+GUI wywołuje teraz `AIRPFileTransaction.recover()` przed weryfikacją pliku. Jeśli poprzedni proces przerwał się po zatwierdzeniu rejestru, ale przed podmianą szyfrogramu, GUI najpierw dokończy podmianę z poprawnego stagingu, a dopiero potem dopuści sprawdzanie i odszyfrowanie. Stan niejednoznaczny powoduje odmowę dostępu i wymaga ręcznej analizy.
+
 ### Integracja AIRP z GUI
 
 GUI (`helix_pro_gui.py`) ma domyślnie włączony checkbox AIRP:
