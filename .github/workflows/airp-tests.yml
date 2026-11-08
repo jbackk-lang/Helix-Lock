@@ -22,6 +22,7 @@ on:
       - "experiments/helix_native_benchmark.py"
       - "experiments/helix_native_history_comparison.py"
       - "experiments/helix_native_evidence_gate.py"
+      - "experiments/helix_native_secure_envelope.py"
       - "experiments/helix_native_compact.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
@@ -52,6 +53,7 @@ on:
       - "tests/test_helix_native_benchmark.py"
       - "tests/test_helix_native_history_comparison.py"
       - "tests/test_helix_native_evidence_gate.py"
+      - "tests/test_helix_native_secure_envelope.py"
       - "tests/test_helix_native_compact.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
@@ -228,3 +230,4 @@ jobs:
           tests/test_helix_native_compact.py
           tests/test_helix_native_history_comparison.py
           tests/test_helix_native_evidence_gate.py
+          tests/test_helix_native_secure_envelope.py
