@@ -11,7 +11,7 @@ from tkinter import filedialog, messagebox, ttk
 from helix_pro.airp_key_fingerprint import (
     KeyFingerprint,
     create_key_fingerprint,
-    representation_fingerprint,
+    representation_fingerprint_file,
     verify_key_fingerprint,
 )
 from helix_pro.cipher import HelixProError
@@ -192,15 +192,7 @@ class FingerprintGUI(tk.Tk):
         if not path:
             return
         try:
-            digest = hashlib.sha256()
-            with open(path, "rb") as stream:
-                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-                    digest.update(chunk)
-            # Include the module's domain separation, using the streaming digest
-            # only for display; canonical API is used for bounded files.
-            with open(path, "rb") as stream:
-                blob = stream.read()
-            self.rep_value.set(representation_fingerprint(blob))
+            self.rep_value.set(representation_fingerprint_file(path))
             self.status.set("Obliczono odcisk reprezentacji szyfrogramu.")
         except OSError as exc:
             messagebox.showerror("Błąd pliku", str(exc))
