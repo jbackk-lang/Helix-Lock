@@ -84,5 +84,9 @@ def test_http_client_and_service_round_trip(tmp_path):
 def test_http_client_requires_https_off_loopback():
     with pytest.raises(HelixProError, match="HTTPS"):
         HTTPTrustAnchor("http://anchor.example", "x" * 48)
+    with pytest.raises(HelixProError, match="HTTPS"):
+        HTTPTrustAnchor("http://127.0.0.1.attacker.example", "x" * 48)
+    with pytest.raises(HelixProError, match="HTTPS"):
+        HTTPTrustAnchor("https://anchor.example@attacker.example", "x" * 48)
     with pytest.raises(HelixProError, match="32 characters"):
         HTTPTrustAnchor("https://anchor.example", "short")
