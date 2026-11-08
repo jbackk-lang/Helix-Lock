@@ -82,6 +82,7 @@ on:
       - "tests/test_helix_atomic_file_io.py"
       - "experiments/helix_stream_envelope.py"
       - "tests/test_helix_stream_envelope.py"
+      - "tests/test_helix_stream_stress.py"
       - "experiments/helix_native_secure_envelope.py"
       - "tests/test_helix_security_performance_gate.py"
       - "experiments/helix_qpsk_repeated_observations.py"
@@ -134,6 +135,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Stress HNS1 large files and process crashes
+        run: python -m pytest -q tests/test_helix_stream_stress.py
       - name: Test authenticated streaming envelope HNS1
         run: python -m pytest -q tests/test_helix_stream_envelope.py
       - name: Verify atomic file write failure handling
