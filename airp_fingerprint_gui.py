@@ -2,7 +2,6 @@
 """AIRP Key Fingerprint — visual desktop companion for Helix-Lock."""
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import tkinter as tk
@@ -194,7 +193,7 @@ class FingerprintGUI(tk.Tk):
         try:
             self.rep_value.set(representation_fingerprint_file(path))
             self.status.set("Obliczono odcisk reprezentacji szyfrogramu.")
-        except OSError as exc:
+        except (OSError, HelixProError) as exc:
             messagebox.showerror("Błąd pliku", str(exc))
 
 
