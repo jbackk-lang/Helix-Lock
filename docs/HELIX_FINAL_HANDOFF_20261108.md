@@ -62,3 +62,22 @@ przełomu ani przewagi bez dowodów.
 
 Zasada: proste jest jak czołg. Ukończyć to, co działa; resztę zachować
 jako hipotezy, nie obietnice.
+
+## Nadrzędna zasada projektu — potwierdzona przez właściciela
+
+Helix-Lock miał być **parasolem ochronnym, pancernym jak czołg**: możliwie
+prosty, odporny i z minimalną powierzchnią ataku. Każdy nowy moduł może
+wprowadzić kolejne słabości, więc nie należy go dodawać bez wyraźnej,
+zweryfikowanej korzyści. Nie mnożyć warstw dla samego mnożenia warstw.
+
+**Co rzeczywiście osiągnięto:** działający szyfrator plików AES-256-GCM,
+GUI, przechodzące testy i zbudowane paczki na trzy platformy (bez pełnej
+ręcznej walidacji); eksperymentalny HNS1 z ograniczonym użyciem pamięci;
+wykrycie i naprawa części błędów starszych implementacji; udokumentowanie
+granic heurystyk fazowych. **Czego nie dowiedziono:** przewagi
+bezpieczeństwa nad dojrzałymi narzędziami, kompletnej odporności systemu
+ani gotowego, niezależnie zaudytowanego produktu.
+
+**Reguła na przyszłość:** „Pancerz nie musi mieć stu warstw. Musi mieć jak
+najmniej miejsc, w których może pęknąć.” Zachować ten kierunek jako
+kryterium każdej przyszłej decyzji projektowej.
