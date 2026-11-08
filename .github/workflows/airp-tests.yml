@@ -47,6 +47,9 @@ on:
       - "tests/test_airp_identity.py"
       - "tests/test_timdr_adapter.py"
       - "tests/test_timdr_benchmark.py"
+      - "experiments/three_loop_phase_memory.py"
+      - "tests/test_airp_history_memory.py"
+      - "tests/test_three_loop_phase_memory.py"
       - ".github/workflows/airp-tests.yml"
 
 jobs:
