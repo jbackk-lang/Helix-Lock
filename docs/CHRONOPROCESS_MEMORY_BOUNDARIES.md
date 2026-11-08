@@ -115,3 +115,31 @@ Dodano jawny helper `reference_feedback_correction()` oraz test pokazujący kier
 Poprawiono także obsługę iteratora seedów w `run()`: wejściowy iterator jest materializowany raz, dzięki czemu wszystkie tryby porównawcze dostają dokładnie ten sam zestaw seedów. Wcześniejsza implementacja mogła zużyć generator podczas pierwszego trybu i pozostawić kolejne tryby bez prób. Dodano test regresyjny dla generatora.
 
 Wniosek projektowy: pamięć wzorca wymaga warunku aktualności, jawnego zatwierdzania zmiany stanu lub mechanizmu adaptacji. Nie może bezterminowo wymuszać historycznego wzorca. Ten problem trzeba rozwiązać i przetestować przed rozważaniem jakiegokolwiek połączenia z logiką bezpieczeństwa.
+
+
+## 12. Rozdzielenie koherencji fazowej od zachowania informacji (2026-11-08)
+
+Dodano osobny eksperyment `experiments/three_loop_information_retention.py` i testy `tests/test_three_loop_information_retention.py`.
+
+W modelu demonstracyjnym dwa symbole 2-bitowe są kodowane w dwóch względnych fazach trzech oscylatorów (cztery dozwolone kąty na symbol). Stan trzech pętli jest próbkowany raz na pełny trzyetapowy cykl. Porównywane są trzy warianty:
+- `no_history`: brak korekty na podstawie historii;
+- `last_transition`: wzorzec z pojedynczej ostatniej próbki cyklu;
+- `full_cycle_history`: kołowa średnia z okna pełnych cykli.
+
+Raport oddziela:
+- błąd relacji fazowych względem kodu;
+- parametr koherencji (order parameter);
+- dokładność odczytu obu symboli payloadu;
+- błąd estymacji zapamiętanego wzorca.
+
+Eksperyment ma sweep amplitudy zaburzenia, stały czas zaburzenia i osobny czas obserwacji po zaburzeniu. Pamięć pełnego cyklu powinna ograniczać szum estymacji względem pojedynczej próbki, ale to nie przesądza o odzyskaniu informacji w realnym TIMDR.
+
+**Istotne ograniczenia:** jest to model syntetyczny z jawnie dodanym prawem sprzężenia zwrotnego uruchamianym po zaburzeniu. Koduje tylko dwa małe symbole kątowe, nie plik, plaintext ani szyfrogram. Nie implementuje oryginalnego Chronoprocesu ani nie dowodzi, że czas pełnego obiegu sam z siebie powoduje samoregulację.
+
+### Kryteria dalszego rozstrzygnięcia
+
+1. Zbadać, czy koherencja może być wysoka, gdy odczyt payloadu jest błędny. Jeśli tak, to potwierdzi rozdzielność metryk.
+2. Wyznaczyć granicę amplituda × czas zaburzenia, przy której maleje odsetek poprawnego odczytu i odzyskania relacji.
+3. Porównać pojedynczą próbkę, historię pełnych cykli i brak pamięci przy identycznych seedach i szumie.
+4. Wprowadzić legalną zmianę symbolu w czasie i sprawdzić, czy stara pamięć blokuje nowy payload.
+5. Dopiero po dostarczeniu źródła TSI zmapować symbole, fazy i przejścia na rzeczywiste zmienne formalizmu. Nie utożsamiać demonstracyjnego kodowania fazowego z rzeczywistym kodowaniem informacji TSI.
