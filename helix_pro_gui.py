@@ -26,6 +26,7 @@ i przetestuj wizualnie na swoim komputerze.
 from __future__ import annotations
 
 import os
+import sqlite3
 import sys
 import uuid
 from dataclasses import dataclass
@@ -398,9 +399,9 @@ def _build_gui():
             except HelixProError as exc:
                 messagebox.showerror("Błąd — szyfrowanie", str(exc))
                 self._log(f"BŁĄD (szyfrowanie): {exc}")
-            except OSError as exc:
-                messagebox.showerror("Błąd pliku", str(exc))
-                self._log(f"BŁĄD (szyfrowanie): {exc}")
+            except (OSError, sqlite3.Error) as exc:
+                messagebox.showerror("Błąd pliku lub rejestru AIRP", str(exc))
+                self._log(f"BŁĄD (szyfrowanie/AIRP): {exc}")
 
         def _decrypt(self):
             src = self.source_path.get()
@@ -434,7 +435,7 @@ def _build_gui():
                         )
                         self._log(f"AIRP: odmowa — brak wpisu lub niezgodny hash: {src}")
                         return
-                except (HelixProError, OSError) as exc:
+                except (HelixProError, OSError, sqlite3.Error) as exc:
                     messagebox.showerror("AIRP — błąd rejestru", str(exc))
                     self._log(f"AIRP: błąd rejestru: {exc}")
                     return
