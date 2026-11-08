@@ -605,7 +605,9 @@ Ekran pokazuje wizualny przepływ: klucz → odcisk → weryfikacja → rejestr 
 **Uwaga:** GUI tworzy i weryfikuje lokalny manifest. Nie zastępuje jeszcze zarejestrowania zdarzenia w zewnętrznym Trust Anchor ani podpisanej polityki autoryzacji. Plik manifestu nie jest sam w sobie dowodem zaufania; jego pochodzenie musi być potwierdzone niezależnym kanałem lub rejestrem.
 
 
-**Walidacja CI GUI/fingerprint:** 105 testów zaliczonych na Pythonie 3.11 oraz 105 na Pythonie 3.12. Raport: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42474308493
+**Walidacja CI AIRP:** 111 testów zaliczonych na Pythonie 3.11 oraz 111 na Pythonie 3.12. Raport: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42474814519
+
+**Build desktop:** artefakty Windows, macOS i Linux zostały zbudowane pomyślnie przez PyInstaller. Raport i pobieranie: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42474834608
 
 
 ## Jedna aplikacja desktopowa — Windows, macOS i Linux
