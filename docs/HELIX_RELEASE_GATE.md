@@ -1,6 +1,15 @@
 # Helix-Lock release decision: experiment/helix-native
 
-Status: **NOT READY TO MERGE** (security-first gate).
+Status: **FEATURE FROZEN; NOT READY TO MERGE** (security-first gate).
+
+Verified CI: https://github.com/jbackk-lang/Helix-Lock/actions/runs/42515042169
+(commit 229a273bf70480eff268c33963d6a475239714f7, successful).
+This verifies automated tests, not production security or a release tag.
+
+Release scope is frozen: HNA1 file envelope, experimental HNS1 streaming
+file envelope, and existing decoding experiments. No new algorithm work.
+Do not enable replay-sensitive network receiving as a production feature
+without an independent trusted checkpoint authority.
 
 ## Decisions
 
@@ -33,8 +42,11 @@ Status: **NOT READY TO MERGE** (security-first gate).
       channel traces; compare error rate AND abstention/coverage.
 - [ ] Define release thresholds for accuracy, false acceptance, coverage,
       throughput, and regression on clean signals.
-- [ ] Verify atomic file output and failure behavior for the secure envelope.
+- [x] Verify atomic file output and injected ordinary write/replace failure
+      behavior for HNA1 and HNS1 in CI. Power-loss durability and hostile
+      filesystem races remain **unverified**.
 - [ ] Review dependencies, format compatibility, and key handling.
-- [ ] Require green CI on both supported Python versions.
+- [x] Obtain green CI for current branch commit 229a273b (workflow run
+      42515042169). Verify matrix coverage before asserting both versions.
 
 This file records a decision, not a claim that these requirements are met.
