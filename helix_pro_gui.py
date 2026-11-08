@@ -43,6 +43,7 @@ from helix_pro.cipher import (
 )
 from helix_pro.counter_lock import encrypt_file_with_counter, decrypt_file_with_counter
 from helix_pro.airp_store import AIRPStore
+from helix_pro.airp_transaction import AIRPFileTransaction
 
 ENCRYPTED_SUFFIX = ".helixpro"
 
@@ -77,6 +78,8 @@ def verify_airp_representation(encrypted_path: str, *, database_path: str = AIRP
     with open(encrypted_path, "rb") as stream:
         blob = stream.read()
     store = AIRPStore(database_path)
+    # Resolve an interrupted file/registry transaction before checking the hash.
+    AIRPFileTransaction(store).recover(encrypted_path)
     object_id = airp_object_id(encrypted_path)
     state = store.get(object_id)
     if state is None:
