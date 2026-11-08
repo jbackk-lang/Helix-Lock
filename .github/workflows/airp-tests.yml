@@ -21,6 +21,7 @@ on:
       - "experiments/helix_native_codec.py"
       - "experiments/helix_native_benchmark.py"
       - "experiments/helix_native_history_comparison.py"
+      - "experiments/helix_native_evidence_gate.py"
       - "experiments/helix_native_compact.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
@@ -50,6 +51,7 @@ on:
       - "tests/test_helix_native_codec.py"
       - "tests/test_helix_native_benchmark.py"
       - "tests/test_helix_native_history_comparison.py"
+      - "tests/test_helix_native_evidence_gate.py"
       - "tests/test_helix_native_compact.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
@@ -185,6 +187,14 @@ jobs:
           name: helix-native-history-${{ matrix.python-version }}
           path: helix-native-history-comparison.json
           retention-days: 30
+      - name: Evaluate history evidence across noise regimes
+        run: python -m experiments.helix_native_evidence_gate --output helix-native-evidence-gate.json
+      - name: Upload evidence gate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: helix-native-evidence-gate-${{ matrix.python-version }}
+          path: helix-native-evidence-gate.json
+          retention-days: 30
       - name: Run core and AIRP tests
         run: >-
           python -m pytest -q
@@ -217,3 +227,4 @@ jobs:
           tests/test_helix_native_benchmark.py
           tests/test_helix_native_compact.py
           tests/test_helix_native_history_comparison.py
+          tests/test_helix_native_evidence_gate.py
