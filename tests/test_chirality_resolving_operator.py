@@ -5,6 +5,8 @@ from experiments.chirality_resolving_operator import (
     chirality_probe,
     ring_operators,
     run,
+    reverse_cycle_orientation,
+    real_doubled_representation,
 )
 
 
