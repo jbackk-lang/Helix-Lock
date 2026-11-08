@@ -19,7 +19,7 @@ def run_trial(seed: int, *, cycles: int = 12, flip_after: int = 6,
         raise ValueError("require cycles >= 2 and 0 <= flip_after <= cycles")
     if start_handedness not in (-1, 1):
         raise ValueError("start_handedness must be -1 or 1")
-    if readout not in ("per_sample", "final_only", "blind"):
+    if readout not in ("per_sample", "final_only", "blind", "shuffled_labels"):
         raise ValueError("unknown readout")
     if disturbance < 0 or measurement_noise < 0 or not 0 < feedback_gain <= 1 or recovery_steps < 1:
         raise ValueError("invalid noise, gain or recovery steps")
@@ -36,6 +36,12 @@ def run_trial(seed: int, *, cycles: int = 12, flip_after: int = 6,
     if readout == "per_sample":
         canonical = [tuple(wrap(h * x) for x in sample)
                      for h, sample in zip(handedness, history)]
+    elif readout == "shuffled_labels":
+        # Negative control: same handedness-label counts but wrong sample alignment.
+        labels = list(handedness)
+        rng.shuffle(labels)
+        canonical = [tuple(wrap(h * x) for x in sample)
+                     for h, sample in zip(labels, history)]
     elif readout == "final_only":
         canonical = [tuple(wrap(final_h * x) for x in sample) for sample in history]
     else:
@@ -65,7 +71,7 @@ def run(seeds=range(1000, 1100), cycles=12, disturbance=0.85):
     results = {}
     for flip_after in (0, cycles//4, cycles//2, 3*cycles//4, cycles):
         for start_h in (-1, 1):
-            for readout in ("per_sample", "final_only", "blind"):
+            for readout in ("per_sample", "final_only", "blind", "shuffled_labels"):
                 key = f"flip={flip_after}/start={start_h}/readout={readout}"
                 trials = [run_trial(s, cycles=cycles, flip_after=flip_after,
                                     start_handedness=start_h, readout=readout,
@@ -84,6 +90,7 @@ def run(seeds=range(1000, 1100), cycles=12, disturbance=0.85):
         "limitations": [
             "a sign reversal is a coordinate-model intervention, not an established physical helix deformation",
             "the per-sample decoder is given the true handedness label of each history sample",
+            "shuffled_labels preserves label counts but destroys their alignment to samples",
             "feedback uses an explicitly stored reference and is not spontaneous self-repair",
             "no intrinsic chirality-dependent storage mechanism is included",
         ],
