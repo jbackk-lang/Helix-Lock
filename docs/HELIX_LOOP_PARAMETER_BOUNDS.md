@@ -123,3 +123,41 @@ Kluczowy eksperyment następny: wykonać mapę `amplituda × czas impulsu × asy
 - GIA-TIMDR `docs/theory/TIMDR_Chronoprocess.md`
 - GIA-TIMDR `experiments/chronoprocess_triple_loop_duration_sweep.py`
 - GIA-TIMDR `experiments/chronoprocess_coupled_phase_recovery.py`
+
+## 9. Doprecyzowanie: fizyczny tunel helisy, orientacja i kierunek sygnału
+
+Użytkownik doprecyzował, że „tunel” oznacza **geometryczny tunel helisy**, a nie tunel informacyjny. Relacja informacyjna jest odwrotna: sygnał jest układany/projektowany na istniejącej geometrii tunelu, z uwzględnieniem jego orientacji. Helisa może być prawoskrętna albo lewoskrętna, więc kierunek i kolejność sygnału muszą być zgodne z wybraną orientacją.
+
+### 9.1 Konsekwencja dla obecnego G5
+
+Obecny `core/geometric_resonance_operator.py` jawnie oblicza segmentowe sprzężenie jako `kc[i] = kc_scale * abs(tau[i])` i dokumentuje, że znak torsji nie zmienia siły sprzężenia w tym modelu; kierunek geometryczny nie jest reprezentowany. Zatem G5 obecnie **nie potrafi odróżnić** dwóch geometrii będących lustrzanymi odbiciami wyłącznie przez znak torsji. To jest rzeczywista luka względem wymogu sygnału zgodnego z prawoskrętnością/lewoskrętnością.
+
+Nie należy po prostu zamienić `abs(tau)` na `tau` w obecnej macierzy sprężystości: ujemna waga krawędzi może zmienić dodatnią określoność K i stabilność. Potrzebny jest jawny model orientacji/kierunku, a nie znak wstawiony bezpośrednio do sprężyny.
+
+### 9.2 Reprezentacja orientacji
+
+Dla regularnej, zorientowanej krzywej należy zachować lokalną ramę (np. Freneta `T,N,B` tam, gdzie krzywizna nie zanika) albo stabilniejszą ramę transportowaną (parallel/Bishop frame) na odcinkach, gdzie rama Freneta staje się osobliwa/niestabilna.
+
+Minimalne dane segmentu:
+- kierunek przebiegu po krzywej (indeksowanie zgodne z orientacją);
+- znak torsji Freneta-Serreta `sign(tau)`, gdy torsja jest wiarygodnie określona;
+- orientacja lokalnej ramy i reguła jej transportu;
+- faza sygnału mierzona względem tej ramy;
+- jawna reguła transformacji przy odbiciu lustrzanym.
+
+Sygnał należy najpierw opisać jako pole/fazę na zorientowanym tunelu, a dopiero potem rzutować do reprezentacji widmowej. Dla odwrócenia chiralności trzeba zdefiniować transformację sygnału (np. odwrócenie parametru łuku i odpowiednie przekształcenie fazy/składowej poprzecznej), nie tylko zmienić znak liczby.
+
+### 9.3 Test rozstrzygający chiralność
+
+Zbudować parę geometrii: helisa prawoskrętna i jej lustrzane odbicie lewoskrętne, o tym samym promieniu, skoku bezwzględnym, próbkowaniu i szumie. Następnie:
+1. sprawdzić, że krzywizny są równe, a torsje mają przeciwne znaki;
+2. przepuścić ten sam sygnał wzdłuż obu tuneli, zachowując orientację przebiegu;
+3. porównać mapę fazy w lokalnej ramie, widmo oraz odczyt payloadu;
+4. wykonać kontrolę z odwróconym kierunkiem indeksowania, aby oddzielić zmianę chiralności od zwykłego odwrócenia kolejności próbek;
+5. wymagać, by transformacja lustrzana dawała przewidywalny, odwracalny związek wyników, a nie arbitralnie identyczne wyniki.
+
+Hipoteza: jeżeli geometria jest nośnikiem kierunku sygnału, pominięcie chiralności może powodować błędne przyporządkowanie faz/relacji nawet wtedy, gdy wartości bezwzględne krzywizny i torsji oraz samo widmo amplitudowe wyglądają podobnie.
+
+### 9.4 Czego nie wolno jeszcze twierdzić
+
+Nie ma jeszcze dowodu, że oryginalny TIMDR koduje sygnał w taki sposób ani że zmiana chiralności powoduje określoną zmianę widma. To nowy, falsyfikowalny wymóg modelu, zgłoszony przez użytkownika i wymagający implementacji oraz testów. Aktualny G5 go nie spełnia, ponieważ redukuje torsję do wartości bezwzględnej.
