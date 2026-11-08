@@ -106,7 +106,7 @@ class AIRPStore:
                 raise
 
     def get(self, object_id: str) -> StoredRepresentation | None:
-        with self._connect() as db:
+        with closing(self._connect()) as db:
             return self._row(db.execute(
                 "SELECT * FROM airp_objects WHERE object_id=?", (object_id,)
             ).fetchone())
@@ -129,7 +129,7 @@ class AIRPStore:
         if len(detail) > 240:
             raise HelixProError("event detail too long")
         now = self._now()
-        with self._connect() as db:
+        with closing(self._connect()) as db:
             db.execute("BEGIN IMMEDIATE")
             try:
                 row = db.execute("SELECT * FROM airp_objects WHERE object_id=?", (object_id,)).fetchone()
@@ -159,7 +159,7 @@ class AIRPStore:
             raise HelixProError("new_key_id must be non-empty")
         now = self._now()
         digest = self.fingerprint(new_blob)
-        with self._connect() as db:
+        with closing(self._connect()) as db:
             db.execute("BEGIN IMMEDIATE")
             try:
                 row = db.execute("SELECT * FROM airp_objects WHERE object_id=?", (object_id,)).fetchone()
@@ -186,7 +186,7 @@ class AIRPStore:
                 raise
 
     def events(self, object_id: str) -> tuple[dict, ...]:
-        with self._connect() as db:
+        with closing(self._connect()) as db:
             rows = db.execute(
                 "SELECT event_id,object_id,timestamp_utc,outcome,version,key_id,blob_sha256,detail "
                 "FROM airp_events WHERE object_id=? ORDER BY event_id", (object_id,)
