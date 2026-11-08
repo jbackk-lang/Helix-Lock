@@ -61,6 +61,8 @@ on:
       - "tests/test_helix_resonance_filter.py"
       - "experiments/helix_resonance_filter.py"
       - "experiments/helix_security_performance_gate.py"
+      - "experiments/helix_native_replay_guard.py"
+      - "tests/test_helix_native_replay_guard.py"
       - "tests/test_helix_security_performance_gate.py"
       - "experiments/helix_qpsk_repeated_observations.py"
       - "experiments/helix_qpsk_memory_benchmark.py"
@@ -112,6 +114,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test dependencies
         run: python -m pip install --upgrade pip cryptography pytest numpy
+      - name: Test persistent replay guard
+        run: python -m pytest -q tests/test_helix_native_replay_guard.py
       - name: Test authenticated-envelope security regression
         run: python -m pytest -q tests/test_helix_security_performance_gate.py tests/test_helix_native_secure_envelope.py
       - name: Measure authenticated-envelope security and throughput
