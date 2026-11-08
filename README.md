@@ -538,3 +538,6 @@ print(ledger.verify())
 ```
 
 **Ważne:** serwis referencyjny jest pojedynczym, monotonicznym rejestrem, nie konsensusem rozproszonym ani usługą o wysokiej dostępności. SQLite wymaga backupu i kontroli dostępu do hosta. Dla mocniejszego modelu zagrożeń należy dodać niezależne repliki/świadków, audyt operacyjny i procedurę odzyskiwania anchor. Token HTTP jest wspólnym sekretem dostępu, a podpis Ed25519 potwierdza autora checkpointu; te role są rozdzielone.
+
+
+Aktualizacja warstwy rozproszonej: referencyjny serwer HTTP Trust Anchor i klient HTTPS znajdują się w `helix_pro/airp_anchor_service.py` oraz `helix_pro/airp_http_anchor.py`. Testy serwisu: `tests/test_airp_anchor_service.py`.
