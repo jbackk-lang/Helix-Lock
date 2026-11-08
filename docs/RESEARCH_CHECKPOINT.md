@@ -76,3 +76,7 @@ Added `experiments/helix_chiral_signal.py`, `tests/test_helix_chiral_signal.py`,
 Local independent prototype (200 deterministic seeds, 0.12 rad noise) gave 12-sensor calibrated joint accuracy 100%; 1-sensor chirality accuracy 49.5% with score-margin zero; 12-sensor uncalibrated quarter-turn phase offset chirality 100% but payload 0%. These are *prototype outputs*, not yet GitHub CI results. New CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42507351434 pending when checkpoint written. Source/test commit `f46a2a17c8d6d91e5a4b013b17d637755e6d0789`, CI commit `89c718db01fb2c7ce07af92eb1df6d9f75e783b5`.
 
 Important: a helical spatial phase profile is not a claim that all natural signals form helical trajectories, and this synthetic model has no channel dynamics.
+
+## 2026-11-08 17:59+ UTC — phase drift and coherent reflection
+
+Helix-Lock adds `experiments/helix_chiral_signal_channel.py`, `tests/test_helix_chiral_signal_channel.py`, `docs/HELIX_CHIRAL_SIGNAL_CHANNEL.md`. Synthetic common phase drift (single-snapshot Doppler proxy) and opposite-winding coherent echo with amplitudes 0/0.3/0.8/1.2. A strong reflected field can invert decoded winding. CI run https://github.com/jbackk-lang/Helix-Lock/actions/runs/42507707647 was pending at checkpoint. Previous phase-signal CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42507351434 completed successfully on Python 3.11 and 3.12. No empirical signal measurements or time-resolved Doppler yet.
