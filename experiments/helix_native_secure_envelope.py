@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import tempfile
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -46,11 +47,34 @@ def recover_bytes(envelope: bytes, key: bytes) -> tuple[bytes, int]:
     return decode_compact(compact)
 
 
+def _atomic_write(target: Path, data: bytes) -> None:
+    """Write in destination directory, fsync, then replace atomically.
+
+    Prevents partial destination contents on ordinary write errors. Atomic
+    replacement does not by itself guarantee directory metadata durability
+    after power loss, nor protect against hostile concurrent path replacement.
+    """
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="wb", dir=target.parent,
+                                         prefix=".helix-", suffix=".tmp",
+                                         delete=False) as output:
+            temporary = Path(output.name)
+            output.write(data)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, target)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def protect_file(source: str | Path, target: str | Path, key: bytes) -> None:
     source, target = Path(source), Path(target)
     if source.resolve() == target.resolve():
         raise ValueError("input and output must differ")
-    target.write_bytes(protect_bytes(source.read_bytes(), key))
+    _atomic_write(target, protect_bytes(source.read_bytes(), key))
 
 
 def recover_file(source: str | Path, target: str | Path, key: bytes) -> None:
@@ -59,4 +83,4 @@ def recover_file(source: str | Path, target: str | Path, key: bytes) -> None:
         raise ValueError("input and output must differ")
     # Authenticate fully before creating the destination.
     decoded, _ = recover_bytes(source.read_bytes(), key)
-    target.write_bytes(decoded)
+    _atomic_write(target, decoded)
