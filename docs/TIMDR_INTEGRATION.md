@@ -61,9 +61,9 @@ Dla każdej hipotezy należy przed testem zamrozić definicje, progi, okna, metr
 ## 7. Plan implementacji
 
 1. Udokumentować mapę pochodzenia: koncepcje TIMDR, elementy AIRP i standardowe prymitywy kryptograficzne.
-2. Dodać osobny, opcjonalny moduł `helix_pro/timdr_adapter.py` operujący wyłącznie na metadanych.
-3. Dodać testy deterministyczne projekcji i testy braku wpływu adaptera na ciphertext/klucze.
-4. Przygotować prerejestr testu H1–H3 oraz baseline'y.
+2. **Zaimplementowano:** opcjonalny moduł `helix_pro/timdr_adapter.py`, który przyjmuje wyłącznie metadane zdarzeń i wylicza opisowe cechy M/S.
+3. **Dodano testy:** `tests/test_timdr_adapter.py` obejmuje deterministyczność, brak odczytu pól sekretów, monotoniczność sekwencji, strefy czasowe i walidację okna. Testy wymagają uruchomienia w CI.
+4. Następnie przygotować prerejestr testu H1–H3 oraz baseline'y.
 5. Uruchomić eksperyment na syntetycznych śladach i odrębnym holdoucie rzeczywistych logów pozbawionych sekretów.
 6. Dopiero po wynikach zdecydować, czy adapter zostaje funkcją diagnostyczną. Nie podnosić go do mechanizmu bezpieczeństwa bez dowodów.
 
