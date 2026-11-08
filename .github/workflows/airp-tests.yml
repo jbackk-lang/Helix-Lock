@@ -69,6 +69,14 @@ jobs:
         run: python -m pip install --upgrade pip cryptography pytest
       - name: Run reproducible synthetic TIMDR benchmark
         run: python experiments/timdr_benchmark.py --output timdr-benchmark.json
+      - name: Run three-loop information-retention experiment
+        run: python experiments/three_loop_information_retention.py --output three-loop-information-retention.json
+      - name: Upload three-loop experiment report
+        uses: actions/upload-artifact@v4
+        with:
+          name: three-loop-information-retention-${{ matrix.python-version }}
+          path: three-loop-information-retention.json
+          retention-days: 30
       - name: Upload synthetic benchmark report
         uses: actions/upload-artifact@v4
         with:
