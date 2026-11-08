@@ -589,6 +589,8 @@ Moduł `helix_pro.airp_key_fingerprint` dodaje kontekstowy odcisk klucza oparty 
 
 ```powershell
 python airp_fingerprint_gui.py
+
+Możesz też uruchomić główne `helix_pro_gui.py` i kliknąć przycisk **🧬 Odciski AIRP** — otworzy osobne okno fingerprint managera.
 ```
 
 GUI umożliwia:
