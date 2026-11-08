@@ -379,6 +379,43 @@ Domyślna baza GUI: `%USERPROFILE%\\.helix_lock\\airp.sqlite3` w Windows lub `~/
 
 **Ważne:** kontrola GUI obejmuje obecnie formaty HLXN i HLXP. CounterLock (`HLXC`) pomija tę kontrolę, ponieważ istniejąca funkcja odczytu sama nadpisuje szyfrogram z inkrementowanym licznikiem; jego bezpieczna integracja wymaga osobnego przepływu transakcyjnego, aby baza AIRP i plik nie rozjechały się po awarii. Sam licznik w nagłówku nie jest niezależnym, odpornym na rollback źródłem prawdy.
 
+### Odzyskiwanie transakcji plikowej AIRP
+
+Moduł `helix_pro/airp_transaction.py` koordynuje podmianę pliku z transakcyjnym rejestrem SQLite przez dziennik boczny i plik stagingowy. Nie tworzy niemożliwej do zagwarantowania wspólnej transakcji systemu plików i SQLite; zamiast tego pozwala odzyskać spójny stan po przerwaniu procesu.
+
+```python
+from helix_pro import AIRPStore, AIRPFileTransaction
+
+store = AIRPStore("private_state/airp.sqlite3")
+state = store.get("document-42")
+
+# new_blob musi być wcześniej utworzony i zweryfikowany kryptograficznie
+# przez kod właściwy dla danego formatu/klucza.
+committed = AIRPFileTransaction(store).commit(
+    "private_data/document-42.helixpro",
+    new_blob,
+    object_id="document-42",
+    expected_version=state.version,
+    expected_blob_sha256=state.blob_sha256,
+    new_key_id="key-v2",
+)
+```
+
+Przy starcie aplikacji, przed użyciem danego pliku, wywołaj:
+
+```python
+result = AIRPFileTransaction(store).recover("private_data/document-42.helixpro")
+# "clean", "discarded_uncommitted", "completed_committed" albo "already_completed"
+```
+
+- Dziennik jest zapisywany przed stagingiem, a staging przed zatwierdzeniem nowej wersji w SQLite.
+- Jeśli rejestr pozostał na starej wersji, recovery odrzuca niezatwierdzony staging.
+- Jeśli rejestr ma już nową wersję, recovery kończy podmianę z poprawnego pliku stagingowego.
+- Jeśli stan rejestru, plik docelowy i dziennik nie pasują do żadnego z tych przypadków, recovery przerywa działanie i wymaga ręcznej analizy — nie zgaduje i nie nadpisuje danych.
+- Dziennik i staging muszą pozostać w tym samym prywatnym katalogu co plik. Nie usuwaj ich ręcznie podczas trwającej transakcji.
+
+Moduł nie przechowuje kluczy ani plaintextu. Wywołujący odpowiada za kryptograficzne utworzenie i weryfikację `new_blob` przed przekazaniem go do transakcji. To mechanizm odzyskiwania spójności, nie zabezpieczenie przed napastnikiem mogącym podmienić równocześnie bazę, dziennik i pliki.
+  
 ### Granice bezpieczeństwa — przeczytaj przed wdrożeniem
 
 - SQLite daje trwałość i transakcyjność lokalnego rejestru, ale **nie jest odporny na rollback**, jeśli napastnik może podmienić bazę i kopie zapasowe. Dla silniejszego modelu zagrożeń użyj niezależnej usługi/rejestru append-only, z osobnymi uprawnieniami i ochroną przed cofnięciem.
