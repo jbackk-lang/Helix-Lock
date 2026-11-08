@@ -8,6 +8,7 @@ import sqlite3
 import struct
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from urllib.parse import quote
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -75,6 +76,7 @@ class HelixLockApp(tk.Tk):
         tk.Label(head, text="Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
         self.tabs = ttk.Notebook(self)
         self.tabs.pack(fill="both", expand=True, padx=20, pady=(0, 12))
+        self.dashboard_tab = ttk.Frame(self.tabs); self.tabs.add(self.dashboard_tab, text="Przegląd bezpieczeństwa")
         self.file_tab = ttk.Frame(self.tabs); self.tabs.add(self.file_tab, text="Pliki")
         self.fp_tab = ttk.Frame(self.tabs); self.tabs.add(self.fp_tab, text="Odcisk klucza")
         self.trust_tab = ttk.Frame(self.tabs); self.tabs.add(self.trust_tab, text="AIRP / Quorum")
