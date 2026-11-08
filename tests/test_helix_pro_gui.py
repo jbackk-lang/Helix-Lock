@@ -223,3 +223,37 @@ def test_airp_fails_closed_for_unregistered_or_moved_file(tmp_path):
     register_airp_representation(str(original), database_path=str(database))
     moved.write_bytes(original.read_bytes())
     assert not verify_airp_representation(str(moved), database_path=str(database))
+
+
+def test_gui_airp_check_recovers_interrupted_committed_file_transaction(tmp_path, monkeypatch):
+    import os
+    from helix_pro.airp_store import AIRPStore
+    from helix_pro.airp_transaction import AIRPFileTransaction
+    from helix_pro_gui import register_airp_representation, verify_airp_representation
+
+    encrypted = tmp_path / "document.helixpro"
+    database = tmp_path / "airp.sqlite3"
+    encrypted.write_bytes(b"ciphertext version one")
+    register_airp_representation(str(encrypted), database_path=str(database))
+    store = AIRPStore(database)
+    state = store.get(os.path.normcase(os.path.abspath(encrypted)))
+    real_replace = os.replace
+
+    def fail_final_replace(source, destination):
+        if str(source).endswith(".stage") and os.path.abspath(destination) == os.path.abspath(encrypted):
+            raise OSError("simulated interruption")
+        return real_replace(source, destination)
+
+    monkeypatch.setattr("helix_pro.airp_transaction.os.replace", fail_final_replace)
+    with pytest.raises(OSError, match="simulated interruption"):
+        AIRPFileTransaction(store).commit(
+            encrypted, b"ciphertext version two",
+            object_id=os.path.normcase(os.path.abspath(encrypted)),
+            expected_version=state.version,
+            expected_blob_sha256=state.blob_sha256,
+            new_key_id="key-v2",
+        )
+
+    monkeypatch.setattr("helix_pro.airp_transaction.os.replace", real_replace)
+    assert verify_airp_representation(str(encrypted), database_path=str(database))
+    assert encrypted.read_bytes() == b"ciphertext version two"
