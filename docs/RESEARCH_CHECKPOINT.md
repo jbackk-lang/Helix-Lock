@@ -84,3 +84,7 @@ Helix-Lock adds `experiments/helix_chiral_signal_channel.py`, `tests/test_helix_
 ## 2026-11-08 — IMPORTANT CORRECTION: HELIX FOR HELIX, TSI DEFERRED
 
 The user explicitly corrected the preceding directive: **develop Helix for Helix itself now; do NOT develop for TSI. TSI work is postponed until access becomes available.** This entry supersedes the earlier "Helix for TSI" note in this checkpoint. Continue independent Helix signal intelligence research and testing. The corrected source of truth is https://github.com/jbackk-lang/Helix-Lock/blob/experiment/chiral-memory-retention/docs/TSI_HELIX_DEVELOPMENT_DIRECTIVE.md (correction commit `c175fc49ee336ad8d1e5b358ec6913a9e312d3c6`).
+
+## 2026-11-08 18:07+ UTC — Helix-for-Helix prototype implementation
+
+Implemented isolated `HelixChiralIntelligence` in Helix-Lock (`experiments/helix_chiral_intelligence.py`, `tests/test_helix_chiral_intelligence.py`, `docs/HELIX_CHIRAL_INTELLIGENCE.md`). Input: timestamped angular phases with optional phase calibration; output: winding sign or abstention, QPSK symbol only if calibrated, coherence/evidence scores, anomaly flag and bounded history. The algorithm fits common phase independently for each winding hypothesis; evidence is **not** a calibrated probability. Mirror echo can mislead the observed winding; no security action. CI https://github.com/jbackk-lang/Helix-Lock/actions/runs/42508481223 pending at checkpoint (workflow commit `dda6abe703f4a22bb213d56140e8f67bcef1fc5b`). Scope: **Helix for Helix**, TSI deferred.
