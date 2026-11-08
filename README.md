@@ -637,6 +637,16 @@ GitHub Actions workflow `.github/workflows/desktop-build.yml` buduje osobne arte
 Tkinter jest częścią standardowego środowiska Pythona, ale na niektórych dystrybucjach Linux może wymagać doinstalowania systemowego pakietu Tk (np. `python3-tk`). Na macOS użyj dystrybucji Pythona zawierającej Tcl/Tk.
 
 
+
+### Język interfejsu i krótkie komunikaty
+
+Główna aplikacja desktopowa stosuje krótkie opisy podzielone na sekcje i karty:
+- **Linux i macOS:** zwięzły interfejs w języku angielskim.
+- **Windows:** etykiety i komunikaty aplikacji w układzie English / Polski.
+- Szczegóły techniczne pozostają w osi zdarzeń, a opisy kart ograniczają się do najważniejszej informacji. Wartości bezpieczeństwa (np. brak bazy, niezweryfikowany licznik, niepotwierdzone quorum) nie są zastępowane pozytywnymi komunikatami.
+
+Język jest dobierany automatycznie na podstawie systemu operacyjnego; nie wymaga konfiguracji ani połączenia z siecią.
+
 ### Security Dashboard — główny ekran podglądu
 
 Po uruchomieniu aplikacji pierwszą zakładką jest **Przegląd bezpieczeństwa**. Pokazuje:
