@@ -19,3 +19,9 @@ Test:
 `pytest -q tests/test_helix_chiral_memory_reversal.py`
 
 No production cipher or G5 axioms are changed.
+
+## Additional falsification: shuffled labels
+
+A fourth readout, `shuffled_labels`, retains the same number of left/right handedness labels but randomizes which history sample each label belongs to. It is a negative control for an oracle that knows the correct label at each time step. With no reversal all labels are identical, so shuffling must have no effect; at the midpoint, the shuffled-label average reference error should exceed that of correct per-sample normalization.
+
+The expected distinction is still a representation/metadata effect, not a physical change in information storage.
