@@ -41,7 +41,7 @@ jobs:
         run: |
           cd dist
           if [ "${{ runner.os }}" = "Windows" ]; then
-            7z a ../HelixLock-windows.zip HelixLock.exe
+            7z a -tzip ../HelixLock-windows.zip HelixLock
           elif [ "${{ runner.os }}" = "macOS" ]; then
             ditto -c -k --sequesterRsrc --keepParent HelixLock.app ../HelixLock-macos.zip
           else
