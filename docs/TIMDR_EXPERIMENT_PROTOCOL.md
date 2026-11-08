@@ -47,3 +47,14 @@ The final report will compare Helix-Lock/TIMDR only against products in clearly 
 The first reproducible harness is `experiments/timdr_benchmark.py`. It uses fixed, disjoint calibration seeds (1000–1099) and holdout seeds (9000–9099), with 6,400 labelled windows. CI runs the harness and archives `timdr-benchmark.json` for 30 days. A reproducibility test checks that repeated runs return identical metrics.
 
 Interpretation limits: this initial harness compares a simple rate/denied-count rule with the same rule plus an inter-arrival drift feature. It is deliberately a narrow ablation, not a complete implementation of the AIRP cryptographic-integrity baseline, not a validation on production traces, and not evidence of real-world attack detection. Synthetic scenario labels are not ground truth about adversaries. Results must be reported as exploratory.
+
+
+## First CI benchmark observation (2026-11-08)
+
+The GitHub Actions run `42494246249` executed the synthetic benchmark successfully, but the test step exposed two test defects: the holdout contains 1,600 windows (100 seeds × 16 windows), not 6,400, and exact equality of the full result incorrectly compared wall-clock runtime. These assertions were corrected in commit `72669e8`.
+
+The same run produced the following exploratory holdout metrics:
+- Simple telemetry: TP=800, FP=47, FN=0, TN=753; precision=0.9445, recall=1.0, F1=0.9715, FPR=0.0587.
+- TIMDR candidate: TP=800, FP=88, FN=0, TN=712; precision=0.9009, recall=1.0, F1=0.9479, FPR=0.1100.
+
+In this synthetic setup, adding absolute inter-arrival drift did **not** improve recall and increased false positives; the TIMDR candidate is worse than the simple baseline on F1 and FPR. This is a negative result and must remain visible. No threshold tuning against this holdout is permitted. A better next experiment would evaluate pre-registered, robust drift features on separately generated scenarios and real anonymized traces, but only if the feature has a clear TIMDR derivation.
