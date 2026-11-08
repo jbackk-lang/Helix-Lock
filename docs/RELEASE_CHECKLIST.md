@@ -72,3 +72,8 @@ The release job was correctly skipped because this was a main-branch validation 
 ## Workflow trigger separation
 
 Desktop package validation lives in `.github/workflows/desktop-build.yml` and runs on relevant main-branch changes, pull requests and manual dispatch. Publishing lives in `.github/workflows/publish-release.yml` and runs on `v*` tags (or can be manually dispatched for build-only validation); the release job itself is guarded by a `refs/tags/v` condition. This separation avoids ambiguous branch/tag path-filter combinations and prevents a manual build from creating a release.
+
+
+## Separate desktop-build workflow result (2026-11-08)
+
+After separating tag publishing from normal build validation, [desktop build run 42502363536](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42502363536) completed successfully for commit `af8e6f2f48d39d472de85cb5d6c83dd14924c03f`. Windows, macOS and Ubuntu jobs each passed the PyInstaller build, platform packaging and artifact upload steps. This is the canonical build-validation workflow going forward. It does not replace manual runtime testing on each OS.
