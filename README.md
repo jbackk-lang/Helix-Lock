@@ -492,3 +492,49 @@ Klucz odzyskiwania musi być przechowywany niezależnie (np. offline lub w KMS/H
 ### Granice wdrożenia
 
 Repozytorium zawiera kontrakt `TrustAnchor` i testowy fake w testach. Nie jest jeszcze podłączone do konkretnej zewnętrznej usługi. Do wdrożenia produkcyjnego potrzebny jest wybrany przez operatora niezależny serwis z uwierzytelnianiem, retencją, kontrolą monotoniczności i kopią klucza publicznego poza hostem. Nie należy deklarować ochrony przed rollbackiem, dopóki ten serwis nie jest faktycznie skonfigurowany i testowany.
+
+
+### Niezależny serwer checkpointów AIRP (HTTP Trust Anchor)
+
+Repo zawiera teraz referencyjny serwis `helix_pro.airp_anchor_service` oraz klienta `HTTPTrustAnchor`. Serwis przechowuje wyłącznie podpisany checkpoint (numer sekwencji i hash głowy), nie przechowuje kluczy danych ani plaintextu.
+
+**1. Przygotuj osobny host / konto / administratora.** Nie uruchamiaj anchor na tym samym dysku ani w tym samym koncie administracyjnym co chroniona baza, jeśli celem jest wykrywanie cofnięcia po przejęciu hosta.
+
+**2. Przypnij klucz publiczny.** Wygeneruj klucz Ed25519 poza serwisem i przekaż anchorowi tylko 32-bajtowy klucz publiczny w hex. Klucz prywatny pozostaje po stronie podpisującego klienta i powinien być chroniony osobno.
+
+**3. Uruchom serwis lokalnie lub za reverse proxy z TLS.** Token musi mieć co najmniej 32 znaki i być przekazany przez zmienną środowiskową; nie wpisuj go do repozytorium.
+
+PowerShell (przykład lokalnego testu na osobnym procesie):
+
+```powershell
+$env:AIRP_ANCHOR_PUBLIC_KEY_HEX = "<64 znaki hex przypiętego klucza publicznego>"
+$env:AIRP_ANCHOR_TOKEN = "<losowy sekret co najmniej 32 znaków>"
+$env:AIRP_ANCHOR_DB = "D:\AIRP-Private\anchor.sqlite3"
+$env:AIRP_ANCHOR_HOST = "127.0.0.1"
+$env:AIRP_ANCHOR_PORT = "8790"
+python -m helix_pro.airp_anchor_service
+```
+
+Dla innego urządzenia wystaw serwis wyłącznie za HTTPS (reverse proxy z certyfikatem); nie wystawiaj go bezpośrednio przez zwykły HTTP. Endpointy: `POST /v1/checkpoints` i `GET /v1/checkpoints/latest`. Oba wymagają Bearer tokena. Serwis odrzuca cofnięcie sekwencji, rozwidlenie przy tej samej sekwencji i podpis od nieprzypiętego klucza.
+
+**4. Podłącz klienta do AIRP:**
+
+```python
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from helix_pro import AIRPIntegrityLedger, HTTPTrustAnchor
+
+# W produkcji załaduj prywatny klucz z KMS/HSM lub chronionego magazynu.
+signing_key = Ed25519PrivateKey.from_private_bytes(signing_key_bytes)
+anchor = HTTPTrustAnchor("https://anchor.example", anchor_token)
+ledger = AIRPIntegrityLedger(
+    "private_state/airp-ledger.sqlite3",
+    signing_key,
+    trust_anchor=anchor,
+    trusted_public_key=pinned_public_key_bytes,
+)
+ledger.append("representation_registered", "object-42", {"version": 1})
+ledger.publish_checkpoint()
+print(ledger.verify())
+```
+
+**Ważne:** serwis referencyjny jest pojedynczym, monotonicznym rejestrem, nie konsensusem rozproszonym ani usługą o wysokiej dostępności. SQLite wymaga backupu i kontroli dostępu do hosta. Dla mocniejszego modelu zagrożeń należy dodać niezależne repliki/świadków, audyt operacyjny i procedurę odzyskiwania anchor. Token HTTP jest wspólnym sekretem dostępu, a podpis Ed25519 potwierdza autora checkpointu; te role są rozdzielone.
