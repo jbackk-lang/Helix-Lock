@@ -259,7 +259,7 @@ class AIRPIntegrityLedger:
             Ed25519PublicKey.from_public_bytes(trusted_public_key).verify(
                 bytes.fromhex(parsed["signature"]), _canonical(unsigned)
             )
-            if not isinstance(parsed["sequence"], int) or parsed["sequence"] < 0:
+            if type(parsed["sequence"]) is not int or parsed["sequence"] < 0:
                 raise ValueError("invalid checkpoint sequence")
             if not isinstance(parsed["head_hash"], str) or len(parsed["head_hash"]) != 64:
                 raise ValueError("invalid checkpoint head hash")
