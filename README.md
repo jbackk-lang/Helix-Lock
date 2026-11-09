@@ -2,7 +2,7 @@
 
 > **BETA TEST — WERSJA TESTOWA**
 >
-> Helix-Lock jest obecnie udostępniany do testów beta, a nie jako wydanie stabilne. Mogą występować błędy, problemy ze zgodnością lub utrata danych. Testuj wyłącznie na kopiach plików i zachowaj niezależną kopię zapasową. Nie używaj wersji beta jako jedynego zabezpieczenia ważnych danych. Zgłoszenia błędów pomagają nam poprawiać aplikację; beta nie jest niezależnym audytem bezpieczeństwa.
+> Helix-Lock znajduje się w fazie przygotowania do zamkniętych testów beta — nie jest wydaniem stabilnym. Zewnętrzna beta nie została jeszcze uruchomiona. Wersja testowa może zawierać błędy i problemy ze zgodnością. Testuj wyłącznie na kopiach plików i zachowaj niezależną kopię zapasową. Nie używaj wersji beta jako jedynego zabezpieczenia ważnych danych. Zgłoszenia błędów pomagają nam poprawiać aplikację; beta nie jest niezależnym audytem bezpieczeństwa.
 
 
 ### Twoje pliki. Twój klucz. Kontrola nad tym, co dzieje się z zaszyfrowanymi danymi.
@@ -51,7 +51,7 @@ Helix-Lock jest rozwijany z naciskiem na produktywność, ale bezpieczeństwo ma
 
 ## Status projektu — BETA TEST
 
-**Aktualny etap: testy beta. Nie jest to wydanie stabilne ani certyfikowane.**
+**Aktualny etap: przygotowanie do zamkniętych testów beta. Nabór testerów i dystrybucja bety nie zostały jeszcze uruchomione. Nie jest to wydanie stabilne ani certyfikowane.**
 
 **Build Windows / macOS / Linux: OK** · **Automatyczne CI: 122/122**
 
