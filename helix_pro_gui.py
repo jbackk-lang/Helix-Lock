@@ -36,6 +36,7 @@ from typing import Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from helix_pro.cipher import (
     generate_key,
+    write_new_key_file,
     atomic_write_bytes,
     encrypt_file_with_name,
     decrypt_bytes_with_name,
@@ -328,8 +329,11 @@ def _build_gui():
             if not path:
                 return
             key = generate_key()
-            with open(path, "wb") as f:
-                f.write(key)
+            try:
+                write_new_key_file(path, key)
+            except OSError as exc:
+                messagebox.showerror("Błąd zapisu klucza", str(exc))
+                return
             self.key_path.set(path)
             self.mode.set("key")
             self._refresh_mode()
