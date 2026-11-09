@@ -60,6 +60,7 @@ jobs:
           echo "runner_arch=$(uname -m)" >> build-environment.txt
           echo "source_commit=${{ github.sha }}" >> build-environment.txt
       - name: Generate SHA-256 manifest
+        shell: bash
         run: |
           python - <<'PY'
           import hashlib
