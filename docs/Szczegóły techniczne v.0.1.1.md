@@ -743,3 +743,34 @@ To wyniki procesu pakowania PyInstaller w CI. Nie potwierdzają jeszcze ręczneg
 - Lokalny dziennik SQLite sam nie chroni przed cofnięciem całej bazy; potrzebny jest niezależny trust anchor/quorum.
 - CounterLock nie jest DRM, nie liczy nieudanych prób brute-force i nie dowodzi tożsamości osoby otwierającej plik. Wykrywanie rollbacku wymaga niezależnego, trwałego stanu monotonicznego.
 - Nie należy promować prototypów fazowych, konsensusu ani pamięci historycznej jako kryptografii lub dowodu samonaprawy.
+
+
+## Główna aplikacja: kompaktowe okno API / kolejka plików
+
+W głównym programie `helix_lock_app.py`, na karcie „Plik i klucz”, dostępny
+jest przycisk **API · Lista plików**. Otwiera on nieblokujące okno pomocnicze
+(`tk.Toplevel`) o proporcjach ekranu i maksymalnych wymiarach równych połowie
+szerokości oraz połowie wysokości ekranu, czyli maksymalnie 1/4 jego
+powierzchni. Okno nie zasłania na stałe głównego przepływu pracy; można je
+zminimalizować do ukrycia i ponownie otworzyć przyciskiem.
+
+### Funkcje kolejki
+
+- Wielokrotny wybór plików w jednym oknie systemowym.
+- Usuwanie zaznaczonych pozycji, czyszczenie kolejki i deduplikacja ścieżek.
+- Wybór katalogu docelowego.
+- Wspólny dla kolejki wybrany tryb uwierzytelnienia (plik-klucz lub hasło).
+- Sekwencyjne szyfrowanie do HLXN lub odszyfrowywanie rozpoznanych HLXN/HLXP.
+- Status każdej pozycji oraz podsumowanie: ukończone, błędne, pominięte.
+- Istniejące pliki wynikowe nie są automatycznie nadpisywane.
+- Nieznane formaty i CounterLock są pomijane; CounterLock wymaga osobnej
+  ścieżki z trwałym rejestrem i nie jest obsługiwany przez tę kolejkę.
+
+To lokalny interfejs wsadowy, a nie serwer HTTP, endpoint sieciowy ani
+zdalne API. Przetwarzanie jest sekwencyjne, nie równoległe. Obecne funkcje
+HLXN/HLXP wczytują zawartość pojedynczego pliku do pamięci; kolejka nie
+zmienia tego ograniczenia i nie jest jeszcze rozwiązaniem do strumieniowego
+szyfrowania bardzo dużych plików. Testy statyczne UI sprawdzają ograniczenie
+rozmiaru okna, obsługę wielu plików, pomijanie CounterLock i ochronę przed
+nadpisaniem. Wizualne zachowanie należy dodatkowo sprawdzić na Windows,
+macOS i Linux.
