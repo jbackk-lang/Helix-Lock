@@ -170,8 +170,7 @@ def encrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
         header = MAGIC + bytes([VERSION]) + MODE_PASSWORD + salt
         blob = encrypt_bytes(plaintext, derived)
 
-    with open(out_path, "wb") as f:
-        f.write(header + blob)
+    _atomic_write(out_path, header + blob)
 
 
 def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, password: str | None = None) -> None:
@@ -181,6 +180,8 @@ def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
     with open(in_path, "rb") as f:
         data = f.read()
 
+    if len(data) < 6:
+        raise HelixProError("plik jest za krotki - niepelny naglowek Helix Pro")
     if data[:4] != MAGIC:
         raise HelixProError("nieznany format pliku (brak naglowka Helix Pro)")
     version = data[4]
@@ -201,8 +202,7 @@ def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
     else:
         raise HelixProError(f"nieznany tryb w naglowku: {mode!r}")
 
-    with open(out_path, "wb") as f:
-        f.write(plaintext)
+    _atomic_write(out_path, plaintext)
 
 
 def detect_format(path: str) -> str:
@@ -338,6 +338,8 @@ def decrypt_bytes_with_name(in_path: str, *, key: bytes | None = None, password:
     with open(in_path, "rb") as f:
         data = f.read()
 
+    if len(data) < 6:
+        raise HelixProError("plik jest za krotki - niepelny naglowek Helix Pro")
     if data[:4] != MAGIC_NAMED:
         raise HelixProError(
             "ten plik nie ma zapisanej oryginalnej nazwy (MAGIC != HLXN) - "
@@ -373,6 +375,5 @@ def decrypt_file_with_name(in_path: str, out_dir: str, *, key: bytes | None = No
     bezposrednio i samemu zapisac plik po sprawdzeniu os.path.exists()."""
     original_name, content = decrypt_bytes_with_name(in_path, key=key, password=password)
     out_path = os.path.join(out_dir, original_name)
-    with open(out_path, "wb") as f:
-        f.write(content)
+    _atomic_write(out_path, content)
     return out_path
