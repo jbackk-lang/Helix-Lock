@@ -81,3 +81,28 @@ ani gotowego, niezależnie zaudytowanego produktu.
 **Reguła na przyszłość:** „Pancerz nie musi mieć stu warstw. Musi mieć jak
 najmniej miejsc, w których może pęknąć.” Zachować ten kierunek jako
 kryterium każdej przyszłej decyzji projektowej.
+
+## Wznowienie prac — 2026-11-09
+
+Wznowiono prace na gałęzi `experiment/helix-native`, bez zmiany formatu
+plików ani algorytmu AES.
+
+- Podstawowy, wspierany `helix_pro/cipher.py` używa teraz wspólnego
+  atomowego publikowania wyników: plik tymczasowy w katalogu docelowym,
+  flush + fsync, a następnie `os.replace`. Dotyczy szyfrowania i
+  odszyfrowywania formatów HLXP/HLXN. Chroni istniejący plik docelowy
+  przed częściowym zapisem przy zwykłym błędzie procesu/systemu.
+- Parser HLXP/HLXN odrzuca niepełny nagłówek jako `HelixProError`, zamiast
+  wypuszczać nieobsłużony `IndexError`. Dodano minimalne kontrole długości
+  przed KDF i próbą odszyfrowania.
+- Testy regresji: awaria `os.replace`, błędny tag bez naruszenia
+  poprzedniego pliku, ucięte nagłówki oraz poprawny round-trip.
+  Dedykowane kroki testowe przeszły na Python 3.11 i 3.12 w workflow
+  42545117592; pełny workflow nadal należy sprawdzić do końca.
+- Zmiany nie obejmują HNS1, nie zmieniają formatu HLXP/HLXN i nie dodają
+  nowej zależności. Nie dowodzą odporności na utratę zasilania (brak
+  fsync katalogu), błędy sprzętowe ani złośliwe wyścigi na ścieżkach.
+
+Zasada kontynuacji: najpierw wzmacniać i upraszczać wspólną ścieżkę
+użytkownika; eksperymentalne funkcje pozostają odseparowane, dopóki
+nie udowodnią korzyści bez zwiększania ryzyka.
