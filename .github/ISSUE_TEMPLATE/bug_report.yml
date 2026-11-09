@@ -1,0 +1,93 @@
+name: Bug report (BETA TEST)
+description: Report a reproducible problem in a Helix-Lock beta build.
+title: "[BETA BUG] "
+labels: ["bug", "beta"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Helix-Lock is beta-test software.** Do not attach real user files, plaintext, key files, passwords, recovery material, memory dumps, or unredacted logs. Reproduce with disposable copies only.
+  - type: input
+    id: app-version
+    attributes:
+      label: App version / commit
+      description: Include the version shown by the app or the beta build identifier.
+      placeholder: "0.1.1-beta / commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system
+      description: Include OS version, distribution and architecture where relevant.
+      placeholder: "Windows 11 24H2 x64"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Installation / startup
+        - File selection / paths
+        - Encryption
+        - Decryption
+        - Key file
+        - Password
+        - Fingerprint / AIRP
+        - CounterLock
+        - User interface
+        - Performance / memory
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact
+      options:
+        - P0 - suspected security issue, data exposure or data loss
+        - P1 - data loss, failed recovery or repeated crash
+        - P2 - feature or compatibility problem
+        - P3 - cosmetic / usability issue
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Use disposable test files. List exact steps and relevant settings.
+      placeholder: "1. Open…\n2. Select a disposable test file…\n3. Click…"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Paste only after checking that logs contain no keys, passwords, plaintext, file contents or personal data.
+      render: text
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data safety
+      options:
+        - label: I used disposable copies and retained an independent backup.
+          required: true
+        - label: I have not included keys, passwords, plaintext or private user files.
+          required: true
+        - label: I checked diagnostics for secrets and personal data.
+          required: true
