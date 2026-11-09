@@ -22,13 +22,13 @@ Eksperymentalna, ograniczona pamięć cech historycznych znajduje się w `helix_
 
 # Helix‑Lock
 
-Warstwa ochronna świadomości i treści.
-Zamyka skręt, odcina szum, przepuszcza tylko kierunek.
+**Szyfrowanie plików z kontrolą tego, co dzieje się z danymi przed i po szyfrowaniu.**
 
-Helix‑Lock to szyfrator plików oparty na AES-256-GCM (biblioteka
-`cryptography`, audytowana, standardowa) — nazwa nawiązuje do „skrętu
-helisy”, ale pod spodem to zwykłe, sprawdzone uwierzytelnione
-szyfrowanie, nie autorska kryptografia.
+Helix‑Lock łączy ochronę plików z narzędziami, których zwykły szyfrator często nie oferuje w jednym przepływie pracy: kolejką wielu plików, odzyskiwaniem oryginalnych nazw, inteligentną kompresją, odciskami kryptograficznymi, historią integralności AIRP i opcjonalnym licznikiem odczytów CounterLock.
+
+Zamiast traktować szyfrowanie jako pojedynczą operację, Helix pomaga kontrolować cały obieg zaszyfrowanego pliku: przygotowanie, przetwarzanie, identyfikację, weryfikację i historię operacji.
+
+Podstawą ochrony jest **AES‑256‑GCM** z biblioteki `cryptography`. To sprawdzony standard uwierzytelnionego szyfrowania; wyróżnikiem Helix‑Lock nie jest wymyślanie nowego szyfru, lecz zestaw funkcji kontroli i obsługi danych zbudowanych wokół tej podstawy.
 
 ## Zacznij tutaj: `helix_pro/`
 
