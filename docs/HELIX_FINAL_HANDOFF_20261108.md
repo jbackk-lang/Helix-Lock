@@ -237,3 +237,19 @@ kierunki i potwierdza zachowanie zawartości źródła. HNS1 pozostaje
 eksperymentalny i nie jest promowany do domyślnego GUI; wymaga osobnej
 oceny formatu, cyklu klucza i kompatybilności.
 Workflow 42546501311 uruchomiono dla testów HNS1 oraz pełnej macierzy.
+
+### Wynik CI — eksperymentalny HNS1 i aliasy hardlink (2026-11-09)
+
+Workflow 42546569335 dla commitu `39525ac` zakończył się sukcesem:
+Python 3.11 i 3.12 — po 61/61 kroków. Potwierdzono kontrolę aliasów
+w HNS1 po poprawce helpera; pierwsza iteracja testu wykryła błąd
+integracji (helper wywoływał sam siebie i kontrola nie była stosowana
+w obu ścieżkach). Zostało to naprawione i zielone CI potwierdza poprawkę.
+To dobra regresja: test zatrzymał błąd, zanim zmiana została uznana za
+gotową.
+
+Dodatkowo walidacja nazw HLXN odrzuca teraz wszystkie znaki Unicode
+kategorii Cc i normalizuje początkowy człon nazwy przed sprawdzeniem
+zarezerwowanych nazw urządzeń Windows, a jednocześnie dopuszcza zwykłe
+spacje w nazwie. Rozszerzone testy są w workflow 42546705983 — wynik
+oczekuje na zakończenie macierzy.
