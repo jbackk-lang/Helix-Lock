@@ -40,8 +40,8 @@ jobs:
             # Other CI/API commits may land while the screenshot is rendered.
             # Rebase the generated image commit instead of losing the screenshot.
             for attempt in 1 2 3; do
-              git pull --rebase origin "\${GITHUB_REF_NAME}"
-              if git push origin "HEAD:\${GITHUB_REF_NAME}"; then
+              git pull --rebase origin "${GITHUB_REF_NAME}"
+              if git push origin "HEAD:${GITHUB_REF_NAME}"; then
                 break
               fi
               if [ "$attempt" -eq 3 ]; then
