@@ -64,6 +64,23 @@ NAME_LEN_MAX = 255  # dlugosc pola-dlugosci nazwy to 1 bajt (0-255)
 COMPRESS_NONE = 0
 COMPRESS_GZIP = 1
 
+def _validate_portable_filename(name: str) -> str:
+    """Allow one portable basename only; never accept path or device names."""
+    if not name or name in {".", ".."}:
+        raise HelixProError("nieprawidlowa nazwa pliku")
+    if any(ord(ch) < 32 or ch in '<>:"/\\\\|?*' for ch in name):
+        raise HelixProError("nazwa pliku zawiera separator lub niedozwolony znak")
+    if name.endswith((" ", ".")):
+        raise HelixProError("nazwa pliku nie moze konczyc sie spacja ani kropka")
+    stem = name.split(".", 1)[0].upper()
+    reserved = {"CON", "PRN", "AUX", "NUL"} | {
+        f"{prefix}{number}" for prefix in ("COM", "LPT") for number in range(1, 10)
+    }
+    if stem in reserved:
+        raise HelixProError("nazwa pliku jest zarezerwowana przez system Windows")
+    return name
+
+
 # Parametry scrypt - N=2**14 to rozsadny wspolczesny minimum (RFC 7914
 # sugeruje N=2**14 dla interaktywnych logowan); wyzsze N = wolniej dla
 # atakujacego brute-force, ale tez wolniej dla Ciebie przy kazdym
@@ -283,6 +300,7 @@ def pack_named_payload(original_name: str, content: bytes, compress: bool = True
     powieksza), wiec w takim przypadku zwracane sa dane surowe - nigdy
     nie powiekszamy wyniku przez sama probe kompresji. Ustaw
     compress=False, zeby pominac probe w ogole."""
+    original_name = _validate_portable_filename(original_name)
     name_bytes = original_name.encode("utf-8")
     if len(name_bytes) > NAME_LEN_MAX:
         raise HelixProError(
@@ -312,9 +330,11 @@ def unpack_named_payload(payload: bytes) -> tuple[str, bytes]:
     name_bytes = payload[1:1 + name_len]
     if len(name_bytes) != name_len:
         raise HelixProError("payload jest za krotki wzgledem zadeklarowanej dlugosci nazwy - dane uszkodzone")
-    original_name = os.path.basename(name_bytes.decode("utf-8"))  # basename tez tutaj - obrona w glab
-    if not original_name:
-        raise HelixProError("odtworzona nazwa pliku jest pusta po oczyszczeniu")
+    try:
+        decoded_name = name_bytes.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise HelixProError("nazwa pliku nie jest poprawnym UTF-8") from exc
+    original_name = _validate_portable_filename(decoded_name)
 
     rest = payload[1 + name_len:]
     if not rest:
