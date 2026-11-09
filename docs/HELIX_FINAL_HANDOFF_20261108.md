@@ -130,3 +130,21 @@ przebieg dla kompletnego stanu po poprawkach: workflow
 Testy atomowego zapisu przeszły już na obu interpreterach; reszta długiej
 macierzy nadal trwa. Nie uznawać całego CI za zielone przed zakończeniem
 obu zadań.
+
+### Wynik końcowy CI — integracja atomowego zapisu (2026-11-09)
+
+Workflow [42545405156](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42545405156)
+dla commitu `4620e4746565e063084158ee818d6370b9864771` zakończył się sukcesem.
+Oba zadania macierzy przeszły: Python 3.11 — 61/61 kroków; Python 3.12 —
+61/61 kroków. Nie odnotowano nieudanych kroków.
+
+Zakres tej serii:
+- wspólny atomowy writer w `helix_pro/cipher.py`;
+- użycie writera przez domyślne i legacy GUI przy publikacji odszyfrowanej
+  treści HLXN;
+- regresja zachowania istniejącego pliku przy symulowanej awarii replace;
+- testy rdzenia i pełna macierz CI.
+
+Ograniczenia: to nie potwierdza odporności na nagłą utratę zasilania,
+wyścigi z wrogim procesem/systemem plików ani niezależnego audytu
+bezpieczeństwa. Nadal wymagane są ręczne testy GUI na Windows/macOS/Linux.
