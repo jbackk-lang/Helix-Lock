@@ -1,4 +1,4 @@
-> **Archiwum historyczne — README 0.1 (czerwiec 2026).** Ten dokument zachowuje opis pierwszej wersji projektu. Zawiera nazwy modułów, deklaracje i instrukcje z tamtego etapu; część z nich jest nieaktualna lub została później poprawiona. Nie traktuj go jako instrukcji dla bieżącej wersji. Aktualny opis produktu znajduje się w [głównym README](../README.md), a dokumentacja techniczna w [Szczegółach technicznych v.0.1.1](docs/Szczegóły%20techniczne%20v.0.1.1.md).
+> **Archiwum historyczne — README 0.1 (czerwiec 2026).** Ten dokument zachowuje opis pierwszej wersji projektu. Zawiera nazwy modułów, deklaracje i instrukcje z tamtego etapu; część z nich jest nieaktualna lub została później poprawiona. Nie traktuj go jako instrukcji dla bieżącej wersji. Aktualny opis produktu znajduje się w [głównym README](README.md), a dokumentacja techniczna w [Szczegółach technicznych v.0.1.1](docs/Szczegóły%20techniczne%20v.0.1.1.md).
 
 ---
 
