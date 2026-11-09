@@ -28,7 +28,9 @@ from helix_pro.cipher import (
 )
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_LEDGER = os.path.join(os.path.expanduser("~"), ".helix_lock", "identity.sqlite3")
+USER_DIR = os.path.join(os.path.expanduser("~"), ".helix_lock")
+DEFAULT_LEDGER = os.path.join(USER_DIR, "identity.sqlite3")
+LANGUAGE_SETTINGS = os.path.join(USER_DIR, "preferences.json")
 BG, PANEL, ACCENT, FG, MUTED = "#101827", "#182437", "#54D6A0", "#F2F6FC", "#9FB0C5"
 
 def paths_refer_to_same_file(source: str, destination: str) -> bool:
@@ -63,12 +65,49 @@ class HelixLockApp(tk.Tk):
         self.signer_password = tk.StringVar()
         self.ledger_path = tk.StringVar(value=DEFAULT_LEDGER)
         self.anchor_text = tk.StringVar()
+        self.language = tk.StringVar(value=self._load_language())
+        self._style()
+        self._build()
+
+    @staticmethod
+    def _load_language():
+        try:
+            with open(LANGUAGE_SETTINGS, "r", encoding="utf-8") as stream:
+                value = json.load(stream).get("language", "en")
+            return value if value in ("pl", "en") else "en"
+        except (OSError, ValueError, TypeError):
+            return "en"
+
+    def _save_language(self):
+        os.makedirs(USER_DIR, exist_ok=True)
+        temporary = LANGUAGE_SETTINGS + ".tmp"
+        with open(temporary, "w", encoding="utf-8") as stream:
+            json.dump({"language": self.language.get()}, stream)
+        os.replace(temporary, LANGUAGE_SETTINGS)
+
+    def _change_language(self, _event=None):
+        selected = self.language_choice.get()
+        self.language.set("pl" if selected == "Polski" else "en")
+        try:
+            self._save_language()
+        except OSError as exc:
+            messagebox.showwarning("Helix-Lock", f"Could not save language preference: {exc}")
+        # Rebuild labels in the selected language while preserving file/key fields.
+        api_window = getattr(self, "api_window", None)
+        if api_window is not None:
+            try:
+                if api_window.winfo_exists():
+                    api_window.destroy()
+            except tk.TclError:
+                pass
+            self.api_window = None
+        for child in self.winfo_children():
+            child.destroy()
         self._style()
         self._build()
 
     def _tr(self, polish, english):
-        # Windows users asked for bilingual labels; Linux/macOS keep concise English UI.
-        return english + " / " + polish if os.name == "nt" else english
+        return polish if self.language.get() == "pl" else english
 
     def _style(self):
         style = ttk.Style(self)
@@ -88,6 +127,17 @@ class HelixLockApp(tk.Tk):
     def _build(self):
         head = tk.Frame(self, bg=BG)
         head.pack(fill="x", padx=22, pady=(18, 12))
+        language_box = tk.Frame(head, bg=BG)
+        language_box.pack(side="right", anchor="ne", padx=(8, 0))
+        tk.Label(language_box, text=self._tr("Język", "Language"), bg=BG, fg=MUTED,
+                 font=("Segoe UI", 9)).pack(side="left", padx=(0, 6))
+        self.language_choice = ttk.Combobox(
+            language_box, state="readonly", width=10,
+            values=("Polski", "English"),
+        )
+        self.language_choice.set("Polski" if self.language.get() == "pl" else "English")
+        self.language_choice.pack(side="left")
+        self.language_choice.bind("<<ComboboxSelected>>", self._change_language)
         self._logo(head)
         tk.Label(head, text="HELIX-LOCK", bg=BG, fg=FG, font=("Segoe UI", 22, "bold")).pack(anchor="w", padx=(78, 0), pady=(4, 0))
         tk.Label(head, text=self._tr("Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", "File encryption · Key identity · AIRP trust"), bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
