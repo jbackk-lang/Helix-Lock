@@ -192,10 +192,14 @@ def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
     if mode == MODE_KEY:
         if key is None:
             raise HelixProError("ten plik jest w trybie klucza - podaj key, nie password")
+        if len(data) < 6 + NONCE_SIZE + 16:
+            raise HelixProError("plik jest za krotki - niepelny zaszyfrowany payload")
         plaintext = decrypt_bytes(data[6:], key)
     elif mode == MODE_PASSWORD:
         if password is None:
             raise HelixProError("ten plik jest w trybie hasla - podaj password, nie key")
+        if len(data) < 6 + SALT_SIZE + NONCE_SIZE + 16:
+            raise HelixProError("plik jest za krotki - niepelna sol lub zaszyfrowany payload")
         salt = data[6:6 + SALT_SIZE]
         derived = derive_key_from_password(password, salt)
         plaintext = decrypt_bytes(data[6 + SALT_SIZE:], derived)
@@ -353,10 +357,14 @@ def decrypt_bytes_with_name(in_path: str, *, key: bytes | None = None, password:
     if mode == MODE_KEY:
         if key is None:
             raise HelixProError("ten plik jest w trybie klucza - podaj key, nie password")
+        if len(data) < 6 + NONCE_SIZE + 16:
+            raise HelixProError("plik jest za krotki - niepelny zaszyfrowany payload")
         payload = decrypt_bytes(data[6:], key)
     elif mode == MODE_PASSWORD:
         if password is None:
             raise HelixProError("ten plik jest w trybie hasla - podaj password, nie key")
+        if len(data) < 6 + SALT_SIZE + NONCE_SIZE + 16:
+            raise HelixProError("plik jest za krotki - niepelna sol lub zaszyfrowany payload")
         salt = data[6:6 + SALT_SIZE]
         derived = derive_key_from_password(password, salt)
         payload = decrypt_bytes(data[6 + SALT_SIZE:], derived)
