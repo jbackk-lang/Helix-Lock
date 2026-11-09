@@ -36,6 +36,7 @@ from typing import Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from helix_pro.cipher import (
     generate_key,
+    atomic_write_bytes,
     encrypt_file_with_name,
     decrypt_bytes_with_name,
     decrypt_file,  # tylko jako fallback dla starego formatu (bez zapisanej nazwy)
@@ -499,8 +500,7 @@ def _build_gui():
                     return
 
             try:
-                with open(out_path, "wb") as f:
-                    f.write(content)
+                atomic_write_bytes(out_path, content)
             except OSError as exc:
                 messagebox.showerror("Błąd pliku", str(exc))
                 self._log(f"BŁĄD (deszyfrowanie): {exc}")
