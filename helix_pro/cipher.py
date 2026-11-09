@@ -41,6 +41,7 @@ from __future__ import annotations
 import gzip
 import os
 import tempfile
+import unicodedata
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.exceptions import InvalidTag
@@ -72,7 +73,7 @@ def _validate_portable_filename(name: str) -> str:
         raise HelixProError("nazwa pliku zawiera separator lub niedozwolony znak")
     if name.endswith((" ", ".")):
         raise HelixProError("nazwa pliku nie moze konczyc sie spacja ani kropka")
-    stem = name.split(".", 1)[0].upper()
+    stem = name.split(".", 1)[0].rstrip(" .").upper()
     reserved = {"CON", "PRN", "AUX", "NUL"} | {
         f"{prefix}{number}" for prefix in ("COM", "LPT") for number in range(1, 10)
     }
