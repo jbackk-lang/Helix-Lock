@@ -362,7 +362,10 @@ class HelixLockApp(tk.Tk):
         if not path: return
         if os.path.exists(path):
             messagebox.showerror("Plik istnieje", self._tr("Wybierz inną nazwę. Istniejący klucz nie został nadpisany.", "Choose another name. Existing key was not overwritten.")); return
-        with open(path, "xb") as f: f.write(generate_key())
+        try:
+            write_new_key_file(path, generate_key())
+        except OSError as exc:
+            messagebox.showerror(self._tr("Nie udało się utworzyć klucza", "Could not create key"), str(exc)); return
         self.key_file.set(path); self.mode.set("key"); self._refresh_mode()
         self.status.set(self._tr("Wygenerowano klucz. Zrób bezpieczną kopię poza urządzeniem.", "Key generated. Store a secure backup away from this device."))
 
