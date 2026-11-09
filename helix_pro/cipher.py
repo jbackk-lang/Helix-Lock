@@ -73,6 +73,19 @@ SCRYPT_R = 8
 SCRYPT_P = 1
 
 
+def ensure_distinct_paths(in_path: str, out_path: str) -> None:
+    """Reject source/output aliases so a file operation cannot destroy its input."""
+    source = os.path.abspath(in_path)
+    destination = os.path.abspath(out_path)
+    if os.path.normcase(os.path.realpath(source)) == os.path.normcase(os.path.realpath(destination)):
+        raise HelixProError("plik wynikowy nie moze wskazywac na plik zrodlowy")
+    try:
+        if os.path.exists(destination) and os.path.samefile(source, destination):
+            raise HelixProError("plik wynikowy nie moze byc dowiazaniem do pliku zrodlowego")
+    except OSError:
+        pass
+
+
 def atomic_write_bytes(out_path: str, data: bytes) -> None:
     """Publish complete output only after writing and flushing a same-dir temp file."""
     target = os.path.abspath(out_path)
@@ -180,6 +193,7 @@ def encrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
     ktora zostaje zapisana w naglowku pliku wyjsciowego)."""
     if (key is None) == (password is None):
         raise HelixProError("podaj dokladnie jedno z: key, password")
+    ensure_distinct_paths(in_path, out_path)
 
     with open(in_path, "rb") as f:
         plaintext = f.read()
@@ -199,6 +213,7 @@ def encrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
 def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, password: str | None = None) -> None:
     if (key is None) == (password is None):
         raise HelixProError("podaj dokladnie jedno z: key, password")
+    ensure_distinct_paths(in_path, out_path)
 
     with open(in_path, "rb") as f:
         data = f.read()
@@ -333,6 +348,7 @@ def encrypt_file_with_name(
     pack_named_payload() po szczegoly ("smart": nigdy nie powieksza pliku)."""
     if (key is None) == (password is None):
         raise HelixProError("podaj dokladnie jedno z: key, password")
+    ensure_distinct_paths(in_path, out_path)
 
     original_name = os.path.basename(in_path)
     with open(in_path, "rb") as f:
@@ -405,5 +421,6 @@ def decrypt_file_with_name(in_path: str, out_dir: str, *, key: bytes | None = No
     bezposrednio i samemu zapisac plik po sprawdzeniu os.path.exists()."""
     original_name, content = decrypt_bytes_with_name(in_path, key=key, password=password)
     out_path = os.path.join(out_dir, original_name)
+    ensure_distinct_paths(in_path, out_path)
     atomic_write_bytes(out_path, content)
     return out_path
