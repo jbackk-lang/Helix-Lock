@@ -66,3 +66,16 @@ def test_named_decrypt_publishes_only_verified_content(tmp_path):
     encrypt_file_with_name(str(source), str(encrypted), key=key)
     output = decrypt_file_with_name(str(encrypted), str(out_dir), key=key)
     assert open(output, "rb").read() == source.read_bytes()
+
+
+
+def test_public_atomic_writer_preserves_target_on_replace_error(tmp_path, monkeypatch):
+    target = tmp_path / "existing.bin"
+    target.write_bytes(b"keep me")
+    def fail_replace(*args):
+        raise OSError("simulated publication failure")
+    monkeypatch.setattr("helix_pro.cipher.os.replace", fail_replace)
+    with pytest.raises(OSError):
+        atomic_write_bytes(str(target), b"new bytes")
+    assert target.read_bytes() == b"keep me"
+    assert not list(tmp_path.glob(".helix-*.tmp"))
