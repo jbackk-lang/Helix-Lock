@@ -80,3 +80,21 @@ def test_public_atomic_writer_preserves_target_on_replace_error(tmp_path, monkey
         atomic_write_bytes(str(target), b"new bytes")
     assert target.read_bytes() == b"keep me"
     assert not list(tmp_path.glob(".helix-*.tmp"))
+
+
+
+def test_named_encrypt_replace_failure_preserves_existing_target(tmp_path, monkeypatch):
+    source = tmp_path / "plain.txt"
+    target = tmp_path / "existing.helixpro"
+    source.write_bytes(b"new plaintext")
+    target.write_bytes(b"previous encrypted target")
+
+    def fail_replace(*args):
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr("helix_pro.cipher.os.replace", fail_replace)
+    with pytest.raises(OSError):
+        encrypt_file_with_name(str(source), str(target), key=generate_key())
+
+    assert target.read_bytes() == b"previous encrypted target"
+    assert not list(tmp_path.glob(".helix-*.tmp"))
