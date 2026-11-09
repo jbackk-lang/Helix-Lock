@@ -708,3 +708,38 @@ Tokeny są używane tylko w bieżącej sesji GUI i nie są zapisywane w pliku ko
 Rejestracja i rotacja klucza tworzą zdarzenie w lokalnym łańcuchu AIRP, a następnie próbują opublikować podpisany checkpoint przez quorum. Jeśli większość świadków jest niedostępna, GUI pokazuje status **pending / niezakotwiczone**. Zdarzenie lokalne pozostaje w bazie i można ponowić publikację po przywróceniu świadków. Nigdy nie traktuj lokalnego wpisu jako potwierdzenia quorum.
 
 **Zakres aktualnego GUI:** zakładka Pliki obsługuje podstawowy format nazwany i starszy format Helix Pro. Pliki CounterLock nadal wymagają zaawansowanego okna `--legacy`. To celowe zachowanie — GUI nie zmienia po cichu semantyki licznika ani nie nadpisuje szyfrogramu podczas zwykłego odszyfrowania.
+
+
+---
+
+## Stan wydania i weryfikacji — 2026-11-09
+
+### Automatyczne testy
+
+- Workflow [42546705983](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42546705983): Python 3.11 — 61/61; Python 3.12 — 61/61. Obejmuje testy nazw plików, atomowego zapisu i eksperymentalnego HNS1.
+- Workflow [42546569335](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42546569335): Python 3.11 i 3.12 — 61/61; potwierdzona kontrola aliasów hardlink w HNS1.
+
+### Budowanie aplikacji desktopowej
+
+Workflow [42546762025](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42546762025) zbudował paczki dla trzech platform:
+- Linux: 31 189 032 B
+- Windows: 16 175 575 B
+- macOS: 14 944 620 B
+
+To wyniki procesu pakowania PyInstaller w CI. Nie potwierdzają jeszcze ręcznego uruchomienia i testów GUI na fizycznych komputerach. Artefakty CI są niepodpisane i nie są równoznaczne z publicznym, podpisanym wydaniem.
+
+### Ochrona plików i metadanych
+
+- Główne API Helix Pro odrzuca aliasy ścieżek wejścia/wyjścia, w tym dowiązania twarde.
+- Format HLXN waliduje nazwę pliku po uwierzytelnieniu; odrzuca separatory ścieżek, znaki kontrolne i nazwy urządzeń Windows.
+- Eksperymentalny HNS1 ma zapis strumieniowy w blokach 64 KiB, osobne rekordy AES-256-GCM, końcowy uwierzytelniony rekord z liczbą rekordów i sumą bajtów oraz publikację pliku dopiero po weryfikacji końca strumienia.
+- HNS1 pozostaje eksperymentem. Nie jest formatem domyślnym głównej aplikacji ani deklaracją zakończonego przeglądu kryptograficznego.
+
+### Granice gotowości
+
+- Wymagane są ręczne testy GUI na Windows, macOS i Linux.
+- Niezależny audyt bezpieczeństwa nie został wykonany.
+- Wydania nie są podpisane/notaryzowane.
+- Lokalny dziennik SQLite sam nie chroni przed cofnięciem całej bazy; potrzebny jest niezależny trust anchor/quorum.
+- CounterLock nie jest DRM, nie liczy nieudanych prób brute-force i nie dowodzi tożsamości osoby otwierającej plik. Wykrywanie rollbacku wymaga niezależnego, trwałego stanu monotonicznego.
+- Nie należy promować prototypów fazowych, konsensusu ani pamięci historycznej jako kryptografii lub dowodu samonaprawy.
