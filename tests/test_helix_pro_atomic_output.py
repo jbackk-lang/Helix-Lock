@@ -5,6 +5,7 @@ import pytest
 
 from helix_pro.cipher import (
     atomic_write_bytes,
+    write_new_key_file,
     HelixProError,
     decrypt_file,
     decrypt_file_with_name,
@@ -98,3 +99,20 @@ def test_named_encrypt_replace_failure_preserves_existing_target(tmp_path, monke
 
     assert target.read_bytes() == b"previous encrypted target"
     assert not list(tmp_path.glob(".helix-*.tmp"))
+
+
+
+def test_new_key_file_is_exclusive_and_owner_only_on_posix(tmp_path):
+    import os
+    import stat
+
+    target = tmp_path / "helix.key"
+    key = generate_key()
+    write_new_key_file(str(target), key)
+    assert target.read_bytes() == key
+    if os.name == "posix":
+        assert stat.S_IMODE(target.stat().st_mode) == 0o600
+
+    with pytest.raises(FileExistsError):
+        write_new_key_file(str(target), generate_key())
+    assert target.read_bytes() == key
