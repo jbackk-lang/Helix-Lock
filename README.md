@@ -1,13 +1,13 @@
 > **HELIX-LOCK v0.1.1 BETA — OTWARTE TESTY**
 >
 > Pobierz gotowe pakiety bezpośrednio z oficjalnego GitHub Release:
-> - [Windows x64 — HelixLock-windows.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-windows.zip)
-> - [macOS — HelixLock-macos.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-macos.zip)
-> - [Linux — HelixLock-linux.tar.gz](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-linux.tar.gz)
-> - [Sumy SHA-256](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/SHA256SUMS-builds.txt)
-> - [Strona wydania i informacje o becie](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.1-beta.1)
+> - [Windows x64 — HelixLock-windows.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-windows.zip)
+> - [macOS — HelixLock-macos.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-macos.zip)
+> - [Linux — HelixLock-linux.tar.gz](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-linux.tar.gz)
+> - [Sumy SHA-256](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/SHA256SUMS-builds.txt)
+> - [Strona wydania i informacje o becie](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.1-beta.2)
 >
-> To wersja beta do praktycznych testów, nie stabilne wydanie produkcyjne ani niezależny audyt bezpieczeństwa. Testuj wyłącznie na kopiach plików i zachowaj niezależne kopie zapasowe. [Plan testów i zgłaszania błędów](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/docs/BETA_TEST_PLAN_v0.1.1.md).
+> To wersja beta do praktycznych testów, nie stabilne wydanie produkcyjne ani niezależny audyt bezpieczeństwa. Windows może wyświetlić ostrzeżenie SmartScreen, ponieważ aplikacja nie ma jeszcze certyfikatu podpisu kodu. Pobieraj wyłącznie z tego oficjalnego wydania i sprawdzaj sumę SHA-256. Testuj wyłącznie na kopiach plików i zachowaj niezależne kopie zapasowe. [Plan testów i zgłaszania błędów](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/docs/BETA_TEST_PLAN_v0.1.1.md).
 
 > **Aktualny podział prac — 9 listopada 2026**
 >
