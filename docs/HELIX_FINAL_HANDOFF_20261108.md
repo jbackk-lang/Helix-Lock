@@ -148,3 +148,29 @@ Zakres tej serii:
 Ograniczenia: to nie potwierdza odporności na nagłą utratę zasilania,
 wyścigi z wrogim procesem/systemem plików ani niezależnego audytu
 bezpieczeństwa. Nadal wymagane są ręczne testy GUI na Windows/macOS/Linux.
+
+### Dalsze wzmocnienie rdzenia i obsługi kluczy — 2026-11-09
+
+- `encrypt_file_with_name()` publikuje teraz szyfrogram przez
+  `atomic_write_bytes()`, tak samo jak HLXP i odszyfrowane dane.
+  Nieudana publikacja nie powinna pozostawić częściowego szyfrogramu ani
+  zastąpić poprzedniego celu.
+- Dodano `write_new_key_file()`: plik klucza jest tworzony wyłącznie
+  (`O_EXCL`), bez nadpisywania istniejącego klucza; na POSIX z trybem
+  `0600`. Na Windows uprawnienia wynikają z ACL katalogu nadrzędnego.
+- Oba GUI korzystają z bezpiecznego tworzenia klucza. Naprawiono też import
+  helpera w głównym `helix_lock_app.py` i dodano test jego podłączenia.
+- Testy sprawdzają: brak nadpisania klucza, tryb POSIX, atomowe
+  szyfrowanie HLXN, zachowanie poprzedniego pliku po błędzie publikacji
+  oraz import helperów w głównym GUI.
+- CI dla stanu `d916ea3` (workflow 42545677927) przeszedł na Pythonie
+  3.11 i 3.12 (61/61 kroków); test zrzutu GUI 42545677949 również przeszedł.
+  Po ostatniej poprawce importu i dodaniu testu wiring workflow
+  42545880781 uruchomiono na commicie `fe124a0`; wynik należy sprawdzić.
+- Zrzut ekranu CI nie zastępuje ręcznego testu interakcji GUI na komputerze.
+
+Ograniczenia pozostają: standardowy HLXP/HLXN nadal wczytuje cały plik do
+pamięci; HNS1 jest eksperymentalny i nie jest zintegrowany z GUI. Atomic
+replace + fsync pliku nie gwarantuje trwałości wpisu katalogowego po nagłej
+utracie zasilania. Nie ma niezależnego audytu ani walidacji GUI na wszystkich
+systemach. Nie należy deklarować gotowości produkcyjnej.
