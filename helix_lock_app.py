@@ -430,10 +430,11 @@ class HelixLockApp(tk.Tk):
                 self.api_tree.set(item_id, "status", self._tr("Błąd", "Error"))
                 self.api_progress.set(self._tr(f"{index + 1}/{total} · Błąd: {os.path.basename(src)} — {exc}",
                                                f"{index + 1}/{total} · Error: {os.path.basename(src)} — {exc}"))
-            self.api_window.update_idletasks()
-            self.api_progress.set(self._tr(f"Postęp {index + 1}/{total} · OK {completed} · Błędy {failed} · Pominięte {skipped}",
-                                           f"Progress {index + 1}/{total} · OK {completed} · Errors {failed} · Skipped {skipped}"))
-            self.api_window.update()
+            finally:
+                self.api_window.update_idletasks()
+                self.api_progress.set(self._tr(f"Postęp {index + 1}/{total} · OK {completed} · Błędy {failed} · Pominięte {skipped}",
+                                               f"Progress {index + 1}/{total} · OK {completed} · Errors {failed} · Skipped {skipped}"))
+                self.api_window.update()
         self.status.set(self._tr(f"API: zakończono kolejkę · OK {completed} · błędy {failed} · pominięte {skipped}",
                                  f"API: queue finished · OK {completed} · errors {failed} · skipped {skipped}"))
         self.refresh_dashboard()
