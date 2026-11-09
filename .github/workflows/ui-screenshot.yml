@@ -29,12 +29,12 @@ jobs:
       - name: Capture actual desktop window under virtual display
         run: |
           mkdir -p docs/screenshots
-          xvfb-run -a -s "-screen 0 1280x900x24" python scripts/capture_helix_ui.py docs/screenshots/helix-file-and-key.png
+          xvfb-run -a -s "-screen 0 1280x900x24" python scripts/capture_helix_ui.py docs/screenshots/helix-file-and-key.png docs/screenshots/helix-api-queue.png
       - name: Commit screenshot to experiment branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/screenshots/helix-file-and-key.png
+          git add docs/screenshots/helix-file-and-key.png docs/screenshots/helix-api-queue.png
           if ! git diff --cached --quiet; then
             git commit -m "docs: capture actual Helix file-and-key desktop screen [skip ci]"
             # Other CI/API commits may land while the screenshot is rendered.
@@ -53,5 +53,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: helix-file-and-key-screenshot
-          path: docs/screenshots/helix-file-and-key.png
+          path: docs/screenshots/helix-*.png
           retention-days: 30
