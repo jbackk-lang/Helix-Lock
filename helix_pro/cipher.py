@@ -325,8 +325,7 @@ def encrypt_file_with_name(
         header = MAGIC_NAMED + bytes([VERSION]) + MODE_PASSWORD + salt
         blob = encrypt_bytes(payload, derived)
 
-    with open(out_path, "wb") as f:
-        f.write(header + blob)
+    atomic_write_bytes(out_path, header + blob)
 
 
 def decrypt_bytes_with_name(in_path: str, *, key: bytes | None = None, password: str | None = None) -> tuple[str, bytes]:
