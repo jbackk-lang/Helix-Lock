@@ -15,7 +15,7 @@ on:
       - ".github/workflows/desktop-build.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -93,3 +93,63 @@ jobs:
             SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
+
+  publish-beta:
+    name: Publish beta release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: HelixLock-windows
+          path: release-assets/windows
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: HelixLock-macos
+          path: release-assets/macos
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: HelixLock-linux
+          path: release-assets/linux
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          cp release-assets/windows/HelixLock-windows.zip release/
+          cp release-assets/macos/HelixLock-macos.zip release/
+          cp release-assets/linux/HelixLock-linux.tar.gz release/
+          cat release-assets/windows/SHA256SUMS.txt release-assets/macos/SHA256SUMS.txt release-assets/linux/SHA256SUMS.txt > release/SHA256SUMS-builds.txt
+          cat > release/TESTING.txt <<'EOF'
+          HELIX-LOCK BETA — TEST BUILD
+          This is a beta test build, not a stable production release or an independent security audit.
+          Test only with copies of files and keep independent backups.
+          Report bugs and compatibility issues through GitHub Issues.
+          EOF
+      - name: Publish GitHub beta release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.1-beta.1
+          name: Helix-Lock v0.1.1 Beta 1
+          prerelease: true
+          make_latest: false
+          body: |
+            ## Helix-Lock v0.1.1 — public beta test
+
+            This is a practical beta build for external user testing, not a stable production release or an independent security audit.
+
+            **Downloads**
+            - Windows x64: HelixLock-windows.zip
+            - macOS: HelixLock-macos.zip
+            - Linux: HelixLock-linux.tar.gz
+
+            Test only with copies of files. Keep independent backups. Please report bugs and compatibility issues in GitHub Issues.
+
+            SHA-256 checksums and build metadata are attached.
+          files: |
+            release/HelixLock-windows.zip
+            release/HelixLock-macos.zip
+            release/HelixLock-linux.tar.gz
+            release/SHA256SUMS-builds.txt
+            release/TESTING.txt
