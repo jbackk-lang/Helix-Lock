@@ -226,3 +226,14 @@ Dodano testy parametrów dla traversal, ADS/kolonów i nazw urządzeń.
 Workflow 42546259891 uruchomiono; wynik oczekuje na zakończenie obu
 interpreterów. Ograniczenie kompatybilności: pliki HLXN ze starszym,
 nieprzenośnym oryginalnym basename mogą teraz zostać odrzucone.
+
+### HNS1: kontrola aliasów plików — 2026-11-09
+
+Przegląd eksperymentalnego, ograniczonego pamięciowo HNS1 ujawnił brak
+jawnej kontroli dowiązań twardych w odróżnieniu od głównego API. Dodano
+wspólną kontrolę wejścia/wyjścia przed szyfrowaniem i deszyfrowaniem:
+ścieżka, realpath/symlink i `os.path.samefile()`. Test sprawdza oba
+kierunki i potwierdza zachowanie zawartości źródła. HNS1 pozostaje
+eksperymentalny i nie jest promowany do domyślnego GUI; wymaga osobnej
+oceny formatu, cyklu klucza i kompatybilności.
+Workflow 42546501311 uruchomiono dla testów HNS1 oraz pełnej macierzy.
