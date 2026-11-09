@@ -173,7 +173,7 @@ def test_ensure_distinct_paths_rejects_hardlink(tmp_path):
 @pytest.mark.parametrize(
     "name",
     ["", ".", "..", "../escape.txt", "..\\\\escape.txt", "C:escape.txt",
-     "CON", "NUL.txt", "file.", "file ", "bad?name.txt", "bad\\x00name"],
+     "CON", "NUL.txt", "CON .txt", "file.", "file ", "bad?name.txt", "bad\\x00name", "bad\\x7fname"],
 )
 def test_named_payload_rejects_unsafe_or_nonportable_filenames(name):
     with pytest.raises(HelixProError):
