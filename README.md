@@ -11,6 +11,18 @@ Podstawą poufności i integralności jest uznany standard AES-256-GCM z bibliot
 
 ![Helix-Lock — główny ekran pracy z plikiem i kluczem](docs/screenshots/helix-file-and-key.png)
 
+## Pobierz wersję beta
+
+Gotowe pakiety są dostępne bezpośrednio w oficjalnym GitHub Release:
+
+- [Windows x64 — HelixLock-windows.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-windows.zip)
+- [macOS — HelixLock-macos.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-macos.zip)
+- [Linux — HelixLock-linux.tar.gz](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-linux.tar.gz)
+- [Sumy SHA-256](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/SHA256SUMS-builds.txt)
+- [Strona wydania v0.1.1 Beta 1](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.1-beta.1)
+
+To publiczna wersja beta przeznaczona do praktycznych testów. Nie jest stabilnym wydaniem produkcyjnym ani niezależnym audytem bezpieczeństwa. Testuj wyłącznie na kopiach plików i zachowaj niezależne kopie zapasowe.
+
 ## Dwa kierunki rozwoju
 
 Rozwój został rozdzielony na dwie gałęzie:
