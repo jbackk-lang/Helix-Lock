@@ -77,3 +77,19 @@ Desktop package validation lives in `.github/workflows/desktop-build.yml` and ru
 ## Separate desktop-build workflow result (2026-11-08)
 
 After separating tag publishing from normal build validation, [desktop build run 42502363536](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42502363536) completed successfully for commit `af8e6f2f48d39d472de85cb5d6c83dd14924c03f`. Windows, macOS and Ubuntu jobs each passed the PyInstaller build, platform packaging and artifact upload steps. This is the canonical build-validation workflow going forward. It does not replace manual runtime testing on each OS.
+
+
+## Independent beta testing
+
+Before broad distribution, run a staged independent beta in addition to owner-operated smoke tests. See [BETA_TEST_PLAN_v0.1.1.md](BETA_TEST_PLAN_v0.1.1.md).
+
+- [ ] Owner completes practical tests on available real systems.
+- [ ] Recruit a small, diverse group for closed beta on Windows, macOS and Linux.
+- [ ] Distribute only reviewed builds with SHA-256 manifests and clear beta warnings.
+- [ ] Collect reproducible reports without requesting keys, passwords, plaintext or user files.
+- [ ] Keep telemetry disabled by default; no hidden tracking or automatic upload of logs.
+- [ ] Triage every report; P0/P1 issues block wider distribution.
+- [ ] Add regression tests for reproducible bugs and rerun CI.
+- [ ] Publish known issues and beta findings before stable release.
+
+Beta feedback supplements, but does not replace, security review or independent cryptographic audit.
