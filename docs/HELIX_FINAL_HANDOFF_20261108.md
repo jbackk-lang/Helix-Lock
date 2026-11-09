@@ -253,3 +253,16 @@ kategorii Cc i normalizuje początkowy człon nazwy przed sprawdzeniem
 zarezerwowanych nazw urządzeń Windows, a jednocześnie dopuszcza zwykłe
 spacje w nazwie. Rozszerzone testy są w workflow 42546705983 — wynik
 oczekuje na zakończenie macierzy.
+
+### Wieloplatformowy build aplikacji desktopowej — 2026-11-09
+
+Workflow [42546762025](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42546762025)
+zbudował aplikację PyInstaller bez błędów na trzech systemach:
+- Linux — artefakt `HelixLock-linux` (31,189,032 B)
+- Windows — artefakt `HelixLock-windows` (16,175,575 B)
+- macOS — artefakt `HelixLock-macos` (14,944,620 B)
+
+Artefakty są dostępne jako wyniki CI (retencja 30 dni); nie jest to jeszcze
+wydanie podpisane ani opublikowane. Build potwierdza pakowanie, nie test
+instalacji/uruchomienia na rzeczywistym komputerze. Nie twórz taga release
+przed ręcznym smoke-testem GUI i weryfikacją kluczy/aktualizacji.
