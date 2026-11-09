@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import gzip
 import os
+import tempfile
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.exceptions import InvalidTag
@@ -70,6 +71,29 @@ COMPRESS_GZIP = 1
 SCRYPT_N = 2 ** 14
 SCRYPT_R = 8
 SCRYPT_P = 1
+
+
+def _atomic_write(out_path: str, data: bytes) -> None:
+    """Publish complete output only after writing and flushing a same-dir temp file."""
+    target = os.path.abspath(out_path)
+    directory = os.path.dirname(target) or os.curdir
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb", dir=directory, prefix=".helix-", suffix=".tmp", delete=False
+        ) as stream:
+            temporary = stream.name
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+        temporary = None
+    finally:
+        if temporary is not None:
+            try:
+                os.unlink(temporary)
+            except FileNotFoundError:
+                pass
 
 
 class HelixProError(Exception):
