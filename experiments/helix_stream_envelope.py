@@ -22,6 +22,18 @@ FINAL = struct.Struct(">QQ")
 MAX_RECORDS = 2**32 - 2
 
 
+def _ensure_distinct_files(source: Path, target: Path) -> None:
+    """Reject path, symlink, and hard-link aliases before publishing output."""
+    _ensure_distinct_files(source, target)
+    try:
+        if target.exists() and os.path.samefile(source, target):
+            raise ValueError("input and output must not refer to the same file")
+    except OSError:
+        # A missing target is normal; permission and filesystem errors are
+        # handled by the subsequent open/replace operation.
+        pass
+
+
 def _nonce(prefix: bytes, sequence: int) -> bytes:
     return prefix + struct.pack(">I", sequence)
 
