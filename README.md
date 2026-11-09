@@ -27,6 +27,20 @@ The branch starts from the Helix-Lock file application branch and retains the HN
 
 HNS1 is a **file prototype**, not a network protocol. It does not implement peer authentication, key exchange, session lifecycle, replay protection across reconnects, flow control or transport handling.
 
+## Current implementation
+
+An initial record-layer prototype now exists in `helix_stream/records.py`:
+
+- `RecordSealer` and `RecordOpener` use AES-256-GCM from the established `cryptography` library;
+- records carry a type, monotonically increasing sequence and explicit ciphertext length;
+- the authenticated associated data binds the session identifier and direction label;
+- each data record is limited to 64 KiB;
+- an authenticated final record closes the stream.
+
+Focused tests run on Python 3.11 and 3.12 through [Helix Stream CI](https://github.com/jbackk-lang/Helix-Lock/actions/workflows/helix-stream-tests.yml).
+
+This is a low-level prototype, not a production protocol. It assumes a fresh, independent session-direction key and does not implement key establishment, peer authentication, replay persistence across reconnects, flow control or network transport. A receiver may consume individually authenticated records before the final record arrives; applications must not mistake record authentication for proof that the whole stream completed.
+
 ## Architecture direction
 
 1. **Record layer:** strict framing, length limits, authenticated metadata, sequence numbers.
