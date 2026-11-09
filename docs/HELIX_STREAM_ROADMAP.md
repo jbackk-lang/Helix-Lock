@@ -29,6 +29,22 @@ Wspólny kod kryptograficzny może zostać wydzielony dopiero po określeniu sta
 
 To dobry punkt startowy, ale HNS1 pozostaje prototypem plikowym. Nie ma jeszcze zarządzania sesją/kluczami, ochrony replay na poziomie aplikacji, negocjacji wersji, kontroli przepływu ani adaptera sieciowego. 64-bitowy losowy prefiks nonce nie powinien być bez analizy przyjęty jako docelowy plan unikalności dla długotrwałego lub wielosesyjnego użycia tego samego klucza.
 
+## Bieżący postęp — 9 listopada 2026
+
+**S0:** prototyp HNS1 i jego testy zachowane jako baseline.
+
+**Część S2 — pierwszy eksperymentalny komponent rekordowy:**
+- `helix_stream/records.py` udostępnia `RecordSealer` i `RecordOpener`;
+- rekordy mają jawny typ, numer sekwencji i długość;
+- AES-256-GCM uwierzytelnia nagłówek wraz z identyfikatorem sesji i etykietą kierunku;
+- rozmiar danych w rekordzie jest ograniczony do 64 KiB;
+- odbiorca odrzuca ucięcie, zmianę kolejności, powtórzenie, zmianę metadanych i dane po rekordzie końcowym;
+- osobny workflow CI testuje Python 3.11 i 3.12.
+
+**Wynik CI dla pierwszego zestawu:** obie wersje Pythona przeszły testy. Po zaostrzeniu fixture'ów testowych uruchamiany jest kolejny przebieg.
+
+**Ograniczenia:** to prototyp niskopoziomowego framingu, nie gotowy protokół. Klucz musi być świeży i niezależny dla każdej sesji oraz kierunku; nie wolno resetować sekwencji i ponownie używać klucza. Ustanawianie kluczy, uwierzytelnianie peerów, trwała ochrona replay po reconnect, kontrola przepływu i transport nie są jeszcze zaimplementowane. Odbiorca dostaje każdy poprawnie uwierzytelniony rekord danych przed rekordem końcowym; aplikacja musi odróżniać poprawność pojedynczego rekordu od kompletności całego strumienia.
+
 ## Architektura docelowa
 
 1. **API strumienia** — interfejs źródła/odbiornika bajtów, bez zależności od GUI, systemu plików lub konkretnego transportu.
