@@ -24,7 +24,8 @@ MAX_RECORDS = 2**32 - 2
 
 def _ensure_distinct_files(source: Path, target: Path) -> None:
     """Reject path, symlink, and hard-link aliases before publishing output."""
-    _ensure_distinct_files(source, target)
+    if source.resolve() == target.resolve():
+        raise ValueError("input and output must differ")
     try:
         if target.exists() and os.path.samefile(source, target):
             raise ValueError("input and output must not refer to the same file")
@@ -44,8 +45,7 @@ def _aad(header: bytes, sequence: int, kind: int) -> bytes:
 
 def encrypt_file(source: str | Path, target: str | Path, key: bytes) -> None:
     source, target = Path(source), Path(target)
-    if source.resolve() == target.resolve():
-        raise ValueError("input and output must differ")
+    _ensure_distinct_files(source, target)
     if len(key) != 32:
         raise ValueError("AES-256-GCM requires 32-byte key")
     prefix = os.urandom(8)
@@ -88,8 +88,7 @@ def encrypt_file(source: str | Path, target: str | Path, key: bytes) -> None:
 
 def decrypt_file(source: str | Path, target: str | Path, key: bytes) -> None:
     source, target = Path(source), Path(target)
-    if source.resolve() == target.resolve():
-        raise ValueError("input and output must differ")
+    _ensure_distinct_files(source, target)
     if len(key) != 32:
         raise ValueError("AES-256-GCM requires 32-byte key")
     temporary = None
