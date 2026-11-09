@@ -3,7 +3,7 @@ name: Helix-Lock desktop build validation
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, experiment/helix-native]
     paths:
       - "helix_lock_app.py"
       - "helix_pro/**"
