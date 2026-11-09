@@ -48,7 +48,6 @@ body:
     attributes:
       label: Impact
       options:
-        - P0 - suspected security issue, data exposure or data loss
         - P1 - data loss, failed recovery or repeated crash
         - P2 - feature or compatibility problem
         - P3 - cosmetic / usability issue
