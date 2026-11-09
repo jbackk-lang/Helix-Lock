@@ -186,3 +186,12 @@ def test_unpack_named_payload_rejects_authenticated_unsafe_filename(name):
     payload = bytes([len(raw)]) + raw + b"\\x00" + b"payload"
     with pytest.raises(HelixProError):
         unpack_named_payload(payload)
+
+
+
+def test_named_payload_accepts_spaces_in_portable_filename():
+    name, content = unpack_named_payload(
+        pack_named_payload("my report 2026.txt", b"payload", compress=False)
+    )
+    assert name == "my report 2026.txt"
+    assert content == b"payload"
