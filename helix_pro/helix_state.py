@@ -6,11 +6,13 @@ HKDF context. TIMDR projections remain separately namespaced (M/S, G, K).
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 import hashlib
 import json
 import re
-from typing import Any, Mapping
+from types import MappingProxyType
+from typing import Any
 
 __all__ = ["HelixStateRecord", "canonical_state_bytes", "hkss_digest"]
 
@@ -28,21 +30,21 @@ def _identifier(value: str, field: str) -> str:
 
 
 def _validate_public_value(value: Any, path: str = "projection") -> None:
-    """Allow JSON data but forbid floats to avoid cross-runtime float ambiguity.
+    """Validate JSON-compatible data while forbidding binary floats.
 
-    Numeric TIMDR values must be supplied as normalized decimal strings with
-    their units documented by the caller/schema. NaN/Infinity and arbitrary
-    Python objects are rejected.
+    Numeric TIMDR values must be normalized decimal strings with units
+    documented by the caller/schema. This avoids platform-dependent float
+    serialization in a value that will be hashed.
     """
     if value is None or isinstance(value, (str, bool, int)):
         return
     if isinstance(value, float):
         raise ValueError(f"{path}: floating-point values are not canonical; use decimal strings")
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         for index, item in enumerate(value):
             _validate_public_value(item, f"{path}[{index}]")
         return
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         for key, item in value.items():
             if not isinstance(key, str):
                 raise ValueError(f"{path}: object keys must be strings")
@@ -51,11 +53,27 @@ def _validate_public_value(value: Any, path: str = "projection") -> None:
     raise ValueError(f"{path}: unsupported value type {type(value).__name__}")
 
 
+def _freeze(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return MappingProxyType({key: _freeze(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(item) for item in value)
+    return value
+
+
+def _thaw(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw(item) for item in value]
+    return value
+
+
 @dataclass(frozen=True)
 class HelixStateRecord:
     """Immutable public context for one object/key-purpose/epoch.
 
-    The M/S, G and K projection payloads are intentionally independent.
+    M/S, G and K projection payloads are intentionally independent.
     Values are descriptive public metadata, never secret key material.
     """
 
@@ -85,12 +103,14 @@ class HelixStateRecord:
         if unknown:
             raise ValueError(f"unknown TIMDR projection(s): {', '.join(sorted(unknown))}")
         for name, payload in self.projections.items():
-            if not isinstance(payload, dict):
+            if not isinstance(payload, Mapping):
                 raise ValueError(f"projection {name!r} must be an object")
             _validate_public_value(payload, f"projections.{name}")
+        # Freeze a defensive copy: later caller mutation cannot change HKSS.
+        object.__setattr__(self, "projections", _freeze(self.projections))
 
     def to_dict(self) -> dict[str, Any]:
-        """Return the canonical logical record (no secrets)."""
+        """Return a detached logical record suitable for canonical encoding."""
         return {
             "schema": _SCHEMA,
             "schema_version": self.schema_version,
@@ -101,7 +121,7 @@ class HelixStateRecord:
             "adapter_version": self.adapter_version,
             "previous_checkpoint": self.previous_checkpoint,
             "projections": {
-                name: self.projections[name]
+                name: _thaw(self.projections[name])
                 for name in sorted(self.projections)
             },
         }
