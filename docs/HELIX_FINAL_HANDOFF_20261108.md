@@ -106,3 +106,16 @@ plików ani algorytmu AES.
 Zasada kontynuacji: najpierw wzmacniać i upraszczać wspólną ścieżkę
 użytkownika; eksperymentalne funkcje pozostają odseparowane, dopóki
 nie udowodnią korzyści bez zwiększania ryzyka.
+
+### Kontynuacja — integracja atomowego zapisu z GUI
+
+- Wspólny zapis został wystawiony jako `atomic_write_bytes()`.
+- Domyślna aplikacja `helix_lock_app.py` używa go przy zapisie odszyfrowanej
+  treści HLXN, zamiast bezpośredniego `open(..., "wb")`.
+- Zachowana została również ścieżka legacy w `helix_pro_gui.py`; nie ma
+  już odrębnego, nieatomowego zapisu odszyfrowanego HLXN w tych GUI.
+- Dodano regresję dla publicznego writera, w tym zachowanie istniejącego
+  pliku po symulowanej awarii publikacji.
+- CI dla tych zmian: workflow 42545319529; w chwili zapisu oczekuje na
+  zakończenie macierzy Python 3.11/3.12. Nie oznaczać jako zaliczonego,
+  dopóki oba joby nie zakończą się sukcesem.
