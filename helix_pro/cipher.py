@@ -105,6 +105,29 @@ class HelixProError(Exception):
     wyjatku w testach/logach dev moze pokazac szczegol z ponizszego kodu."""
 
 
+
+def write_new_key_file(path: str, key: bytes) -> None:
+    """Create a key file exclusively, with owner-only POSIX permissions."""
+    if len(key) != KEY_SIZE:
+        raise HelixProError(f"key must be exactly {KEY_SIZE} bytes")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    fd = os.open(path, flags, 0o600)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            fd = -1
+            stream.write(key)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except BaseException:
+        if fd >= 0:
+            os.close(fd)
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 def generate_key() -> bytes:
     """32 losowe bajty - klucz do trybu pliku-klucza. Przechowuj go
     OSOBNO od zaszyfrowanych danych (inny dysk/nosnik/miejsce) - jesli
