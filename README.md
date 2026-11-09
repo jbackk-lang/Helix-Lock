@@ -2,14 +2,14 @@
 
 > **BETA TEST — WERSJA TESTOWA**
 >
-> Helix-Lock znajduje się w fazie przygotowania do zamkniętych testów beta — nie jest wydaniem stabilnym. Zewnętrzna beta nie została jeszcze uruchomiona. Wersja testowa może zawierać błędy i problemy ze zgodnością. Testuj wyłącznie na kopiach plików i zachowaj niezależną kopię zapasową. Nie używaj wersji beta jako jedynego zabezpieczenia ważnych danych. Zgłoszenia błędów pomagają nam poprawiać aplikację; beta nie jest niezależnym audytem bezpieczeństwa.
+> **OTWARTE TESTY BETA — WERSJA TESTOWA.** Helix-Lock jest udostępniany do praktycznych testów użytkowników; nie jest wydaniem stabilnym ani produkcyjnym i nie przeszedł niezależnego audytu bezpieczeństwa. Testuj wyłącznie na kopiach plików i zachowaj niezależne kopie zapasowe. Zgłaszaj błędy, problemy ze zgodnością i niejasności obsługi.
 
 
 ### Twoje pliki. Twój klucz. Kontrola nad tym, co dzieje się z zaszyfrowanymi danymi.
 
-Helix-Lock to desktopowe narzędzie do szyfrowania i odszyfrowywania plików. Łączy sprawdzone szyfrowanie **AES-256-GCM** z lokalną obsługą kluczy, identyfikacją kryptograficzną i dodatkowymi mechanizmami kontroli integralności.
+Helix-Lock pomaga kontrolować cały obieg zaszyfrowanego pliku — od przygotowania i przetwarzania wielu plików, przez identyfikację i weryfikację, po historię operacji. Łączy szyfrowanie **AES-256-GCM** z funkcjami, których zwykle trzeba szukać w kilku osobnych narzędziach: kolejką plików, odzyskiwaniem oryginalnych nazw, inteligentną kompresją, odciskami kryptograficznymi, historią integralności AIRP i opcjonalnym licznikiem odczytów CounterLock.
 
-Nie wymyślamy własnego algorytmu szyfrującego. Stawiamy na uznany standard i budujemy wokół niego praktyczne narzędzia do kontroli plików oraz kluczy.
+Podstawą poufności i integralności jest uznany standard AES-256-GCM z biblioteki `cryptography`. Wyróżnikiem Helix-Lock jest warstwa kontroli i obsługi danych wokół tego standardu — nie autorski algorytm szyfrujący.
 
 ![Helix-Lock — główny ekran pracy z plikiem i kluczem](docs/screenshots/helix-file-and-key.png)
 
