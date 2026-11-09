@@ -130,14 +130,14 @@ jobs:
       - name: Publish GitHub beta release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.1.1-beta.1
-          name: Helix-Lock v0.1.1 Beta 1
+          tag_name: v0.1.1-beta.2
+          name: Helix-Lock v0.1.1 Beta 2
           prerelease: true
           make_latest: false
           body: |
-            ## Helix-Lock v0.1.1 — public beta test
+            ## Helix-Lock v0.1.1 Beta 2 — public beta test
 
-            This is a practical beta build for external user testing, not a stable production release or an independent security audit.
+            This is a practical beta build for external user testing, not a stable production release or an independent security audit. The Windows executable is currently unsigned; Windows SmartScreen may display an unknown-publisher warning. Verify the published SHA-256 checksum and download only from this official release.
 
             **Downloads**
             - Windows x64: HelixLock-windows.zip
