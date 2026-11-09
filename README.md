@@ -16,6 +16,7 @@ Nie wymyślamy własnego algorytmu szyfrującego. Stawiamy na uznany standard i 
 ## Co daje Helix-Lock?
 
 - **Szyfrowanie dowolnych plików** — dokumentów, zdjęć, archiwów i danych binarnych.
+- **API · Batch / kolejka plików** — małe, prostokątne okno zajmujące maksymalnie 1/4 powierzchni ekranu; dodawanie wielu plików, wybór katalogu wynikowego, szyfrowanie lub odszyfrowywanie sekwencyjne i status każdego elementu. Istniejące wyniki nie są nadpisywane automatycznie; nieobsługiwany CounterLock i nieznane formaty są pomijane.
 - **Dwa sposoby uwierzytelnienia** — osobny plik-klucz lub hasło.
 - **Odzyskiwanie oryginalnej nazwy** — nazwa i rozszerzenie są przechowywane wewnątrz zaszyfrowanej zawartości.
 - **Rozsądna kompresja** — gzip jest używany tylko wtedy, gdy rzeczywiście zmniejsza plik.
@@ -23,7 +24,23 @@ Nie wymyślamy własnego algorytmu szyfrującego. Stawiamy na uznany standard i 
 - **AIRP — historia integralności** — lokalny dziennik zdarzeń, kontrola łańcucha i możliwość zakotwiczenia stanu u niezależnych świadków.
 - **CounterLock — licznik odczytów** — opcjonalny mechanizm Helix Pro/API wiążący licznik kryptograficznie z zaszyfrowaną treścią. Główna aplikacja pokazuje licznik odnotowany w AIRP; tryb CounterLock nie jest domyślną ścieżką szyfrowania w tym ekranie. To coś innego niż zwykły log aktywności; szczegóły i ograniczenia opisano w dokumentacji technicznej.
 
-Najważniejszy przepływ jest prosty: **plik → klucz → szyfruj albo odszyfruj**. Ustawienia, informacje i narzędzia kontroli są dalej — nie przeszkadzają w podstawowej pracy.
+Najważniejszy przepływ jest prosty: **plik → klucz → szyfruj albo odszyfruj**. Gdy pracujesz z większą liczbą plików, otwórz **API · Lista plików** i przetwarzaj je kolejką bez zasłaniania głównego ekranu.
+
+## Inteligentne właściwości Helixa
+
+Helix nie ogranicza się do wykonania polecenia „zaszyfruj”. Rozpoznaje kontekst pliku i dobiera bezpieczną ścieżkę działania na podstawie jawnych reguł:
+
+- **Rozpoznawanie formatu** — przed deszyfrowaniem identyfikuje nagłówek HLXP, HLXN lub CounterLock; nie próbuje odszyfrowywać nieznanego formatu na ślepo.
+- **Inteligentna kompresja** — próbuje gzip, ale zachowuje dane bez kompresji, jeśli wynik nie jest mniejszy. Nie pogarsza rozmiaru plików już skompresowanych.
+- **Pamięć oryginalnej nazwy** — HLXN przenosi nazwę i rozszerzenie wewnątrz uwierzytelnionego szyfrogramu, dzięki czemu plik można odtworzyć po zmianie nazwy samego kontenera.
+- **Tożsamość zamiast samej nazwy** — odciski SHA-256 klucza i reprezentacji pliku pozwalają porównywać kryptograficzną tożsamość niezależnie od nazwy pliku.
+- **Historia i kontrola spójności** — AIRP łączy zdarzenia w lokalny łańcuch, wykrywa niespójności i może korzystać z niezależnych punktów zaufania oraz quorum.
+- **Licznik powiązany z obiektem** — CounterLock wiąże licznik z zaszyfrowaną treścią; jego wiarygodna kontrola wymaga trwałego, niezależnego stanu.
+- **Przetwarzanie wsadowe** — kolejka API wykonuje operacje plik po pliku, pokazuje postęp i rozdziela wyniki udane, błędne oraz pominięte. Nie nadpisuje istniejących plików wynikowych.
+
+To „inteligencja” oparta na weryfikowalnych regułach, metadanych i historii — nie deklaracja, że aplikacja używa modelu AI. Funkcje badawcze związane z sygnałem, fazą i pamięcią nie są elementem gwarancji bezpieczeństwa szyfrowania.
+
+**Granica obecnej kolejki:** to lokalne okno batch/API, a nie uruchomiony serwer HTTP ani zdalny endpoint sieciowy. Przetwarzanie jest sekwencyjne. Obecna implementacja formatów HLXN/HLXP wczytuje zawartość pojedynczego pliku do pamięci, więc kolejka nie oznacza jeszcze strumieniowego szyfrowania bardzo dużych plików. CounterLock wymaga osobnej ścieżki z trwałym rejestrem i jest w kolejce pomijany.
 
 ## Co wyróżnia Helix-Lock?
 
