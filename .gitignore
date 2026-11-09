@@ -1,0 +1,35 @@
+# Python bytecode and test caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build and packaging outputs
+build/
+dist/
+*.spec
+*.egg-info/
+
+# Local application/test data and secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
