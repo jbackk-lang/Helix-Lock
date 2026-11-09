@@ -1,3 +1,13 @@
+> **TESTY BETA — Helix File v0.1.1**
+>
+> Zgodnie z planem udostępniamy prototyp Helix File do praktycznych testów beta. To wersja testowa, nie stabilne wydanie ani niezależny audyt bezpieczeństwa. Testuj wyłącznie na kopiach danych i zachowaj osobne kopie zapasowe.
+>
+> - [Pobierz pakiety testowe dla Windows, macOS i Linux — GitHub Actions](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42549246996)
+> - [Plan testów beta i sposób zgłaszania błędów](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/docs/BETA_TEST_PLAN_v0.1.1.md)
+> - [README wersji beta Helix File](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/README.md)
+>
+> Pakiety zostały zbudowane pomyślnie dla trzech systemów. Są artefaktami testowymi z GitHub Actions, nie opublikowanym jeszcze wydaniem GitHub Release. Helix Stream pozostaje osobnym prototypem inżynierskim i nie jest częścią tej bety.
+
 > **Aktualny podział prac — 9 listopada 2026**
 >
 > Repozytorium rozwija dwa osobne kierunki:
