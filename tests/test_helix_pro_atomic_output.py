@@ -4,6 +4,7 @@ import os
 import pytest
 
 from helix_pro.cipher import (
+    atomic_write_bytes,
     HelixProError,
     decrypt_file,
     decrypt_file_with_name,
