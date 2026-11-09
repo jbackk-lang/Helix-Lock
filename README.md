@@ -29,6 +29,17 @@ Helix‑Lock łączy ochronę plików z narzędziami, których zwykły szyfrator
 
 Zamiast traktować szyfrowanie jako pojedynczą operację, Helix pomaga kontrolować cały obieg zaszyfrowanego pliku: przygotowanie, przetwarzanie, identyfikację, weryfikację i historię operacji.
 
+## Zobacz Helix-Lock
+
+**Główny ekran aplikacji**
+
+![Helix-Lock — główny ekran pracy z plikiem i kluczem](https://raw.githubusercontent.com/jbackk-lang/Helix-Lock/experiment/helix-native/docs/screenshots/helix-file-and-key.png)
+
+**Kompaktowe okno API i dynamiczna kolejka plików**
+
+![Helix-Lock — okno API z kolejką plików](https://raw.githubusercontent.com/jbackk-lang/Helix-Lock/experiment/helix-native/docs/screenshots/helix-api-queue.png)
+
+
 Podstawą ochrony jest **AES‑256‑GCM** z biblioteki `cryptography`. To sprawdzony standard uwierzytelnionego szyfrowania; wyróżnikiem Helix‑Lock nie jest wymyślanie nowego szyfru, lecz zestaw funkcji kontroli i obsługi danych zbudowanych wokół tej podstawy.
 
 ## Zacznij tutaj: `helix_pro/`
