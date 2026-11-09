@@ -58,3 +58,25 @@ def test_header_tamper_rejected(tmp_path):
     with pytest.raises(InvalidTag):
         decrypt_file(enc, out, key)
     assert not out.exists()
+
+
+
+@pytest.mark.parametrize("operation", ["encrypt", "decrypt"])
+def test_stream_rejects_hardlink_output_alias(tmp_path, operation):
+    source = tmp_path / "source"
+    alias = tmp_path / "alias"
+    source.write_bytes(b"preserve source bytes")
+    try:
+        os.link(source, alias)
+    except OSError:
+        pytest.skip("hard links unavailable in this environment")
+
+    key = os.urandom(32)
+    with pytest.raises(ValueError, match="same file"):
+        if operation == "encrypt":
+            encrypt_file(source, alias, key)
+        else:
+            decrypt_file(source, alias, key)
+
+    assert source.read_bytes() == b"preserve source bytes"
+    assert alias.read_bytes() == b"preserve source bytes"
