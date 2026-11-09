@@ -98,3 +98,16 @@ def test_record_is_immutable_at_attribute_level():
     record = make_record()
     with pytest.raises((AttributeError, TypeError)):
         record.epoch = 4
+
+
+def test_nested_projection_data_is_defensively_frozen():
+    source = {"K": {"phase": "0.5", "samples": ["0.1", "0.2"]}}
+    record = make_record(projections=source)
+    before = canonical_state_bytes(record)
+    source["K"]["phase"] = "9.9"
+    source["K"]["samples"].append("0.3")
+    assert canonical_state_bytes(record) == before
+    with pytest.raises(TypeError):
+        record.projections["K"]["phase"] = "1.0"
+    with pytest.raises(AttributeError):
+        record.projections["K"]["samples"].append("0.4")
