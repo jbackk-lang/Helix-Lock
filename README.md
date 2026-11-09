@@ -46,7 +46,7 @@ Helix-Lock jest rozwijany z naciskiem na produktywność, ale bezpieczeństwo ma
 
 ## Status projektu
 
-<badge color="success">Build Windows / macOS / Linux: OK</badge> <badge color="success">Automatyczne CI: 122/122</badge>
+**Build Windows / macOS / Linux: OK** · **Automatyczne CI: 122/122**
 
 Aplikacja została zbudowana w CI dla Windows, macOS i Linux. Automatyczne testy przeszły na Pythonie 3.11 i 3.12. To potwierdza testy i proces budowania — **nie zastępuje ręcznych testów uruchomienia na rzeczywistych komputerach, niezależnego audytu ani podpisania instalatorów**. Paczki CI są niepodpisane. Projekt pozostaje w fazie rozwoju; nie przedstawiamy go jako certyfikowanego produktu bezpieczeństwa.
 
