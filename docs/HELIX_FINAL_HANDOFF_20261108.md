@@ -213,3 +213,16 @@ dla kodu z commitu `3c546a2496d895c4e42ab732b9fdd05cfff20bfd` zakończył się
 sukcesem: Python 3.11 — 61/61 kroków; Python 3.12 — 61/61 kroków.
 Oba joby bez błędów. Obejmuje testy rdzenia, testy aliasów ścieżek oraz
 pełną istniejącą macierz AIRP/eksperymentów.
+
+### Walidacja nazw plików w formacie HLXN — 2026-11-09
+
+Dodano wspólną walidację nazwy zapisanej wewnątrz uwierzytelnionego
+payloadu. Nowe szyfrowanie HLXN odrzuca ścieżki zamiast pojedynczej nazwy,
+separatory obu systemów, znaki sterujące, nazwy urządzeń Windows
+(CON/NUL/COM1/LPT1 itd.) oraz nazwy kończące się spacją lub kropką.
+Odszyfrowywanie sprawdza to samo pole po uwierzytelnieniu i odrzuca
+niebezpieczne lub nieprzenośne metadane zamiast zapisywać je na dysku.
+Dodano testy parametrów dla traversal, ADS/kolonów i nazw urządzeń.
+Workflow 42546259891 uruchomiono; wynik oczekuje na zakończenie obu
+interpreterów. Ograniczenie kompatybilności: pliki HLXN ze starszym,
+nieprzenośnym oryginalnym basename mogą teraz zostać odrzucone.
