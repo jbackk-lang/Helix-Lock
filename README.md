@@ -1,12 +1,13 @@
-> **TESTY BETA — Helix File v0.1.1**
+> **HELIX-LOCK v0.1.1 BETA — OTWARTE TESTY**
 >
-> Zgodnie z planem udostępniamy prototyp Helix File do praktycznych testów beta. To wersja testowa, nie stabilne wydanie ani niezależny audyt bezpieczeństwa. Testuj wyłącznie na kopiach danych i zachowaj osobne kopie zapasowe.
+> Pobierz gotowe pakiety bezpośrednio z oficjalnego GitHub Release:
+> - [Windows x64 — HelixLock-windows.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-windows.zip)
+> - [macOS — HelixLock-macos.zip](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-macos.zip)
+> - [Linux — HelixLock-linux.tar.gz](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/HelixLock-linux.tar.gz)
+> - [Sumy SHA-256](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.1/SHA256SUMS-builds.txt)
+> - [Strona wydania i informacje o becie](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.1-beta.1)
 >
-> - [Pobierz pakiety testowe dla Windows, macOS i Linux — GitHub Actions](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42549246996)
-> - [Plan testów beta i sposób zgłaszania błędów](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/docs/BETA_TEST_PLAN_v0.1.1.md)
-> - [README wersji beta Helix File](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/README.md)
->
-> Pakiety zostały zbudowane pomyślnie dla trzech systemów. Są artefaktami testowymi z GitHub Actions, nie opublikowanym jeszcze wydaniem GitHub Release. Helix Stream pozostaje osobnym prototypem inżynierskim i nie jest częścią tej bety.
+> To wersja beta do praktycznych testów, nie stabilne wydanie produkcyjne ani niezależny audyt bezpieczeństwa. Testuj wyłącznie na kopiach plików i zachowaj niezależne kopie zapasowe. [Plan testów i zgłaszania błędów](https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/docs/BETA_TEST_PLAN_v0.1.1.md).
 
 > **Aktualny podział prac — 9 listopada 2026**
 >
