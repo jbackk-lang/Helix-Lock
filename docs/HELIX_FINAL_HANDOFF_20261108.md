@@ -174,3 +174,21 @@ pamięci; HNS1 jest eksperymentalny i nie jest zintegrowany z GUI. Atomic
 replace + fsync pliku nie gwarantuje trwałości wpisu katalogowego po nagłej
 utracie zasilania. Nie ma niezależnego audytu ani walidacji GUI na wszystkich
 systemach. Nie należy deklarować gotowości produkcyjnej.
+
+### Ochrona przed przypadkowym nadpisaniem źródła — 2026-11-09
+
+Przegląd ścieżki GUI wykazał dodatkowy, praktyczny przypadek utraty danych:
+użytkownik mógł wskazać ten sam plik (albo jego alias przez dowiązanie
+symboliczne/twarde) jako źródło i cel deszyfrowania. Wspólny writer
+atomowo zastąpiłby wtedy szyfrogram odzyskaną treścią. To nie jest błąd
+AES, lecz niebezpieczna decyzja o ścieżce.
+
+- Dodano `paths_refer_to_same_file()` w głównym GUI.
+- Szyfrowanie i obie ścieżki deszyfrowania odrzucają cel wskazujący na
+  ten sam plik źródłowy; kontrola obejmuje realpath, symlink i hardlink.
+- Dodano testy aliasów; brak możliwości utworzenia dowiązania w środowisku
+  testowym jest jawnie pomijany.
+- Workflow 42545958309 uruchomiony dla testów regresji; wynik do sprawdzenia.
+
+To chroni przed przypadkowym samonadpisaniem, ale nie zastępuje pełnej
+ochrony przed wyścigami TOCTOU na współdzielonym systemie plików.
