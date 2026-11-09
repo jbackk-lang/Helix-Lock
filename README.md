@@ -26,6 +26,8 @@ Nie wymyślamy własnego algorytmu szyfrującego. Stawiamy na uznany standard i 
 
 Najważniejszy przepływ jest prosty: **plik → klucz → szyfruj albo odszyfruj**. Gdy pracujesz z większą liczbą plików, otwórz **API · Lista plików** i przetwarzaj je kolejką bez zasłaniania głównego ekranu.
 
+![Helix-Lock — kompaktowe okno API z dynamiczną kolejką plików](docs/screenshots/helix-api-queue.png)
+
 ## Inteligentne właściwości Helixa
 
 Helix nie ogranicza się do wykonania polecenia „zaszyfruj”. Rozpoznaje kontekst pliku i dobiera bezpieczną ścieżkę działania na podstawie jawnych reguł:
