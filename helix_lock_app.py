@@ -31,6 +31,18 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_LEDGER = os.path.join(os.path.expanduser("~"), ".helix_lock", "identity.sqlite3")
 BG, PANEL, ACCENT, FG, MUTED = "#101827", "#182437", "#54D6A0", "#F2F6FC", "#9FB0C5"
 
+def paths_refer_to_same_file(source: str, destination: str) -> bool:
+    """Reject same-path, symlink, and hard-link aliases for source/output."""
+    source_abs = os.path.abspath(source)
+    destination_abs = os.path.abspath(destination)
+    if os.path.normcase(os.path.realpath(source_abs)) == os.path.normcase(os.path.realpath(destination_abs)):
+        return True
+    try:
+        return os.path.exists(destination_abs) and os.path.samefile(source_abs, destination_abs)
+    except OSError:
+        return False
+
+
 
 class HelixLockApp(tk.Tk):
     def __init__(self):
@@ -376,7 +388,7 @@ class HelixLockApp(tk.Tk):
             kwargs = self._read_key()
             out = filedialog.asksaveasfilename(title=self._tr("Zapisz zaszyfrowany plik", "Save encrypted file"), initialfile=os.path.basename(src)+".helixpro", defaultextension=".helixpro")
             if not out: return
-            if os.path.abspath(out) == os.path.abspath(src): raise HelixProError(self._tr("Plik wynikowy nie może być źródłowym.", "Output file must differ from source file."))
+            if paths_refer_to_same_file(src, out): raise HelixProError(self._tr("Plik wynikowy nie może wskazywać na plik źródłowy.", "Output must not refer to the source file."))
             if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
             encrypt_file_with_name(src, out, compress=True, **kwargs)
             self.source.set(out)
@@ -397,11 +409,13 @@ class HelixLockApp(tk.Tk):
                 name, data = decrypt_bytes_with_name(src, **kwargs)
                 out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=name)
                 if not out: return
+                if paths_refer_to_same_file(src, out): raise HelixProError(self._tr("Plik wynikowy nie może wskazywać na plik źródłowy.", "Output must not refer to the source file."))
                 if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
                 atomic_write_bytes(out, data)
             else:
                 out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=os.path.basename(src).removesuffix(".helixpro"))
                 if not out: return
+                if paths_refer_to_same_file(src, out): raise HelixProError(self._tr("Plik wynikowy nie może wskazywać na plik źródłowy.", "Output must not refer to the source file."))
                 if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
                 decrypt_file(src, out, **kwargs)
             self.refresh_dashboard()
