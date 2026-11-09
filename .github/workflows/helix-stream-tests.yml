@@ -1,0 +1,33 @@
+name: Helix Stream record tests
+
+on:
+  push:
+    branches:
+      - feature/helix-stream-core
+    paths:
+      - "helix_stream/**"
+      - "tests/test_helix_stream_records.py"
+      - ".github/workflows/helix-stream-tests.yml"
+  pull_request:
+    branches:
+      - feature/helix-stream-core
+    paths:
+      - "helix_stream/**"
+      - "tests/test_helix_stream_records.py"
+      - ".github/workflows/helix-stream-tests.yml"
+
+jobs:
+  records:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest cryptography
+      - name: Test authenticated record layer
+        run: python -m pytest -q tests/test_helix_stream_records.py
