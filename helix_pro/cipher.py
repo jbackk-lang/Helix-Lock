@@ -383,5 +383,5 @@ def decrypt_file_with_name(in_path: str, out_dir: str, *, key: bytes | None = No
     bezposrednio i samemu zapisac plik po sprawdzeniu os.path.exists()."""
     original_name, content = decrypt_bytes_with_name(in_path, key=key, password=password)
     out_path = os.path.join(out_dir, original_name)
-    _atomic_write(out_path, content)
+    atomic_write_bytes(out_path, content)
     return out_path
