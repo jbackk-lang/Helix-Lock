@@ -23,7 +23,7 @@ from helix_pro.airp_http_anchor import HTTPTrustAnchor
 from helix_pro.airp_ledger import AIRPIntegrityLedger
 from helix_pro.airp_quorum import QuorumTrustAnchor
 from helix_pro.cipher import (
-    HelixProError, decrypt_bytes_with_name, decrypt_file, detect_format,
+    HelixProError, atomic_write_bytes, decrypt_bytes_with_name, decrypt_file, detect_format,
     encrypt_file_with_name, generate_key,
 )
 
@@ -395,7 +395,7 @@ class HelixLockApp(tk.Tk):
                 out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=name)
                 if not out: return
                 if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
-                with open(out, "xb" if not os.path.exists(out) else "wb") as f: f.write(data)
+                atomic_write_bytes(out, data)
             else:
                 out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=os.path.basename(src).removesuffix(".helixpro"))
                 if not out: return
