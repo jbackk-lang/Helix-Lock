@@ -16,7 +16,7 @@ Nie wymyślamy własnego algorytmu szyfrującego. Stawiamy na uznany standard i 
 - **Rozsądna kompresja** — gzip jest używany tylko wtedy, gdy rzeczywiście zmniejsza plik.
 - **Odciski kluczy i szyfrogramów** — manifest tożsamości klucza oraz obliczanie SHA-256 także dla dużych plików bez ładowania całości do RAM.
 - **AIRP — historia integralności** — lokalny dziennik zdarzeń, kontrola łańcucha i możliwość zakotwiczenia stanu u niezależnych świadków.
-- **CounterLock — licznik odczytów** — opcjonalny mechanizm wiążący licznik kryptograficznie z zaszyfrowaną treścią. To coś innego niż zwykły log aktywności; szczegóły i ograniczenia opisano w dokumentacji technicznej.
+- **CounterLock — licznik odczytów** — opcjonalny mechanizm Helix Pro/API wiążący licznik kryptograficznie z zaszyfrowaną treścią. Główna aplikacja pokazuje licznik odnotowany w AIRP; tryb CounterLock nie jest domyślną ścieżką szyfrowania w tym ekranie. To coś innego niż zwykły log aktywności; szczegóły i ograniczenia opisano w dokumentacji technicznej.
 
 Najważniejszy przepływ jest prosty: **plik → klucz → szyfruj albo odszyfruj**. Ustawienia, informacje i narzędzia kontroli są dalej — nie przeszkadzają w podstawowej pracy.
 
