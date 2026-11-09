@@ -205,3 +205,11 @@ Rozszerzono ochronę z GUI na publiczne API rdzenia:
   oryginalnej nazwy pliku.
 - Workflow 42546038843 uruchomiono dla pełnego zestawu testów po tej
   zmianie; przed uznaniem poprawki za zaliczoną sprawdzić oba joby.
+
+### Wynik CI — ochrona przed nadpisaniem źródła (2026-11-09)
+
+Workflow [42546038843](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42546038843)
+dla kodu z commitu `3c546a2496d895c4e42ab732b9fdd05cfff20bfd` zakończył się
+sukcesem: Python 3.11 — 61/61 kroków; Python 3.12 — 61/61 kroków.
+Oba joby bez błędów. Obejmuje testy rdzenia, testy aliasów ścieżek oraz
+pełną istniejącą macierz AIRP/eksperymentów.
