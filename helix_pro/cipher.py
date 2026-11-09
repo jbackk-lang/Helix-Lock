@@ -69,7 +69,7 @@ def _validate_portable_filename(name: str) -> str:
     """Allow one portable basename only; never accept path or device names."""
     if not name or name in {".", ".."}:
         raise HelixProError("nieprawidlowa nazwa pliku")
-    if any(unicodedata.category(ch) == "Cc" or ch in '< >:"/\\\\|?*' for ch in name):
+    if any(unicodedata.category(ch) == "Cc" or ch in '<>:"/\\|?*' for ch in name):
         raise HelixProError("nazwa pliku zawiera separator lub niedozwolony znak")
     if name.endswith((" ", ".")):
         raise HelixProError("nazwa pliku nie moze konczyc sie spacja ani kropka")
