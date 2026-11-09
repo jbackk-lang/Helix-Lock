@@ -7,6 +7,8 @@ from helix_pro.cipher import (
     atomic_write_bytes,
     ensure_distinct_paths,
     write_new_key_file,
+    pack_named_payload,
+    unpack_named_payload,
     HelixProError,
     decrypt_file,
     decrypt_file_with_name,
@@ -165,3 +167,22 @@ def test_ensure_distinct_paths_rejects_hardlink(tmp_path):
         pytest.skip("hard links unavailable in this environment")
     with pytest.raises(HelixProError):
         ensure_distinct_paths(str(source), str(alias))
+
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["", ".", "..", "../escape.txt", "..\\\\escape.txt", "C:escape.txt",
+     "CON", "NUL.txt", "file.", "file ", "bad?name.txt", "bad\\x00name"],
+)
+def test_named_payload_rejects_unsafe_or_nonportable_filenames(name):
+    with pytest.raises(HelixProError):
+        pack_named_payload(name, b"payload", compress=False)
+
+
+@pytest.mark.parametrize("name", ["../escape.txt", "..\\\\escape.txt", "CON.txt"])
+def test_unpack_named_payload_rejects_authenticated_unsafe_filename(name):
+    raw = name.encode("utf-8")
+    payload = bytes([len(raw)]) + raw + b"\\x00" + b"payload"
+    with pytest.raises(HelixProError):
+        unpack_named_payload(payload)
