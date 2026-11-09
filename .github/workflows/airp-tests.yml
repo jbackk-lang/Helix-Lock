@@ -26,6 +26,7 @@ on:
       - "experiments/helix_native_compact.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_atomic_output.py"
+      - "tests/test_helix_lock_app_security_wiring.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
       - "tests/test_airp_monitor.py"
@@ -93,6 +94,8 @@ on:
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
+      - "tests/test_helix_lock_app_security_wiring.py"
+      - "tests/test_helix_pro_atomic_output.py"
       - "helix_pro/**"
       - "helix_pro_gui.py"
       - "helix_lock_app.py"
