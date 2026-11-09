@@ -73,7 +73,7 @@ SCRYPT_R = 8
 SCRYPT_P = 1
 
 
-def _atomic_write(out_path: str, data: bytes) -> None:
+def atomic_write_bytes(out_path: str, data: bytes) -> None:
     """Publish complete output only after writing and flushing a same-dir temp file."""
     target = os.path.abspath(out_path)
     directory = os.path.dirname(target) or os.curdir
@@ -170,7 +170,7 @@ def encrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
         header = MAGIC + bytes([VERSION]) + MODE_PASSWORD + salt
         blob = encrypt_bytes(plaintext, derived)
 
-    _atomic_write(out_path, header + blob)
+    atomic_write_bytes(out_path, header + blob)
 
 
 def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, password: str | None = None) -> None:
