@@ -1,7 +1,5 @@
 # Helix-Lock
 
-> **BETA TEST — WERSJA TESTOWA**
->
 > **OTWARTE TESTY BETA — WERSJA TESTOWA.** Helix-Lock jest udostępniany do praktycznych testów użytkowników; nie jest wydaniem stabilnym ani produkcyjnym i nie przeszedł niezależnego audytu bezpieczeństwa. Testuj wyłącznie na kopiach plików i zachowaj niezależne kopie zapasowe. Zgłaszaj błędy, problemy ze zgodnością i niejasności obsługi.
 
 
