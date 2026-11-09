@@ -20,7 +20,7 @@ _SCHEMA = "helix-htke-state"
 _SCHEMA_VERSION = 1
 _HKSS_DOMAIN = b"HELIX-HTKE-HKSS-v1\x00"
 _ALLOWED_PROJECTIONS = frozenset({"M/S", "G", "K"})
-_IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
+_IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,127}$")
 
 
 def _identifier(value: str, field: str) -> str:
