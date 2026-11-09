@@ -119,3 +119,14 @@ nie udowodnią korzyści bez zwiększania ryzyka.
 - CI dla tych zmian: workflow 42545319529; w chwili zapisu oczekuje na
   zakończenie macierzy Python 3.11/3.12. Nie oznaczać jako zaliczonego,
   dopóki oba joby nie zakończą się sukcesem.
+
+### Korekta CI po ekspozycji wspólnego writera
+
+Pierwsze przebiegi integracyjne wykryły dwa błędy mechanicznej zmiany nazwy
+funkcji writera (pozostałe odwołania do starej nazwy i brak importu w teście).
+Zostały poprawione; nie był to błąd formatu ani kryptografii. Aktualny
+przebieg dla kompletnego stanu po poprawkach: workflow
+42545405156, commit `4620e4746565e063084158ee818d6370b9864771`.
+Testy atomowego zapisu przeszły już na obu interpreterach; reszta długiej
+macierzy nadal trwa. Nie uznawać całego CI za zielone przed zakończeniem
+obu zadań.
