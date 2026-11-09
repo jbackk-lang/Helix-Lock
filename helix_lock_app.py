@@ -271,7 +271,7 @@ class HelixLockApp(tk.Tk):
         self.api_window = win
         win.title("Helix-Lock · API / kolejka plików")
         screen_w, screen_h = win.winfo_screenwidth(), win.winfo_screenheight()
-        width, height = max(360, screen_w // 2), max(240, screen_h // 2)
+        width, height = max(1, screen_w // 2), max(1, screen_h // 2)
         width, height = min(width, screen_w), min(height, screen_h)
         x, y = max(0, (screen_w - width) // 2), max(0, (screen_h - height) // 2)
         win.geometry(f"{width}x{height}+{x}+{y}")
@@ -281,7 +281,7 @@ class HelixLockApp(tk.Tk):
         win.transient(self)
 
         self.api_files = []
-        self.api_output_dir = tk.StringVar(value=os.path.join(os.path.expanduser("~"), "Helix-Lock"))
+        self.api_output_dir = tk.StringVar(value=os.path.expanduser("~"))
         self.api_operation = tk.StringVar(value="encrypt")
         self.api_progress = tk.StringVar(value=self._tr("Dodaj pliki do kolejki.", "Add files to the queue."))
         head = tk.Frame(win, bg=BG)
