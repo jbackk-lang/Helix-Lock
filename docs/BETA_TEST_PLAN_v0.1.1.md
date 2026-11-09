@@ -91,3 +91,25 @@ Sama liczba testerów ani brak zgłoszeń nie dowodzą braku błędów.
 ## Status
 
 Dokument opisuje plan. Nie oznacza, że beta została już uruchomiona ani że testerzy zostali zrekrutowani.
+
+## Przygotowane elementy repozytorium — 2026-11-09
+
+- Publiczny formularz GitHub Issues wymaga wersji/commitu, systemu, obszaru,
+  kroków reprodukcji, oczekiwanego i rzeczywistego wyniku oraz potwierdzenia,
+  że tester użył kopii i nie dołączył sekretów.
+- Formularz publiczny wyraźnie kieruje podejrzenia podatności do prywatnego
+  kanału; nie zawiera publicznej kategorii P0.
+- Dodano `SECURITY.md` z zasadami odpowiedzialnego ujawniania podatności.
+  Prywatne zgłoszenia GitHub należy włączyć i sprawdzić przed zaproszeniem
+  testerów; sam link nie dowodzi, że funkcja jest aktywna.
+- Workflow budowania desktopu publikuje osobny `SHA256SUMS.txt` wraz z
+  paczką i metadanymi środowiska dla każdej platformy.
+- Walidacja workflow [42548449037](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42548449037)
+  zakończyła się sukcesem na Windows, macOS i Linux, łącznie z generowaniem
+  i dołączeniem manifestów SHA-256. To walidacja pakowania, nie test
+  uruchomienia aplikacji na fizycznych komputerach.
+- Z repo usunięto śledzone pliki `__pycache__/*.pyc` i dodano `.gitignore`.
+
+Zewnętrzna beta nadal nie została uruchomiona. Przed naborem należy sprawdzić
+ustawienia prywatnego raportowania podatności, pobrać artefakty, niezależnie
+zweryfikować ich SHA-256 i przeprowadzić test instalacji/uruchomienia.
