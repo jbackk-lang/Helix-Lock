@@ -59,6 +59,24 @@ jobs:
           echo "runner_os=${{ runner.os }}" >> build-environment.txt
           echo "runner_arch=$(uname -m)" >> build-environment.txt
           echo "source_commit=${{ github.sha }}" >> build-environment.txt
+      - name: Generate SHA-256 manifest
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          files = sorted(
+              p for p in Path(".").iterdir()
+              if p.is_file() and (p.name.startswith("HelixLock-") or p.name == "build-environment.txt")
+          )
+          if not files:
+              raise SystemExit("No package or build metadata found to hash")
+          lines = []
+          for path in files:
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              lines.append(f"{digest}  {path.name}")
+          Path("SHA256SUMS.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
       - name: Upload platform package and build metadata
         uses: actions/upload-artifact@v4
         with:
@@ -68,5 +86,6 @@ jobs:
             HelixLock-macos.zip
             HelixLock-linux.tar.gz
             build-environment.txt
+            SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
