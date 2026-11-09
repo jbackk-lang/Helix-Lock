@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/jbackk-lang/Helix-Lock/security/advisories/new
+    about: Do not publish exploitable security details in a public bug report. Use private vulnerability reporting if enabled for this repository.
+  - name: Beta test instructions and safety rules
+    url: https://github.com/jbackk-lang/Helix-Lock/blob/experiment/helix-native/docs/BETA_TEST_PLAN_v0.1.1.md
+    about: Read the beta scope, data safety rules and severity levels before testing.
