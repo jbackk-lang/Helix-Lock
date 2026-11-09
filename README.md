@@ -13,6 +13,15 @@ Nie wymyślamy własnego algorytmu szyfrującego. Stawiamy na uznany standard i 
 
 ![Helix-Lock — główny ekran pracy z plikiem i kluczem](docs/screenshots/helix-file-and-key.png)
 
+## Dwa kierunki rozwoju
+
+Rozwój został rozdzielony na dwie gałęzie:
+
+- **Helix File** — ta gałąź: aplikacja desktopowa, szyfrowanie plików, HLXN/HLXP, AIRP i kolejka plików.
+- **Helix Stream** — [osobna gałąź eksperymentalna](https://github.com/jbackk-lang/Helix-Lock/tree/feature/helix-stream-core), przeznaczona do szyfrowania komunikatów i danych w locie.
+
+Helix Stream ma własny [README](https://github.com/jbackk-lang/Helix-Lock/blob/feature/helix-stream-core/README.md) i [plan rozwoju](https://github.com/jbackk-lang/Helix-Lock/blob/feature/helix-stream-core/docs/HELIX_STREAM_ROADMAP.md). Zmiany Stream nie są automatycznie włączane do tej gałęzi ani do `main`.
+
 ## Co daje Helix-Lock?
 
 - **Szyfrowanie dowolnych plików** — dokumentów, zdjęć, archiwów i danych binarnych.
