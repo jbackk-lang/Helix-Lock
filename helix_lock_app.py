@@ -256,8 +256,187 @@ class HelixLockApp(tk.Tk):
         actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))
         ttk.Button(actions, text=self._tr("🔒  Szyfruj", "🔒  Encrypt"), style="Accent.TButton", command=self._encrypt).pack(side="left", expand=True, fill="x", padx=(0, 6))
         ttk.Button(actions, text=self._tr("🔓  Odszyfruj", "🔓  Decrypt"), command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
+        ttk.Button(actions, text=self._tr("API · Lista plików", "API · File queue"), command=self._open_api_window).pack(side="left", padx=(12, 0))
         self._refresh_mode()
         note = self._section(self.file_tab, self._tr("Ważne", "Important"), self._tr("Zachowaj kopię klucza poza komputerem z zaszyfrowanymi danymi. Bez klucza lub hasła odzyskanie treści nie będzie możliwe. Odcisk klucza nie zastępuje klucza.", "Keep a backup of the key away from the encrypted data. Without the key or password, the data cannot be recovered. A fingerprint is not a key."))
+
+    def _open_api_window(self):
+        """Open a compact, non-modal batch/API workspace (at most 1/4 screen area)."""
+        if getattr(self, "api_window", None) is not None and self.api_window.winfo_exists():
+            self.api_window.deiconify()
+            self.api_window.lift()
+            return
+
+        win = tk.Toplevel(self)
+        self.api_window = win
+        win.title("Helix-Lock · API / kolejka plików")
+        screen_w, screen_h = win.winfo_screenwidth(), win.winfo_screenheight()
+        width, height = max(360, screen_w // 2), max(240, screen_h // 2)
+        width, height = min(width, screen_w), min(height, screen_h)
+        x, y = max(0, (screen_w - width) // 2), max(0, (screen_h - height) // 2)
+        win.geometry(f"{width}x{height}+{x}+{y}")
+        win.maxsize(width, height)
+        win.resizable(True, True)
+        win.configure(bg=BG)
+        win.transient(self)
+
+        self.api_files = []
+        self.api_output_dir = tk.StringVar(value=os.path.join(os.path.expanduser("~"), "Helix-Lock"))
+        self.api_operation = tk.StringVar(value="encrypt")
+        self.api_progress = tk.StringVar(value=self._tr("Dodaj pliki do kolejki.", "Add files to the queue."))
+        head = tk.Frame(win, bg=BG)
+        head.pack(fill="x", padx=12, pady=(10, 5))
+        tk.Label(head, text="HELIX API · BATCH", bg=BG, fg=ACCENT,
+                 font=("Segoe UI", 12, "bold")).pack(anchor="w")
+        tk.Label(head, text=self._tr("Kolejka plików · przetwarzanie sekwencyjne",
+                                     "File queue · sequential processing"),
+                 bg=BG, fg=MUTED, font=("Segoe UI", 8)).pack(anchor="w")
+
+        toolbar = tk.Frame(win, bg=BG); toolbar.pack(fill="x", padx=10, pady=4)
+        ttk.Button(toolbar, text=self._tr("Dodaj pliki…", "Add files…"),
+                   command=self._api_add_files).pack(side="left", padx=2)
+        ttk.Button(toolbar, text=self._tr("Usuń zaznaczone", "Remove selected"),
+                   command=self._api_remove_selected).pack(side="left", padx=2)
+        ttk.Button(toolbar, text=self._tr("Wyczyść", "Clear"),
+                   command=self._api_clear_files).pack(side="left", padx=2)
+
+        list_frame = tk.Frame(win, bg=PANEL); list_frame.pack(fill="both", expand=True, padx=10, pady=4)
+        columns = ("file", "status")
+        self.api_tree = ttk.Treeview(list_frame, columns=columns, show="headings", height=6)
+        self.api_tree.heading("file", text=self._tr("Plik", "File"))
+        self.api_tree.heading("status", text=self._tr("Stan", "Status"))
+        self.api_tree.column("file", width=max(160, width - 150), stretch=True)
+        self.api_tree.column("status", width=100, stretch=False)
+        self.api_tree.pack(side="left", fill="both", expand=True)
+        scroll = ttk.Scrollbar(list_frame, orient="vertical", command=self.api_tree.yview)
+        scroll.pack(side="right", fill="y")
+        self.api_tree.configure(yscrollcommand=scroll.set)
+
+        out = tk.Frame(win, bg=BG); out.pack(fill="x", padx=10, pady=3)
+        tk.Label(out, text=self._tr("Katalog wynikowy", "Output folder"), bg=BG, fg=MUTED).pack(side="left")
+        ttk.Entry(out, textvariable=self.api_output_dir).pack(side="left", fill="x", expand=True, padx=5)
+        ttk.Button(out, text=self._tr("Wybierz…", "Browse…"), command=self._api_pick_output).pack(side="right")
+
+        opts = tk.Frame(win, bg=BG); opts.pack(fill="x", padx=10, pady=2)
+        ttk.Radiobutton(opts, text=self._tr("Szyfruj", "Encrypt"), variable=self.api_operation,
+                        value="encrypt").pack(side="left")
+        ttk.Radiobutton(opts, text=self._tr("Odszyfruj", "Decrypt"), variable=self.api_operation,
+                        value="decrypt").pack(side="left", padx=10)
+        ttk.Button(opts, text=self._tr("Wykonaj kolejkę", "Run queue"),
+                   style="Accent.TButton", command=self._api_process).pack(side="right")
+        tk.Label(win, textvariable=self.api_progress, bg=BG, fg=MUTED,
+                 anchor="w", wraplength=max(250, width - 30)).pack(fill="x", padx=12, pady=(2, 8))
+        win.protocol("WM_DELETE_WINDOW", win.withdraw)
+
+    def _api_add_files(self):
+        paths = filedialog.askopenfilenames(title=self._tr("Dodaj pliki do kolejki", "Add files to queue"))
+        known = {os.path.normcase(os.path.abspath(p)) for p in self.api_files}
+        added = 0
+        for path in paths:
+            normalized = os.path.normcase(os.path.abspath(path))
+            if os.path.isfile(path) and normalized not in known:
+                self.api_files.append(path)
+                self.api_tree.insert("", "end", iid=str(len(self.api_files) - 1),
+                                     values=(os.path.basename(path), self._tr("Oczekuje", "Queued")))
+                known.add(normalized)
+                added += 1
+        self.api_progress.set(self._tr(f"Dodano: {added} · Łącznie: {len(self.api_files)}",
+                                       f"Added: {added} · Total: {len(self.api_files)}"))
+
+    def _api_remove_selected(self):
+        selected = set(self.api_tree.selection())
+        if not selected:
+            return
+        self.api_files = [p for i, p in enumerate(self.api_files) if str(i) not in selected]
+        for item in self.api_tree.get_children():
+            self.api_tree.delete(item)
+        for i, path in enumerate(self.api_files):
+            self.api_tree.insert("", "end", iid=str(i),
+                                 values=(os.path.basename(path), self._tr("Oczekuje", "Queued")))
+        self.api_progress.set(self._tr(f"Pliki w kolejce: {len(self.api_files)}",
+                                       f"Files in queue: {len(self.api_files)}"))
+
+    def _api_clear_files(self):
+        self.api_files.clear()
+        for item in self.api_tree.get_children():
+            self.api_tree.delete(item)
+        self.api_progress.set(self._tr("Kolejka wyczyszczona.", "Queue cleared."))
+
+    def _api_pick_output(self):
+        path = filedialog.askdirectory(title=self._tr("Wybierz katalog wynikowy", "Choose output folder"))
+        if path:
+            self.api_output_dir.set(path)
+
+    def _api_process(self):
+        if not self.api_files:
+            self.api_progress.set(self._tr("Kolejka jest pusta.", "Queue is empty."))
+            return
+        out_dir = self.api_output_dir.get().strip()
+        if not out_dir or not os.path.isdir(out_dir):
+            messagebox.showerror("Helix-Lock API", self._tr("Wybierz istniejący katalog wynikowy.",
+                                                            "Choose an existing output folder."))
+            return
+        try:
+            kwargs = self._read_key()
+        except (OSError, HelixProError) as exc:
+            messagebox.showerror("Helix-Lock API", str(exc))
+            return
+
+        total, completed, failed, skipped = len(self.api_files), 0, 0, 0
+        for index, src in enumerate(list(self.api_files)):
+            item_id = str(index)
+            try:
+                if not os.path.isfile(src):
+                    raise HelixProError(self._tr("Plik źródłowy nie istnieje.", "Source file does not exist."))
+                if self.api_operation.get() == "encrypt":
+                    out = os.path.join(out_dir, os.path.basename(src) + ".helixpro")
+                    if os.path.exists(out):
+                        skipped += 1
+                        self.api_tree.set(item_id, "status", self._tr("Pominięto", "Skipped"))
+                        continue
+                    encrypt_file_with_name(src, out, compress=True, **kwargs)
+                else:
+                    fmt = detect_format(src)
+                    if fmt == "counter":
+                        skipped += 1
+                        self.api_tree.set(item_id, "status", "CounterLock")
+                        continue
+                    if fmt == "named":
+                        original_name, payload = decrypt_bytes_with_name(src, **kwargs)
+                        out = os.path.join(out_dir, original_name)
+                        if os.path.exists(out):
+                            skipped += 1
+                            self.api_tree.set(item_id, "status", self._tr("Pominięto", "Skipped"))
+                            continue
+                        atomic_write_bytes(out, payload)
+                    elif fmt == "plain":
+                        name = os.path.basename(src)
+                        if name.lower().endswith(".helixpro"):
+                            name = name[:-len(".helixpro")]
+                        out = os.path.join(out_dir, name or "decrypted.bin")
+                        if os.path.exists(out):
+                            skipped += 1
+                            self.api_tree.set(item_id, "status", self._tr("Pominięto", "Skipped"))
+                            continue
+                        decrypt_file(src, out, **kwargs)
+                    else:
+                        skipped += 1
+                        self.api_tree.set(item_id, "status", self._tr("Nieznany format", "Unknown format"))
+                        continue
+                completed += 1
+                self.api_tree.set(item_id, "status", self._tr("Gotowe", "Done"))
+            except (OSError, HelixProError, ValueError) as exc:
+                failed += 1
+                self.api_tree.set(item_id, "status", self._tr("Błąd", "Error"))
+                self.api_progress.set(self._tr(f"{index + 1}/{total} · Błąd: {os.path.basename(src)} — {exc}",
+                                               f"{index + 1}/{total} · Error: {os.path.basename(src)} — {exc}"))
+            self.api_window.update_idletasks()
+            self.api_progress.set(self._tr(f"Postęp {index + 1}/{total} · OK {completed} · Błędy {failed} · Pominięte {skipped}",
+                                           f"Progress {index + 1}/{total} · OK {completed} · Errors {failed} · Skipped {skipped}"))
+            self.api_window.update()
+        self.status.set(self._tr(f"API: zakończono kolejkę · OK {completed} · błędy {failed} · pominięte {skipped}",
+                                 f"API: queue finished · OK {completed} · errors {failed} · skipped {skipped}"))
+        self.refresh_dashboard()
 
     def _build_settings(self):
         card = self._section(
