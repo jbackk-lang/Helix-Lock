@@ -24,7 +24,7 @@ from helix_pro.airp_ledger import AIRPIntegrityLedger
 from helix_pro.airp_quorum import QuorumTrustAnchor
 from helix_pro.cipher import (
     HelixProError, atomic_write_bytes, decrypt_bytes_with_name, decrypt_file, detect_format,
-    encrypt_file_with_name, generate_key,
+    encrypt_file_with_name, generate_key, write_new_key_file,
 )
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
