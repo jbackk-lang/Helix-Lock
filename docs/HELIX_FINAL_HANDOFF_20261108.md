@@ -192,3 +192,16 @@ AES, lecz niebezpieczna decyzja o ścieżce.
 
 To chroni przed przypadkowym samonadpisaniem, ale nie zastępuje pełnej
 ochrony przed wyścigami TOCTOU na współdzielonym systemie plików.
+
+### Ochrona źródła w API kryptograficznym — 2026-11-09
+
+Rozszerzono ochronę z GUI na publiczne API rdzenia:
+- `ensure_distinct_paths()` odrzuca ten sam path, alias realpath,
+  dowiązanie symboliczne i twarde.
+- Ochrona jest stosowana w `encrypt_file()`, `decrypt_file()`,
+  `encrypt_file_with_name()` i `decrypt_file_with_name()`.
+- Testy potwierdzają, że zaszyfrowane źródło pozostaje nietknięte, gdy
+  ktoś próbuje użyć go jako ścieżki wyjściowej, również przez kolizję
+  oryginalnej nazwy pliku.
+- Workflow 42546038843 uruchomiono dla pełnego zestawu testów po tej
+  zmianie; przed uznaniem poprawki za zaliczoną sprawdzić oba joby.
