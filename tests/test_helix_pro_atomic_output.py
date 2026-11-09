@@ -5,6 +5,7 @@ import pytest
 
 from helix_pro.cipher import (
     atomic_write_bytes,
+    ensure_distinct_paths,
     write_new_key_file,
     HelixProError,
     decrypt_file,
@@ -116,3 +117,51 @@ def test_new_key_file_is_exclusive_and_owner_only_on_posix(tmp_path):
     with pytest.raises(FileExistsError):
         write_new_key_file(str(target), generate_key())
     assert target.read_bytes() == key
+
+
+
+def test_core_encrypt_and_decrypt_reject_same_source_destination(tmp_path):
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"never replace the input")
+    key = generate_key()
+
+    with pytest.raises(HelixProError):
+        encrypt_file(str(source), str(source), key=key)
+
+    encrypted = tmp_path / "source.helixpro"
+    encrypt_file(str(source), str(encrypted), key=key)
+    before = encrypted.read_bytes()
+    with pytest.raises(HelixProError):
+        decrypt_file(str(encrypted), str(encrypted), key=key)
+    assert encrypted.read_bytes() == before
+
+
+def test_named_decrypt_rejects_destination_that_is_source_file(tmp_path):
+    source = tmp_path / "document.txt"
+    encrypted = tmp_path / "document.helixpro"
+    source.write_bytes(b"preserve encrypted source")
+    key = generate_key()
+    encrypt_file_with_name(str(source), str(encrypted), key=key)
+
+    # If the output directory is the encrypted file's directory and the
+    # authenticated original name collides with the encrypted path, reject.
+    renamed_encrypted = tmp_path / "document.txt"
+    renamed_encrypted.write_bytes(encrypted.read_bytes())
+    before = renamed_encrypted.read_bytes()
+    with pytest.raises(HelixProError):
+        decrypt_file_with_name(str(renamed_encrypted), str(tmp_path), key=key)
+    assert renamed_encrypted.read_bytes() == before
+
+
+def test_ensure_distinct_paths_rejects_hardlink(tmp_path):
+    import os
+
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"same inode")
+    alias = tmp_path / "alias.bin"
+    try:
+        os.link(source, alias)
+    except OSError:
+        pytest.skip("hard links unavailable in this environment")
+    with pytest.raises(HelixProError):
+        ensure_distinct_paths(str(source), str(alias))
