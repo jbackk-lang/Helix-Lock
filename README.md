@@ -57,6 +57,14 @@ Helix-Lock jest rozwijany z naciskiem na produktywność, ale bezpieczeństwo ma
 
 Aplikacja została zbudowana w CI dla Windows, macOS i Linux. Automatyczne testy przeszły na Pythonie 3.11 i 3.12. To potwierdza testy i proces budowania — **nie zastępuje ręcznych testów uruchomienia na rzeczywistych komputerach, niezależnego audytu ani podpisania instalatorów**. Paczki CI są niepodpisane. Projekt pozostaje w fazie rozwoju; nie przedstawiamy go jako certyfikowanego produktu bezpieczeństwa.
 
+## Testy beta i zgłaszanie błędów
+
+Helix-Lock jest na etapie przygotowania do zamkniętej bety. Zewnętrzne testy beta nie zostały jeszcze uruchomione. Jeśli uczestniczysz w testach, korzystaj wyłącznie z kopii danych i zachowaj niezależną kopię zapasową.
+
+- [Plan niezależnych testów beta](docs/BETA_TEST_PLAN_v0.1.1.md)
+- [Zgłoszenie błędu beta](https://github.com/jbackk-lang/Helix-Lock/issues/new?template=bug_report.yml) — formularz wymaga wersji, systemu, kroków reprodukcji i potwierdzenia bezpiecznego testowania.
+- [Polityka zgłaszania luk bezpieczeństwa](SECURITY.md) — nie publikuj szczegółów podatności w zwykłym zgłoszeniu.
+
 ## Dokumentacja i kod
 
 - **[Szczegóły techniczne v.0.1.1](docs/Szczegóły%20techniczne%20v.0.1.1.md)** — architektura, formaty, API, CounterLock, AIRP, testy, ograniczenia i instrukcje budowania.
