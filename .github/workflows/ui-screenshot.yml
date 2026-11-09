@@ -37,7 +37,18 @@ jobs:
           git add docs/screenshots/helix-file-and-key.png
           if ! git diff --cached --quiet; then
             git commit -m "docs: capture actual Helix file-and-key desktop screen [skip ci]"
-            git push
+            # Other CI/API commits may land while the screenshot is rendered.
+            # Rebase the generated image commit instead of losing the screenshot.
+            for attempt in 1 2 3; do
+              git pull --rebase origin "\${GITHUB_REF_NAME}"
+              if git push origin "HEAD:\${GITHUB_REF_NAME}"; then
+                break
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "Could not publish screenshot after 3 retries" >&2
+                exit 1
+              fi
+            done
           fi
       - uses: actions/upload-artifact@v4
         with:
