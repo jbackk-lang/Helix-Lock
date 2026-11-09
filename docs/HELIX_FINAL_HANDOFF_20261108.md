@@ -266,3 +266,11 @@ Artefakty są dostępne jako wyniki CI (retencja 30 dni); nie jest to jeszcze
 wydanie podpisane ani opublikowane. Build potwierdza pakowanie, nie test
 instalacji/uruchomienia na rzeczywistym komputerze. Nie twórz taga release
 przed ręcznym smoke-testem GUI i weryfikacją kluczy/aktualizacji.
+
+### Wynik pełnej macierzy — walidacja nazw i HNS1 hardlink guard
+
+Workflow [42546705983](https://github.com/jbackk-lang/Helix-Lock/actions/runs/42546705983)
+dla commitu `fa1b187` zakończył się sukcesem: Python 3.11 — 61/61;
+Python 3.12 — 61/61. Bez nieudanych kroków. Obejmuje rozszerzone testy
+nazw plików (znaki kontrolne, znormalizowane nazwy urządzeń Windows,
+spacje), główne API atomowego zapisu i HNS1 z kontrolą aliasów hardlink.
