@@ -1,3 +1,11 @@
+> **Aktualny podział prac — 9 listopada 2026**
+>
+> Repozytorium rozwija dwa osobne kierunki:
+> - **Helix File (beta / aplikacja plikowa):** [README i aktualny kod](https://github.com/jbackk-lang/Helix-Lock/tree/experiment/helix-native)
+> - **Helix Stream (eksperymentalne szyfrowanie danych w locie):** [README](https://github.com/jbackk-lang/Helix-Lock/blob/feature/helix-stream-core/README.md) · [plan techniczny](https://github.com/jbackk-lang/Helix-Lock/blob/feature/helix-stream-core/docs/HELIX_STREAM_ROADMAP.md)
+>
+> Gałęzie robocze nie są jeszcze wydaniami. Nie publikujemy Helix Stream jako release, dopóki nie przejdzie przeglądu bezpieczeństwa, testów sesji i transportu. [Dostępne wydania](https://github.com/jbackk-lang/Helix-Lock/releases).
+
 ## Pamięć historii Chronoprocesu
 
 Eksperymentalna, ograniczona pamięć cech historycznych znajduje się w `helix_pro/airp_history_memory.py`. Przetwarza metadane AIRP w stałych oknach i emituje deterministyczne podsumowania bez przechowywania payloadów. Nie zastępuje AIRPIntegrityLedger, nie steruje autoryzacją i nie implementuje samonaprawy. Granice i wymagania walidacyjne opisano w [CHRONOPROCESS_MEMORY_BOUNDARIES.md](docs/CHRONOPROCESS_MEMORY_BOUNDARIES.md).
