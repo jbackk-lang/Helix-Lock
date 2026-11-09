@@ -206,7 +206,7 @@ def decrypt_file(in_path: str, out_path: str, *, key: bytes | None = None, passw
     else:
         raise HelixProError(f"nieznany tryb w naglowku: {mode!r}")
 
-    _atomic_write(out_path, plaintext)
+    atomic_write_bytes(out_path, plaintext)
 
 
 def detect_format(path: str) -> str:
