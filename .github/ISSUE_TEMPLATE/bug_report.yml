@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Helix-Lock is beta-test software.** Do not attach real user files, plaintext, key files, passwords, recovery material, memory dumps, or unredacted logs. Reproduce with disposable copies only.
+        **Helix-Lock is beta-test software.** Do not attach real user files, plaintext, key files, passwords, recovery material, memory dumps, or unredacted logs. Reproduce with disposable copies only.\n\n        **Suspected security vulnerability? Stop here. Do not submit it in this public form. Use the private reporting route in the repository Security policy instead.**
   - type: input
     id: app-version
     attributes:
