@@ -7,56 +7,48 @@ from helix_stream.records import RecordError, RecordOpener, RecordSealer, MAX_PL
 
 
 def pair():
-    key = os.urandom(32)
-    salt = os.urandom(4)
-    session = os.urandom(16)
+    key, salt, session = os.urandom(32), os.urandom(4), os.urandom(16)
     direction = b"client-to-server"
     return (
         RecordSealer(key, salt, session, direction),
         RecordOpener(key, salt, session, direction),
+        key, salt, session, direction,
     )
 
 
 @pytest.mark.parametrize("size", [0, 1, 65535, 65536])
 def test_record_roundtrip(size):
-    seal, open_record = pair()
+    seal, opener, *_ = pair()
     payload = os.urandom(size)
-    frame = seal.seal(payload)
-    restored, final = open_record.open(frame)
-    assert restored == payload
-    assert not final
-    _, final = open_record.open(seal.seal(final=True))
-    assert final
+    assert opener.open(seal.seal(payload)) == (payload, False)
+    assert opener.open(seal.seal(final=True)) == (b"", True)
 
 
 def test_record_rejects_oversized_payload():
-    seal, _ = pair()
+    seal, *_ = pair()
     with pytest.raises(RecordError, match="maximum"):
         seal.seal(b"x" * (MAX_PLAINTEXT + 1))
 
 
-def test_record_rejects_wrong_key_and_preserves_sequence():
-    seal, _ = pair()
+def test_record_rejects_wrong_key():
+    seal, _, _, salt, session, direction = pair()
     frame = seal.seal(b"secret")
-    wrong = RecordOpener(os.urandom(32), os.urandom(4), os.urandom(16),
-                         b"client-to-server")
+    wrong = RecordOpener(os.urandom(32), salt, session, direction)
     with pytest.raises(InvalidTag):
         wrong.open(frame)
 
 
-def test_record_rejects_tampering_and_metadata_change():
-    seal, _ = pair()
+def test_record_rejects_tampering():
+    seal, opener, *_ = pair()
     frame = bytearray(seal.seal(b"payload"))
     frame[-1] ^= 1
-    _, opener = pair()
-    with pytest.raises((InvalidTag, RecordError)):
+    with pytest.raises(InvalidTag):
         opener.open(bytes(frame))
 
 
 def test_record_rejects_replay_and_out_of_order():
-    seal, opener = pair()
-    first = seal.seal(b"one")
-    second = seal.seal(b"two")
+    seal, opener, *_ = pair()
+    first, second = seal.seal(b"one"), seal.seal(b"two")
     with pytest.raises(RecordError, match="sequence"):
         opener.open(second)
     assert opener.open(first) == (b"one", False)
@@ -66,7 +58,7 @@ def test_record_rejects_replay_and_out_of_order():
 
 
 def test_final_record_closes_both_sides():
-    seal, opener = pair()
+    seal, opener, *_ = pair()
     final = seal.seal(final=True)
     assert opener.open(final) == (b"", True)
     with pytest.raises(RecordError, match="closed"):
@@ -76,12 +68,12 @@ def test_final_record_closes_both_sides():
 
 
 def test_record_rejects_truncation_and_trailing_bytes():
-    seal, _ = pair()
+    seal, opener, *_ = pair()
     frame = seal.seal(b"payload")
-    _, opener = pair()
     with pytest.raises(RecordError):
         opener.open(frame[:-1])
-    _, opener = pair()
+    seal, opener, *_ = pair()
+    frame = seal.seal(b"payload")
     with pytest.raises(RecordError, match="length"):
         opener.open(frame + b"x")
 
