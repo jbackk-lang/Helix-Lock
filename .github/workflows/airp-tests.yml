@@ -11,6 +11,7 @@ on:
       - "experiments/three_loop_phase_memory.py"
       - "experiments/three_loop_information_retention.py"
       - "experiments/helical_tunnel_chirality.py"
+      - "experiments/chirality_resolving_operator.py"
       - "tests/test_helix_pro.py"
       - "tests/test_helix_pro_gui.py"
       - "tests/test_adaptive_rotation.py"
@@ -29,6 +30,7 @@ on:
       - "tests/test_three_loop_phase_memory.py"
       - "tests/test_three_loop_information_retention.py"
       - "tests/test_helical_tunnel_chirality.py"
+      - "tests/test_chirality_resolving_operator.py"
       - ".github/workflows/airp-tests.yml"
   pull_request:
     paths:
@@ -54,10 +56,12 @@ on:
       - "experiments/three_loop_phase_memory.py"
       - "experiments/three_loop_information_retention.py"
       - "experiments/helical_tunnel_chirality.py"
+      - "experiments/chirality_resolving_operator.py"
       - "tests/test_airp_history_memory.py"
       - "tests/test_three_loop_phase_memory.py"
       - "tests/test_three_loop_information_retention.py"
       - "tests/test_helical_tunnel_chirality.py"
+      - "tests/test_chirality_resolving_operator.py"
       - ".github/workflows/airp-tests.yml"
 
 jobs:
@@ -79,6 +83,14 @@ jobs:
         run: python experiments/three_loop_information_retention.py --output three-loop-information-retention.json
       - name: Run helical tunnel chirality experiment
         run: python experiments/helical_tunnel_chirality.py --output helical-tunnel-chirality.json
+      - name: Run chirality-resolving operator experiment
+        run: python -m experiments.chirality_resolving_operator --output chirality-resolving-operator.json
+      - name: Upload chirality-resolving operator report
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirality-resolving-operator-${{ matrix.python-version }}
+          path: chirality-resolving-operator.json
+          retention-days: 30
       - name: Upload helical tunnel chirality report
         uses: actions/upload-artifact@v4
         with:
@@ -118,3 +130,4 @@ jobs:
           tests/test_three_loop_phase_memory.py
           tests/test_three_loop_information_retention.py
           tests/test_helical_tunnel_chirality.py
+          tests/test_chirality_resolving_operator.py
