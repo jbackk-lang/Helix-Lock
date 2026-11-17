@@ -789,3 +789,37 @@ segmentów i błędnego klucza. **Nie oznacza to, że istniejący moduł
 `timdr_archive_bridge.py` obsługuje już dwa uszkodzenia**: wersja
 w repozytorium pozostaje HTO1 z jedną parzystością. Kod HTO2 jest
 oddzielnym prototypem wymagającym dalszej integracji i audytu.
+
+
+### 54A.44 — HTO2 zapisany w repozytorium (eksperyment)
+
+Moduł [`helix_pro/timdr_archive_hto2.py`](helix_pro/timdr_archive_hto2.py)
+jest następcą eksperymentalnego HTO1, **nie zmienia istniejących formatów
+Helix-Lock**. Korzysta bezpośrednio z
+`helix_pro.cipher.encrypt_bytes/decrypt_bytes` (AES-256-GCM),
+kompresuje zlib i przechowuje dwa bloki parzystości GF(256) dla grupy
+do czterech zaszyfrowanych segmentów. Umożliwia naprawę maksymalnie
+dwóch utraconych szyfrogramów w jednej grupie przy nienaruszonych
+dwóch blokach parzystości. Każdy segment ma SHA-256, a indeks dwie
+kopie uwierzytelnione HMAC-SHA256.
+
+```python
+from helix_pro import generate_key
+from helix_pro.timdr_archive_hto2 import pack, unpack
+key = generate_key()
+archive = pack(b"dane" * 10000, key)
+original, repaired_count = unpack(archive, key)
+assert original == b"dane" * 10000
+```
+
+Testy: `python -m pytest tests/test_timdr_archive_hto2.py -q`.
+**Status:** kod i testy dodano do repo; pełny test CI w repozytorium
+nie jest jeszcze potwierdzony. Testy lokalne podobnego prototypu
+obejmowały bezstratny odczyt i dwa uszkodzone segmenty.
+
+**Ograniczenia:** sam 8-bajtowy nagłówek (magic i długość indeksu) nie
+ma nadmiarowej kopii; dwie uszkodzone parzystości razem z utratą danych
+mogą uniemożliwić naprawę; nie ma ochrony przed rollbackiem,
+random access ani strumieniowania. To nie jest produkcyjny format
+kopii zapasowych, a kompresja nadal korzysta z zlib, nie z pełnego
+kodera TIMDR-Ω. Przechowuj klucz poza archiwum.
