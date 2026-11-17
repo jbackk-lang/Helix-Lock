@@ -934,3 +934,21 @@ Testy lokalne naprawy: 4/4 odtworzenia dwóch segmentów, 4/4
 odrzucenia trzech segmentów. Selekcja próbkowana może przeoczyć
 korzystny tryb dla danych, których początek jest niereprezentatywny.
 Wyniki wymagają reprodukcji w CI na faktycznym checkoutcie.
+
+
+### 54A.49 — automatyczne testy repozytorium w GitHub Actions
+
+Workflow [`.github/workflows/timdr-archive.yml`](.github/workflows/timdr-archive.yml)
+uruchamia testy `tests/test_timdr_archive_hto2.py`,
+`tests/test_timdr_archive_hto3.py`,
+`tests/test_timdr_archive_hto4.py` i
+`tests/test_timdr_archive_fast.py` na Pythonie 3.11, 3.12 i 3.13.
+Startuje przy zmianach kodu archiwum i testów oraz ręcznie
+przez `workflow_dispatch`. Zależności testowe: `pytest`,
+`cryptography`.
+
+**Status:** workflow zapisano i potwierdzono odczyt jego pliku
+przez API GitHub. Wynik uruchomienia CI **nie jest jeszcze
+potwierdzony**; brak znalezionego przebiegu nie jest wynikiem
+pozytywnym. Bieżący benchmark czasowy nadal pochodzi z lokalnego
+prototypu, a nie z GitHub Actions.
