@@ -881,3 +881,23 @@ używa zlib. HTO4 ma osobny, uwierzytelniony, lecz
 **niezredundowany 45-bajtowy nagłówek selektora**; jego uszkodzenie
 może uniemożliwić odczyt pomimo odporności wewnętrznego HTO3.
 Nie jest to format produkcyjny.
+
+
+### 54A.47 — lokalny benchmark predyktorów HTO4
+
+Benchmark **lokalnej reprodukcji HTO4 z modułem HTO2 AES-GCM**,
+nie test checkoutu GitHub ani CI. Dane syntetyczne 256 KiB,
+3 powtórzenia, mediana czasów w ms (pełny zapis z szyfrowaniem i ECC):
+
+| Dane | RAW ms | AUTO ms | RAW B | AUTO B |
+|---|---:|---:|---:|---:|
+| okresowe | 0,941 | 106,812 | 2283 | 2283 |
+| losowe | 43,419 | 163,825 | 395167 | 395167 |
+| mieszane | 21,631 | 160,538 | 264203 | 264200 |
+| zera | 0,766 | 105,359 | 2247 | 2247 |
+
+25/25 lokalnych roundtrip; 4/4 testy naprawy dwóch segmentów
+oraz 4/4 odrzucenia trzech segmentów; błędny klucz i modyfikacja
+selektora odrzucone. **AUTO jest znacząco wolniejszy niż RAW**
+bez istotnego zysku w rozmiarze. Potrzebny próbkowany selektor.
+Nagłówek HTO4 nadal nie ma redundancji.
