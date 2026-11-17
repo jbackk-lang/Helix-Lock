@@ -7,7 +7,7 @@ from helix_pro.timdr_archive_hto3 import pack, unpack, HEADER_SIZE, EnvelopeErro
 @pytest.mark.parametrize("data",[b"",b"abc"*10000,os.urandom(18000)])
 def test_roundtrip(data):
     key=generate_key()
-    assert unpack(pack(data,key,block_size=4096)==(data,0)
+    assert unpack(pack(data,key,block_size=4096),key)==(data,0)
 
 @pytest.mark.parametrize("bad_copies",[(0,),(0,1),(1,2)])
 def test_two_header_copies_can_be_corrupted(bad_copies):
