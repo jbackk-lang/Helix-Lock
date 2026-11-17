@@ -766,3 +766,26 @@ podłączony do GUI i nie zmienia istniejących formatów HLXP/HLXN/HLXC.
 Nie używaj go jako jedynej kopii ważnych danych. Następne kroki:
 testy uszkodzeń, indeks odporny na awarie i uczciwy benchmark
 względem Zstd z identyczną korekcją.
+
+
+### Wyniki kolejnego eksperymentu 54A.43 (prototyp lokalny, nie część wydania)
+
+Sprawdzono osobny prototyp z dwoma blokami parzystości GF(256) na grupę
+czterech **zaszyfrowanych** segmentów. Odtwarzanie dwóch utraconych
+segmentów następuje przed sprawdzeniem tagów AES-256-GCM. Indeks ma dwie
+kopie uwierzytelnione HMAC-SHA256.
+
+Rozmiary dla 256 KiB danych syntetycznych (pełne archiwum):
+
+| Dane | zlib + AES-GCM + 2 parzystości | Zstd + AES-GCM + 2 parzystości |
+|---|---:|---:|
+| okresowe | 13 454 B | 12 918 B |
+| losowe | 405 904 B | 406 000 B |
+| mieszane | 209 650 B | 209 426 B |
+
+Testy lokalne 6 konfiguracji: roundtrip, 1–2 utracone segmenty,
+uszkodzenie pojedynczej kopii indeksu, odrzucenie 3 utraconych
+segmentów i błędnego klucza. **Nie oznacza to, że istniejący moduł
+`timdr_archive_bridge.py` obsługuje już dwa uszkodzenia**: wersja
+w repozytorium pozostaje HTO1 z jedną parzystością. Kod HTO2 jest
+oddzielnym prototypem wymagającym dalszej integracji i audytu.
