@@ -823,3 +823,30 @@ mogą uniemożliwić naprawę; nie ma ochrony przed rollbackiem,
 random access ani strumieniowania. To nie jest produkcyjny format
 kopii zapasowych, a kompresja nadal korzysta z zlib, nie z pełnego
 kodera TIMDR-Ω. Przechowuj klucz poza archiwum.
+
+
+### 54A.45 — HTO3: potrójny nagłówek uwierzytelniony
+
+Dodano [`helix_pro/timdr_archive_hto3.py`](helix_pro/timdr_archive_hto3.py)
+i [testy](tests/test_timdr_archive_hto3.py). HTO3 opakowuje istniejące
+archiwum HTO2 trzema identycznymi, niezależnie uwierzytelnionymi
+nagłówkami HMAC-SHA256. Dwa uszkodzone nagłówki nie blokują
+odczytu, jeśli trzeci pozostaje poprawny. HTO2 nadal chroni indeks
+dwiema kopiami oraz szyfrogramy dwoma blokami korekcyjnymi GF(256).
+
+```python
+from helix_pro import generate_key
+from helix_pro.timdr_archive_hto3 import pack, unpack
+key = generate_key()
+archive = pack(b"plik" * 10000, key)
+restored, repaired_segments = unpack(archive, key)
+assert restored == b"plik" * 10000
+```
+
+Uruchom testy: `python -m pytest tests/test_timdr_archive_hto2.py tests/test_timdr_archive_hto3.py -q`.
+
+**Status:** zapisano kod i testy w repozytorium; wyniki GitHub CI
+nie zostały jeszcze zweryfikowane. Nie jest to nowy koder TIMDR:
+kompresja nadal używa zlib. HTO3 nie chroni przed rollbackiem
+poprawnie uwierzytelnionej kopii, nie zapewnia nieograniczonej
+naprawy i nie zastępuje niezależnej kopii zapasowej.
