@@ -850,3 +850,34 @@ nie zostały jeszcze zweryfikowane. Nie jest to nowy koder TIMDR:
 kompresja nadal używa zlib. HTO3 nie chroni przed rollbackiem
 poprawnie uwierzytelnionej kopii, nie zapewnia nieograniczonej
 naprawy i nie zastępuje niezależnej kopii zapasowej.
+
+
+### 54A.46 — HTO4: eksperymentalny predyktor TIMDR-Ω połączony z Helix
+
+Dodano [`helix_pro/timdr_archive_hto4.py`](helix_pro/timdr_archive_hto4.py)
+oraz [testy](tests/test_timdr_archive_hto4.py). Nowy format HTO4
+wybiera odwracalny predyktor bajtowy: `raw`, `1d`, `2d` lub
+`3d` (wieloskalowy XOR, lag=4096). W trybie `auto` wybór opiera
+się na rozmiarze próbnej kompresji zlib. Przekształcone bajty
+trafiają do HTO3, a więc korzystają z prawdziwych funkcji
+AES-256-GCM Helix Pro, dwóch bloków korekcyjnych GF(256),
+podwójnego indeksu i potrójnego nagłówka HTO3.
+
+```python
+from helix_pro import generate_key
+from helix_pro.timdr_archive_hto4 import pack, unpack
+key = generate_key()
+archive = pack(b"ABCD" * 10000, key, mode="auto")
+original, repaired_segments = unpack(archive, key)
+assert original == b"ABCD" * 10000
+```
+
+Uruchom: `python -m pytest tests/test_timdr_archive_hto4.py -q`.
+
+**Status i ograniczenia:** zapisano kod i testy; nie potwierdzono
+wykonania testów w CI. To heurystyczny odwracalny predyktor,
+**nie dowód formalnej teorii TIMDR**. Kompresor wewnętrzny nadal
+używa zlib. HTO4 ma osobny, uwierzytelniony, lecz
+**niezredundowany 45-bajtowy nagłówek selektora**; jego uszkodzenie
+może uniemożliwić odczyt pomimo odporności wewnętrznego HTO3.
+Nie jest to format produkcyjny.
