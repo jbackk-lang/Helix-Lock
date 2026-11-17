@@ -730,3 +730,39 @@ Tokeny są używane tylko w bieżącej sesji GUI i nie są zapisywane w pliku ko
 Rejestracja i rotacja klucza tworzą zdarzenie w lokalnym łańcuchu AIRP, a następnie próbują opublikować podpisany checkpoint przez quorum. Jeśli większość świadków jest niedostępna, GUI pokazuje status **pending / niezakotwiczone**. Zdarzenie lokalne pozostaje w bazie i można ponowić publikację po przywróceniu świadków. Nigdy nie traktuj lokalnego wpisu jako potwierdzenia quorum.
 
 **Zakres aktualnego GUI:** zakładka Pliki obsługuje podstawowy format nazwany i starszy format Helix Pro. Pliki CounterLock nadal wymagają zaawansowanego okna `--legacy`. To celowe zachowanie — GUI nie zmienia po cichu semantyki licznika ani nie nadpisuje szyfrogramu podczas zwykłego odszyfrowania.
+
+
+## TIMDR-Ω Archive × Helix-Lock — eksperymentalna integracja (54A.43)
+
+Dodano moduł [`helix_pro/timdr_archive_bridge.py`](helix_pro/timdr_archive_bridge.py).
+Jest to **prototyp integracyjny**, a nie nowy format produkcyjny ani
+implementacja matematycznej trójpętli TIMDR.
+
+Przepływ: **zlib → Helix Pro AES-256-GCM → XOR na szyfrogramach**.
+Każdy segment jest szyfrowany oddzielnie przez istniejące funkcje
+`helix_pro.cipher.encrypt_bytes/decrypt_bytes`. Dla grupy do czterech
+segmentów tworzony jest jeden blok parzystości XOR. Indeks jest
+uwierzytelniony przez HMAC-SHA256 z kluczem pochodnym od klucza Helix.
+Przed odszyfrowaniem sprawdzane są SHA-256 segmentów i, w razie potrzeby,
+naprawiany **jeden uszkodzony segment danych na grupę**, o ile parzystość
+jest nienaruszona. AES-GCM następnie weryfikuje autentyczność treści.
+
+```python
+from helix_pro import generate_key
+from helix_pro.timdr_archive_bridge import pack, unpack
+
+key = generate_key()  # przechowuj oddzielnie od archiwum
+archive = pack(b"przykladowe dane" * 1000, key)
+original, repaired_segments = unpack(archive, key)
+assert original == b"przykladowe dane" * 1000
+```
+
+**Ograniczenia:** obecny wariant stosuje zlib, a nie koder TIMDR-Ω;
+XOR nie naprawi dwóch utraconych segmentów w tej samej grupie;
+nie ma naprawy nagłówka/indeksu, strumieniowania, random access ani
+ochrony przed odtworzeniem starszej, poprawnie uwierzytelnionej kopii.
+HMAC indeksu nie jest podpisem niezależnego podmiotu. Moduł nie jest
+podłączony do GUI i nie zmienia istniejących formatów HLXP/HLXN/HLXC.
+Nie używaj go jako jedynej kopii ważnych danych. Następne kroki:
+testy uszkodzeń, indeks odporny na awarie i uczciwy benchmark
+względem Zstd z identyczną korekcją.
