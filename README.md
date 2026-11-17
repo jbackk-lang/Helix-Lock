@@ -901,3 +901,36 @@ oraz 4/4 odrzucenia trzech segmentów; błędny klucz i modyfikacja
 selektora odrzucone. **AUTO jest znacząco wolniejszy niż RAW**
 bez istotnego zysku w rozmiarze. Potrzebny próbkowany selektor.
 Nagłówek HTO4 nadal nie ma redundancji.
+
+
+### 54A.48 — szybki AUTO na próbce 8 KiB
+
+Dodano [`helix_pro/timdr_archive_fast.py`](helix_pro/timdr_archive_fast.py)
+i [testy](tests/test_timdr_archive_fast.py). Selektor testuje
+predyktory na pierwszych 8 KiB, pomija kosztowną analizę dla
+silnie kompresowalnej próbki i wymaga co najmniej 64 bajtów
+przewagi nad RAW w próbnym wyniku. Archiwum wynikowe pozostaje
+HTO4, odszyfrowywane przez istniejący `unpack`.
+
+```python
+from helix_pro import generate_key
+from helix_pro.timdr_archive_fast import pack, unpack
+key = generate_key()
+blob = pack(b"ABCD" * 65536, key)
+assert unpack(blob, key)[0] == b"ABCD" * 65536
+```
+
+**Lokalny benchmark** (reprodukcja HTO4 na 54A44, syntetyczne 256 KiB,
+mediana 3 powtórzeń; nie jest to wynik CI ani checkoutu GitHub):
+
+| Dane | pełny AUTO ms | próbkowany AUTO ms | rozmiar próbkowany |
+|---|---:|---:|---:|
+| okresowe | 106,745 | 0,788 | 2283 B |
+| losowe | 169,172 | 47,457 | 395167 B |
+| mieszane | 191,428 | 21,785 | 264203 B |
+| zera | 108,398 | 0,765 | 2247 B |
+
+Testy lokalne naprawy: 4/4 odtworzenia dwóch segmentów, 4/4
+odrzucenia trzech segmentów. Selekcja próbkowana może przeoczyć
+korzystny tryb dla danych, których początek jest niereprezentatywny.
+Wyniki wymagają reprodukcji w CI na faktycznym checkoutcie.
