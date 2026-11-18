@@ -1,8 +1,14 @@
-# Helix-Lock
+# Helix-Lock v0.1.3 Beta
 
 **Szyfrowanie plików AES-256-GCM z opcjonalną kompresją i kontrolą integralności.**
 
-> **Wersja beta — do testów.** Nie jest to niezależnie audytowany produkt do ochrony danych o wysokiej wrażliwości. Pracuj na kopiach plików i zachowaj kopię zapasową.
+> **Aktualna wersja kodu: v0.1.3 Beta (`main`) — do testów.** Nie jest to niezależnie audytowany produkt do ochrony danych o wysokiej wrażliwości. Pracuj na kopiach plików i zachowaj kopię zapasową.
+
+## Wersja v0.1.3 Beta
+
+Kod v0.1.3 Beta został scalony do gałęzi `main` w PR #4. W tej wersji rozwijany jest regionalny wybór języków (Europa / Ameryka / Azja), lokalne zapamiętywanie ustawienia języka oraz uzupełnianie katalogów tłumaczeń. Poprawiono błąd, przez który kolejne partie tłumaczeń nadpisywały wcześniejsze wpisy słowników.
+
+**Stan weryfikacji:** nie ma potwierdzonego pozytywnego wyniku testów dla scalonej zmiany. **Stan publikacji:** kod v0.1.3 Beta jest w `main`, lecz nie potwierdzono opublikowania GitHub Release ani gotowych pakietów v0.1.3.
 
 ## Pobierz pliki
 
@@ -36,7 +42,7 @@ W głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**)
 
 Tłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.
 
-## Języki — v0.1.3 Beta (kod w `main`)
+## Języki — v0.1.3 Beta
 
 W kodzie v0.1.3 przygotowano wybór języka według regionów **Europa / Ameryka / Azja**. Regiony porządkują listę, ale nie ograniczają wyboru użytkownika. Ustawienie języka jest zapamiętywane lokalnie w `~/.helix_lock/ui-settings.json`.
 
