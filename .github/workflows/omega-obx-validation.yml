@@ -10,6 +10,7 @@ on:
       - "benchmarks/summarize_hlob_hlom.py"
       - "benchmarks/omega_block_files.py"
       - "benchmarks/compare_hlob_hlom.py"
+      - "benchmarks/profile_obx_modes.py"
       - "tests/test_omega_block*.py"
       - "tests/test_timdr_obx_cipher.py"
       - "tests/test_compare_hlob_hlom.py"
@@ -104,3 +105,22 @@ jobs:
             omega-medium-summary.md
             omega-medium-corpus/manifest.json
           if-no-files-found: ignore
+
+  omega-obx-profile:
+    name: Profile OBX1 modes (Python 3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Profile OBX1 transforms and zlib
+        run: python -m benchmarks.profile_obx_modes --size 1048576 --repeats 3 --output obx-profile.json > /dev/null
+      - name: Upload mode profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omega-obx-mode-profile-py3.12
+          path: obx-profile.json
+          if-no-files-found: error
