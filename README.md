@@ -2,9 +2,12 @@
 
 **Szyfrowanie plików AES-256-GCM z opcjonalną kompresją i kontrolą integralności.**
 
-> **v0.1.1 BETA — do testów.** Nie jest to niezależnie audytowany produkt do ochrony danych o wysokiej wrażliwości. Pracuj na kopiach plików i zachowaj kopię zapasową.
+> **Wersja beta — do testów.** Nie jest to niezależnie audytowany produkt do ochrony danych o wysokiej wrażliwości. Pracuj na kopiach plików i zachowaj kopię zapasową.
 
 ## Pobierz pliki
+
+Poniższe linki prowadzą do poprzedniego wydania v0.1.1-beta.2. Pakiety v0.1.2 zostaną udostępnione dopiero po zakończeniu kompilacji i weryfikacji sum SHA-256.
+
 
 | System / plik | Pobieranie |
 |---|---|
@@ -27,7 +30,11 @@ Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed u
 - **AIRP** — prototypy rotacji kluczy, historii integralności, rejestru zdarzeń i punktów kontrolnych.
 - **TIMDR-Ω** — eksperymentalne formaty HLOM (predyktory i ograniczona naprawa GF(256)) oraz HLOB (kompresja OBX1 + AES-GCM); nie są domyślnym formatem aplikacji ani audytowanym zamiennikiem szyfrowania.
 
-## Obsługa aplikacji\n\nW głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**) znajduje się bezpośrednio pod wyborem pliku źródłowego. Język interfejsu zmienia się przełącznikiem **PL / EN** w górnym pasku; program nie łączy dwóch języków w jednej etykiecie. Pomoc jest dostępna przyciskiem **Pomoc / Help** lub klawiszem **F1**.\n\nTłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.\n\n## Co oznaczają przyciski i skróty?
+## Obsługa aplikacji
+
+W głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**) znajduje się bezpośrednio pod wyborem pliku źródłowego. Język interfejsu zmienia się przełącznikiem **PL / EN** w górnym pasku; program nie łączy dwóch języków w jednej etykiecie. Pomoc jest dostępna przyciskiem **Pomoc / Help** lub klawiszem **F1**.\n\nTłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.
+
+## Co oznaczają przyciski i skróty?
 
 Nie wiesz, czym różni się **HLXP od HLXN**, co oznaczają **AIRP, CounterLock, HLOB/HLOM**, albo jak odczytać komunikaty aplikacji?
 
