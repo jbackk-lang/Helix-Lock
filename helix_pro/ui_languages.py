@@ -346,6 +346,160 @@ CATALOGS.update({
     }
 })
 
+# Safety-critical notices and file-operation labels; pending native-speaker review.
+CATALOGS.update({
+    "de": {
+        "Operation complete": "Vorgang abgeschlossen",
+        "Operation failed": "Vorgang fehlgeschlagen",
+        "Confirm overwrite": "Überschreiben bestätigen",
+        "Select an existing file.": "Vorhandene Datei auswählen.",
+        "Encryption": "Verschlüsselung",
+        "Decryption": "Entschlüsselung",
+        "Save encrypted file": "Verschlüsselte Datei speichern",
+        "Save decrypted file": "Entschlüsselte Datei speichern",
+        "Save new key": "Neuen Schlüssel speichern",
+        "Key generated. Store a secure backup away from this device.": "Schlüssel erstellt. Bewahren Sie eine sichere Kopie außerhalb dieses Geräts auf.",
+        "Choose another name. Existing key was not overwritten.": "Anderen Namen wählen. Der vorhandene Schlüssel wurde nicht überschrieben.",
+        "Losing the key or password may make recovery impossible.": "Schlüssel oder Passwortverlust kann die Wiederherstellung unmöglich machen.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock ist Beta-Software und wurde keiner unabhängigen Sicherheitsprüfung unterzogen."
+    },
+    "fr": {
+        "Operation complete": "Opération terminée",
+        "Operation failed": "Échec de l’opération",
+        "Confirm overwrite": "Confirmer l’écrasement",
+        "Select an existing file.": "Sélectionnez un fichier existant.",
+        "Encryption": "Chiffrement",
+        "Decryption": "Déchiffrement",
+        "Save encrypted file": "Enregistrer le fichier chiffré",
+        "Save decrypted file": "Enregistrer le fichier déchiffré",
+        "Save new key": "Enregistrer la nouvelle clé",
+        "Key generated. Store a secure backup away from this device.": "Clé générée. Conservez une copie sécurisée hors de cet appareil.",
+        "Choose another name. Existing key was not overwritten.": "Choisissez un autre nom. La clé existante n’a pas été écrasée.",
+        "Losing the key or password may make recovery impossible.": "La perte de la clé ou du mot de passe peut rendre la récupération impossible.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock est un logiciel bêta qui n’a pas fait l’objet d’un audit de sécurité indépendant."
+    },
+    "es": {
+        "Operation complete": "Operación completada",
+        "Operation failed": "Error en la operación",
+        "Confirm overwrite": "Confirmar sobrescritura",
+        "Select an existing file.": "Selecciona un archivo existente.",
+        "Encryption": "Cifrado",
+        "Decryption": "Descifrado",
+        "Save encrypted file": "Guardar archivo cifrado",
+        "Save decrypted file": "Guardar archivo descifrado",
+        "Save new key": "Guardar nueva clave",
+        "Key generated. Store a secure backup away from this device.": "Clave generada. Guarda una copia segura fuera de este dispositivo.",
+        "Choose another name. Existing key was not overwritten.": "Elige otro nombre. La clave existente no se ha sobrescrito.",
+        "Losing the key or password may make recovery impossible.": "Perder la clave o la contraseña puede impedir la recuperación.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock es software beta y no se ha sometido a una auditoría de seguridad independiente."
+    },
+    "it": {
+        "Operation complete": "Operazione completata",
+        "Operation failed": "Operazione non riuscita",
+        "Confirm overwrite": "Conferma sovrascrittura",
+        "Select an existing file.": "Seleziona un file esistente.",
+        "Encryption": "Cifratura",
+        "Decryption": "Decifratura",
+        "Save encrypted file": "Salva file cifrato",
+        "Save decrypted file": "Salva file decifrato",
+        "Save new key": "Salva nuova chiave",
+        "Key generated. Store a secure backup away from this device.": "Chiave generata. Conserva una copia sicura fuori da questo dispositivo.",
+        "Choose another name. Existing key was not overwritten.": "Scegli un altro nome. La chiave esistente non è stata sovrascritta.",
+        "Losing the key or password may make recovery impossible.": "La perdita della chiave o della password può rendere impossibile il recupero.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock è un software beta e non è stato sottoposto a una verifica di sicurezza indipendente."
+    },
+    "pt": {
+        "Operation complete": "Operação concluída",
+        "Operation failed": "Falha na operação",
+        "Confirm overwrite": "Confirmar substituição",
+        "Select an existing file.": "Selecione um ficheiro existente.",
+        "Encryption": "Encriptação",
+        "Decryption": "Desencriptação",
+        "Save encrypted file": "Guardar ficheiro encriptado",
+        "Save decrypted file": "Guardar ficheiro desencriptado",
+        "Save new key": "Guardar nova chave",
+        "Key generated. Store a secure backup away from this device.": "Chave gerada. Guarde uma cópia segura fora deste dispositivo.",
+        "Choose another name. Existing key was not overwritten.": "Escolha outro nome. A chave existente não foi substituída.",
+        "Losing the key or password may make recovery impossible.": "A perda da chave ou palavra-passe pode impossibilitar a recuperação.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "O Helix-Lock é software beta e não foi sujeito a uma auditoria de segurança independente."
+    },
+    "pt-BR": {
+        "Operation complete": "Operação concluída",
+        "Operation failed": "Falha na operação",
+        "Confirm overwrite": "Confirmar substituição",
+        "Select an existing file.": "Selecione um arquivo existente.",
+        "Encryption": "Criptografia",
+        "Decryption": "Descriptografia",
+        "Save encrypted file": "Salvar arquivo criptografado",
+        "Save decrypted file": "Salvar arquivo descriptografado",
+        "Save new key": "Salvar nova chave",
+        "Key generated. Store a secure backup away from this device.": "Chave gerada. Guarde uma cópia segura fora deste dispositivo.",
+        "Choose another name. Existing key was not overwritten.": "Escolha outro nome. A chave existente não foi substituída.",
+        "Losing the key or password may make recovery impossible.": "A perda da chave ou senha pode impossibilitar a recuperação.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "O Helix-Lock é um software beta e não passou por uma auditoria de segurança independente."
+    },
+    "uk": {
+        "Operation complete": "Операцію завершено",
+        "Operation failed": "Помилка операції",
+        "Confirm overwrite": "Підтвердити перезапис",
+        "Select an existing file.": "Виберіть наявний файл.",
+        "Encryption": "Шифрування",
+        "Decryption": "Розшифрування",
+        "Save encrypted file": "Зберегти зашифрований файл",
+        "Save decrypted file": "Зберегти розшифрований файл",
+        "Save new key": "Зберегти новий ключ",
+        "Key generated. Store a secure backup away from this device.": "Ключ створено. Збережіть захищену резервну копію поза цим пристроєм.",
+        "Choose another name. Existing key was not overwritten.": "Виберіть іншу назву. Наявний ключ не перезаписано.",
+        "Losing the key or password may make recovery impossible.": "Втрата ключа або пароля може унеможливити відновлення.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock — бета-версія, яка не проходила незалежний аудит безпеки."
+    },
+    "ja": {
+        "Operation complete": "操作が完了しました",
+        "Operation failed": "操作に失敗しました",
+        "Confirm overwrite": "上書きの確認",
+        "Select an existing file.": "既存のファイルを選択してください。",
+        "Encryption": "暗号化",
+        "Decryption": "復号",
+        "Save encrypted file": "暗号化ファイルを保存",
+        "Save decrypted file": "復号したファイルを保存",
+        "Save new key": "新しい鍵を保存",
+        "Key generated. Store a secure backup away from this device.": "鍵を生成しました。この端末とは別の場所に安全なバックアップを保管してください。",
+        "Choose another name. Existing key was not overwritten.": "別の名前を選択してください。既存の鍵は上書きされていません。",
+        "Losing the key or password may make recovery impossible.": "鍵やパスワードを失うと、データを復元できなくなる可能性があります。",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lockはベータ版であり、独立したセキュリティ監査を受けていません。"
+    },
+    "zh-CN": {
+        "Operation complete": "操作完成",
+        "Operation failed": "操作失败",
+        "Confirm overwrite": "确认覆盖",
+        "Select an existing file.": "请选择现有文件。",
+        "Encryption": "加密",
+        "Decryption": "解密",
+        "Save encrypted file": "保存加密文件",
+        "Save decrypted file": "保存解密文件",
+        "Save new key": "保存新密钥",
+        "Key generated. Store a secure backup away from this device.": "密钥已生成。请在此设备之外安全备份。",
+        "Choose another name. Existing key was not overwritten.": "请选择其他名称。现有密钥未被覆盖。",
+        "Losing the key or password may make recovery impossible.": "丢失密钥或密码可能导致无法恢复数据。",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock 仍处于测试阶段，尚未经过独立安全审计。"
+    },
+    "ko": {
+        "Operation complete": "작업 완료",
+        "Operation failed": "작업 실패",
+        "Confirm overwrite": "덮어쓰기 확인",
+        "Select an existing file.": "기존 파일을 선택하세요.",
+        "Encryption": "암호화",
+        "Decryption": "복호화",
+        "Save encrypted file": "암호화된 파일 저장",
+        "Save decrypted file": "복호화된 파일 저장",
+        "Save new key": "새 키 저장",
+        "Key generated. Store a secure backup away from this device.": "키가 생성되었습니다. 이 장치 외부에 안전한 백업을 보관하세요.",
+        "Choose another name. Existing key was not overwritten.": "다른 이름을 선택하세요. 기존 키는 덮어쓰지 않았습니다.",
+        "Losing the key or password may make recovery impossible.": "키나 비밀번호를 분실하면 데이터를 복구하지 못할 수 있습니다.",
+        "Helix-Lock is beta software and has not undergone an independent security audit.": "Helix-Lock은 베타 소프트웨어이며 독립적인 보안 감사를 받지 않았습니다."
+    }
+})
+
 LANGUAGE_FALLBACKS = {"en-US": "en", "es-419": "es", "pt-BR": "pt"}
 
 
