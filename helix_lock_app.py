@@ -138,11 +138,11 @@ class HelixLockApp(tk.Tk):
         text.pack(side="left", fill="both", expand=True)
         sections = [
             ("SZYBKI START / QUICK START",
-             "1. W zakładce Pliki wybierz plik źródłowy.\\n"
-             "2. Wybierz plik-klucz (32 bajty) lub hasło.\\n"
-             "3. Kliknij Szyfruj, wskaż miejsce zapisu i zachowaj oryginał.\\n"
-             "4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz/hasło i kliknij Odszyfruj.\\n"
-             "5. Sprawdź odzyskany plik, zanim usuniesz kopie zapasowe.\\n"
+             "1. W zakładce Pliki wybierz plik źródłowy.\n"
+             "2. Wybierz plik-klucz (32 bajty) lub hasło.\n"
+             "3. Kliknij Szyfruj, wskaż miejsce zapisu i zachowaj oryginał.\n"
+             "4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz/hasło i kliknij Odszyfruj.\n"
+             "5. Sprawdź odzyskany plik, zanim usuniesz kopie zapasowe.\n"
              "Skrót F1 otwiera tę pomoc z dowolnej zakładki."),
             ("FILES / PLIKI", "Source file / Plik źródłowy: wybierz plik do przetworzenia.\n"
              "Key file / Plik-klucz: tajny plik zawierający 32 bajty.\n"
@@ -305,7 +305,7 @@ class HelixLockApp(tk.Tk):
                 history_lines = [self._tr("Nie udalo sie odczytac bazy AIRP: ", "Could not read AIRP database: ") + str(exc)]
         self.dash_history.configure(state="normal")
         self.dash_history.delete("1.0", "end")
-        self.dash_history.insert("1.0", "\\n".join(history_lines))
+        self.dash_history.insert("1.0", "\n".join(history_lines))
         self.dash_history.configure(state="disabled")
 
     def _build_files(self):
@@ -363,10 +363,10 @@ class HelixLockApp(tk.Tk):
     def _refresh_mode(self):
         if self.mode.get() == "key":
             self.pass_row.pack_forget()
-            self.key_row.pack(fill="x")
+            self.key_row.pack(fill="x", before=self.file_actions)
         else:
             self.key_row.pack_forget()
-            self.pass_row.pack(fill="x")
+            self.pass_row.pack(fill="x", before=self.file_actions)
 
     def _pick_source(self):
         p = filedialog.askopenfilename()
@@ -418,10 +418,10 @@ class HelixLockApp(tk.Tk):
         return messagebox.askyesno(
             self._tr("Potwierdź nadpisanie", "Confirm overwrite"),
             self._tr(
-                "Plik docelowy już istnieje:\\n" + destination +
-                "\\n\\nPo pomyślnym zakończeniu operacji zostanie zastąpiony. Kontynuować?",
-                "The destination already exists:\\n" + destination +
-                "\\n\\nIt will be replaced only after the operation succeeds. Continue?"
+                "Plik docelowy już istnieje:\n" + destination +
+                "\n\nPo pomyślnym zakończeniu operacji zostanie zastąpiony. Kontynuować?",
+                "The destination already exists:\n" + destination +
+                "\n\nIt will be replaced only after the operation succeeds. Continue?"
             ),
         )
 
@@ -432,7 +432,7 @@ class HelixLockApp(tk.Tk):
         ))
         messagebox.showinfo(
             self._tr("Operacja zakończona", "Operation complete"),
-            self._tr("Plik zapisano w:\\n", "File saved to:\\n") + output,
+            self._tr("Plik zapisano w:\n", "File saved to:\n") + output,
         )
 
     def _operation_error(self, operation, exc):
@@ -452,7 +452,7 @@ class HelixLockApp(tk.Tk):
         self.status.set(self._tr(operation + " nie powiodło się. " + hint,
                                  operation + " failed. " + hint))
         messagebox.showerror(self._tr("Nie udało się", "Operation failed"),
-                             str(exc) + "\\n\\n" + hint)
+                             str(exc) + "\n\n" + hint)
 
     def _encrypt(self):
         try:
