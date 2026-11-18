@@ -22,12 +22,12 @@ Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed u
 - **Szyfrowanie plików** — AES-256-GCM, klucz 32-bajtowy lub hasło wyprowadzane przez scrypt.
 - **Odzyskiwanie nazwy pliku** — oryginalna nazwa i rozszerzenie mogą być zapisane wewnątrz zaszyfrowanej zawartości.
 - **Kompresja przed szyfrowaniem** — opcjonalny gzip, stosowany tylko wtedy, gdy zmniejsza dane.
-- **Aplikacja graficzna** — obsługa plików i kolejki operacji bez konieczności używania terminala.
+- **Aplikacja graficzna** — obsługa plików, wbudowana Pomoc i przełącznik języka bez konieczności używania terminala.
 - **CounterLock** — opcjonalny licznik udanych odczytów związany kryptograficznie z szyfrogramem.
 - **AIRP** — prototypy rotacji kluczy, historii integralności, rejestru zdarzeń i punktów kontrolnych.
 - **TIMDR-Ω** — eksperymentalne formaty HLOM (predyktory i ograniczona naprawa GF(256)) oraz HLOB (kompresja OBX1 + AES-GCM); nie są domyślnym formatem aplikacji ani audytowanym zamiennikiem szyfrowania.
 
-## Co oznaczają przyciski i skróty?
+## Obsługa aplikacji\n\nW głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**) znajduje się bezpośrednio pod wyborem pliku źródłowego. Język interfejsu zmienia się przełącznikiem **PL / EN** w górnym pasku; program nie łączy dwóch języków w jednej etykiecie. Pomoc jest dostępna przyciskiem **Pomoc / Help** lub klawiszem **F1**.\n\nTłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.\n\n## Co oznaczają przyciski i skróty?
 
 Nie wiesz, czym różni się **HLXP od HLXN**, co oznaczają **AIRP, CounterLock, HLOB/HLOM**, albo jak odczytać komunikaty aplikacji?
 
@@ -37,7 +37,7 @@ Przejdź do **[przewodnika „Co oznacza co?”](docs/README_CO_OZNACZA_CO.md)**
 
 ```bash
 python -m pip install cryptography pytest
-python helix_pro_gui.py
+python helix_lock_app.py
 ```
 
 Pełne testy repozytorium: `python -m pytest tests/ -q`. Ich wynik zależy od środowiska i aktualnej wersji kodu.
