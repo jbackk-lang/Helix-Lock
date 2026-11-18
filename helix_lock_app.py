@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from helix_pro.file_identification import identify_header
+from helix_pro.safe_output import atomic_file_result, validate_distinct_paths
 from helix_pro.airp_identity import AIRPIdentityManager
 from helix_pro.airp_key_fingerprint import (
     KeyFingerprint, create_key_fingerprint, representation_fingerprint_file,
@@ -27,6 +28,11 @@ from helix_pro.cipher import (
     HelixProError, decrypt_bytes_with_name, decrypt_file, detect_format,
     encrypt_file_with_name, generate_key,
 )
+
+def open_write_bytes(path: str, data: bytes) -> None:
+    with open(path, "wb") as stream:
+        stream.write(data)
+
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_LEDGER = os.path.join(os.path.expanduser("~"), ".helix_lock", "identity.sqlite3")
@@ -323,14 +329,14 @@ class HelixLockApp(tk.Tk):
             kwargs = self._read_key()
             out = filedialog.asksaveasfilename(title=self._tr("Zapisz zaszyfrowany plik", "Save encrypted file"), initialfile=os.path.basename(src)+".helixpro", defaultextension=".helixpro")
             if not out: return
-            if os.path.abspath(out) == os.path.abspath(src): raise HelixProError(self._tr("Plik wynikowy nie może być źródłowym.", "Output file must differ from source file."))
+            validate_distinct_paths(src, out)
             if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
-            encrypt_file_with_name(src, out, compress=True, **kwargs)
+            atomic_file_result(src, out, lambda temporary: encrypt_file_with_name(src, temporary, compress=True, **kwargs))
             self.source.set(out)
             self.refresh_dashboard()
             self.status.set(self._tr("Szyfrowanie zakończone. Oryginalna nazwa jest zapisana wewnątrz szyfrogramu.", "Encryption complete. Original filename is stored inside the ciphertext."))
             messagebox.showinfo("Helix-Lock", self._tr("Plik został zaszyfrowany.", "File encrypted."))
-        except (OSError, HelixProError) as exc: messagebox.showerror(self._tr("Szyfrowanie", "Encryption"), str(exc))
+        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("Szyfrowanie", "Encryption"), str(exc))
 
     def _decrypt(self):
         try:
@@ -344,17 +350,18 @@ class HelixLockApp(tk.Tk):
                 name, data = decrypt_bytes_with_name(src, **kwargs)
                 out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=name)
                 if not out: return
+                validate_distinct_paths(src, out)
                 if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
-                with open(out, "xb" if not os.path.exists(out) else "wb") as f: f.write(data)
+                atomic_file_result(src, out, lambda temporary: open_write_bytes(temporary, data))
             else:
                 out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=os.path.basename(src).removesuffix(".helixpro"))
                 if not out: return
                 if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
-                decrypt_file(src, out, **kwargs)
+                atomic_file_result(src, out, lambda temporary: decrypt_file(src, temporary, **kwargs))
             self.refresh_dashboard()
             self.status.set(self._tr("Deszyfrowanie zakończone.", "Decryption complete."))
             messagebox.showinfo("Helix-Lock", self._tr("Plik został odszyfrowany.", "File decrypted."))
-        except (OSError, HelixProError) as exc: messagebox.showerror(self._tr("Deszyfrowanie", "Decryption"), str(exc))
+        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("Deszyfrowanie", "Decryption"), str(exc))
 
     def _create_fingerprint(self):
         try:
