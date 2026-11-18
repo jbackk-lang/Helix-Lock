@@ -94,6 +94,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: Helix-Lock ${{ github.ref_name }}
           generate_release_notes: true
+          prerelease: true
+          make_latest: false
           fail_on_unmatched_files: true
           files: |
             publish/HelixLock-windows.zip
