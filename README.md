@@ -27,6 +27,12 @@ Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed u
 - **AIRP** — prototypy rotacji kluczy, historii integralności, rejestru zdarzeń i punktów kontrolnych.
 - **TIMDR-Ω** — eksperymentalne formaty HLOM (predyktory i ograniczona naprawa GF(256)) oraz HLOB (kompresja OBX1 + AES-GCM); nie są domyślnym formatem aplikacji ani audytowanym zamiennikiem szyfrowania.
 
+## Co oznaczają przyciski i skróty?
+
+Nie wiesz, czym różni się **HLXP od HLXN**, co oznaczają **AIRP, CounterLock, HLOB/HLOM**, albo jak odczytać komunikaty aplikacji?
+
+Przejdź do **[przewodnika „Co oznacza co?”](docs/README_CO_OZNACZA_CO.md)** — znajdziesz tam opis przycisków, formatów plików, wskaźników bezpieczeństwa oraz instrukcje szyfrowania i odszyfrowywania.
+
 ## Uruchomienie z kodu źródłowego
 
 ```bash
