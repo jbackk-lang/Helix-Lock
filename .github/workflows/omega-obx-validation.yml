@@ -12,6 +12,7 @@ on:
       - "tests/test_omega_block*.py"
       - "tests/test_timdr_obx_cipher.py"
       - "tests/test_compare_hlob_hlom.py"
+      - "tests/test_omega_fixture_corpus.py"
       - ".github/workflows/omega-obx-validation.yml"
   pull_request:
     paths:
@@ -48,7 +49,8 @@ jobs:
             tests/test_omega_block_codec_hardening.py \
             tests/test_omega_block_files.py \
             tests/test_timdr_obx_cipher.py \
-            tests/test_compare_hlob_hlom.py
+            tests/test_compare_hlob_hlom.py \
+            tests/test_omega_fixture_corpus.py
       - name: Compare HLOB and HLOM on deterministic CI fixtures
         run: |
           python -m benchmarks.omega_fixture_corpus --directory omega-ci-corpus --size 32768 --seed 42 > omega-ci-corpus-generation.json
