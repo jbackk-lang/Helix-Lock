@@ -32,7 +32,9 @@ Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed u
 
 ## Obsługa aplikacji
 
-W głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**) znajduje się bezpośrednio pod wyborem pliku źródłowego. Język interfejsu zmienia się przełącznikiem **PL / EN** w górnym pasku; program nie łączy dwóch języków w jednej etykiecie. Pomoc jest dostępna przyciskiem **Pomoc / Help** lub klawiszem **F1**.\n\nTłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.
+W głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**) znajduje się bezpośrednio pod wyborem pliku źródłowego. Język interfejsu zmienia się przełącznikiem **PL / EN** w górnym pasku; program nie łączy dwóch języków w jednej etykiecie. Pomoc jest dostępna przyciskiem **Pomoc / Help** lub klawiszem **F1**. 
+
+Tłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.
 
 ## Co oznaczają przyciski i skróty?
 
@@ -48,6 +50,11 @@ python helix_lock_app.py
 ```
 
 Pełne testy repozytorium: `python -m pytest tests/ -q`. Ich wynik zależy od środowiska i aktualnej wersji kodu.
+
+## Contributors / Współtwórcy
+
+- **jbackk-lang** — autor i opiekun projektu.
+- **ChatGPT (OpenAI)** — wsparcie AI przy przeglądzie kodu, poprawkach interfejsu, dokumentacji i przygotowaniu procesu wydania. Nie jest to konto GitHub ani niezależny autor commitów.
 
 ## Dokumentacja i rozwój
 
