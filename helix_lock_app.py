@@ -60,6 +60,7 @@ class HelixLockApp(tk.Tk):
         self.anchor_text = tk.StringVar()
         self._style()
         self._build()
+        self.bind_all("<F1>", self._show_help)
 
     def _tr(self, polish, english):
         # Windows users asked for bilingual labels; Linux/macOS keep concise English UI.
@@ -102,7 +103,7 @@ class HelixLockApp(tk.Tk):
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
         tk.Label(bar, textvariable=self.status, bg="#0C1421", fg=MUTED, anchor="w", padx=16, pady=10).pack(fill="x")
 
-    def _show_help(self):
+    def _show_help(self, _event=None):
         """Offline help: explain the controls without requiring a web browser."""
         if getattr(self, "_help_window", None) is not None and self._help_window.winfo_exists():
             self._help_window.lift()
@@ -125,6 +126,13 @@ class HelixLockApp(tk.Tk):
         scrollbar.pack(side="right", fill="y")
         text.pack(side="left", fill="both", expand=True)
         sections = [
+            ("SZYBKI START / QUICK START",
+             "1. W zakładce Pliki wybierz plik źródłowy.\\n"
+             "2. Wybierz plik-klucz (32 bajty) lub hasło.\\n"
+             "3. Kliknij Szyfruj, wskaż miejsce zapisu i zachowaj oryginał.\\n"
+             "4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz/hasło i kliknij Odszyfruj.\\n"
+             "5. Sprawdź odzyskany plik, zanim usuniesz kopie zapasowe.\\n"
+             "Skrót F1 otwiera tę pomoc z dowolnej zakładki."),
             ("FILES / PLIKI", "Source file / Plik źródłowy: wybierz plik do przetworzenia.\n"
              "Key file / Plik-klucz: tajny plik zawierający 32 bajty.\n"
              "Password / Hasło: alternatywa dla pliku-klucza.\n"
@@ -156,6 +164,12 @@ class HelixLockApp(tk.Tk):
             text.insert("end", heading + "\n", "heading")
             text.insert("end", body + "\n\n")
         text.configure(state="disabled")
+        actions = ttk.Frame(window)
+        actions.pack(fill="x", padx=16, pady=(0, 12))
+        ttk.Button(actions, text=self._tr("Przejdź do plików", "Go to files"),
+                   command=lambda: (self.tabs.select(self.file_tab), window.destroy())).pack(side="left")
+        ttk.Button(actions, text=self._tr("Zamknij", "Close"),
+                   command=window.destroy).pack(side="right")
         window.bind("<Escape>", lambda _event: window.destroy())
 
     def _logo(self, parent):
