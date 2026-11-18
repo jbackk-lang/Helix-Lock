@@ -36,6 +36,12 @@ W głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**)
 
 Tłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.
 
+## Języki — prace nad v0.1.3 Beta
+
+W gałęzi rozwojowej v0.1.3 przygotowywany jest wybór języka według regionów **Europa / Ameryka / Azja**. Regiony porządkują listę, ale nie ograniczają wyboru użytkownika. Ustawienie języka jest zapamiętywane lokalnie w `~/.helix_lock/ui-settings.json`.
+
+**Uwaga:** lista dostępnych języków nie oznacza jeszcze pełnego tłumaczenia. Polski i angielski są językami bazowymi; dla pozostałych brakujące teksty wyświetlane są po angielsku do czasu przygotowania i weryfikacji tłumaczeń. Dotyczy to również komunikatów bezpieczeństwa.
+
 ## Co oznaczają przyciski i skróty?
 
 Nie wiesz, czym różni się **HLXP od HLXN**, co oznaczają **AIRP, CounterLock, HLOB/HLOM**, albo jak odczytać komunikaty aplikacji?
