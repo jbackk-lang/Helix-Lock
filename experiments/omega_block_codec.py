@@ -79,12 +79,19 @@ def pack(data: bytes, block_size: int = 32768) -> bytes:
     return bytes(out)
 
 
-def unpack(archive: bytes) -> bytes:
+def unpack(archive: bytes, *, max_output_bytes: int = 256 * 1024 * 1024) -> bytes:
+    """Decode OBX1 with a caller-controlled output limit (default 256 MiB)."""
+    if not isinstance(max_output_bytes, int) or isinstance(max_output_bytes, bool) or max_output_bytes < 0:
+        raise ValueError("invalid output limit")
     if len(archive) < HEADER.size:
         raise ValueError("truncated header")
     magic, total, count = HEADER.unpack_from(archive)
     if magic != MAGIC or count > total or (total == 0) != (count == 0):
         raise ValueError("invalid header")
+    if total > max_output_bytes:
+        raise ValueError("declared output exceeds limit")
+    if count > (len(archive) - HEADER.size) // (ENTRY.size + 8):
+        raise ValueError("impossible block count")
     output = bytearray()
     offset = HEADER.size
     for _ in range(count):
@@ -92,12 +99,17 @@ def unpack(archive: bytes) -> bytes:
             raise ValueError("truncated entry")
         mode, raw_len, comp_len = ENTRY.unpack_from(archive, offset)
         offset += ENTRY.size
-        if mode not in MODES or not 1 <= raw_len <= MAX_BLOCK or comp_len > len(archive) - offset:
+        if (mode not in MODES or not 1 <= raw_len <= MAX_BLOCK
+                or comp_len < 8 or comp_len > len(archive) - offset
+                or raw_len > total - len(output)):
             raise ValueError("invalid entry")
         compressed = archive[offset:offset + comp_len]
         offset += comp_len
         obj = zlib.decompressobj()
-        transformed = obj.decompress(compressed, raw_len + 1)
+        try:
+            transformed = obj.decompress(compressed, raw_len + 1)
+        except zlib.error as exc:
+            raise ValueError("invalid compressed block") from exc
         if len(transformed) != raw_len or not obj.eof or obj.unused_data or obj.unconsumed_tail:
             raise ValueError("invalid compressed block")
         block = _decode(transformed, mode)
