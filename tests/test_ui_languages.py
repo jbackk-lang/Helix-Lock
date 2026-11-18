@@ -69,7 +69,7 @@ def test_f1_help_localized_in_first_three_languages():
         "Losing the key or password may make recovery impossible.\n"
         "Helix-Lock is beta software and has not undergone an independent security audit."
     )
-    for locale in ("de", "fr", "es", "es-419", "ja", "zh-CN", "ko"):
+    for locale in ("de", "fr", "es", "es-419", "ja", "zh-CN", "ko", "it", "pt", "pt-BR", "uk"):
         translated = translate(locale, english)
         assert translated != english
         assert "Helix-Lock" in translated
