@@ -40,6 +40,7 @@ Pełne testy repozytorium: `python -m pytest tests/ -q`. Ich wynik zależy od ś
 
 - [**Pełna dokumentacja techniczna — README_DETAILS.md**](README_DETAILS.md) — API, przykłady, AIRP, CounterLock, Chronoproces, TIMDR, bezpieczeństwo i ograniczenia.
 - [Plan testów wydania](docs/RELEASE_CHECKLIST.md) — budowanie, testy i dystrybucja.
+- [**TIMDR-Ω — formaty HLOB i HLOM**](docs/TIMDR_OMEGA_GUIDE.md) — instrukcje, możliwości, testy i ograniczenia.
 - [Plan integracji TIMDR](docs/TIMDR_INTEGRATION.md) — architektura i hipotezy.
 - [Granice pamięci Chronoprocesu](docs/CHRONOPROCESS_MEMORY_BOUNDARIES.md).
 - [Wydania GitHub](https://github.com/jbackk-lang/Helix-Lock/releases) i [wyniki GitHub Actions](https://github.com/jbackk-lang/Helix-Lock/actions).
