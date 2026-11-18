@@ -79,14 +79,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd release-assets
-          test -s HelixLock-windows/HelixLock-windows.zip
-          test -s HelixLock-macos/HelixLock-macos.zip
-          test -s HelixLock-linux/HelixLock-linux.tar.gz
-          sha256sum \\
-            HelixLock-windows/HelixLock-windows.zip \\
-            HelixLock-macos/HelixLock-macos.zip \\
-            HelixLock-linux/HelixLock-linux.tar.gz > SHA256SUMS.txt
+          mkdir -p publish
+          cp release-assets/HelixLock-windows/HelixLock-windows.zip publish/
+          cp release-assets/HelixLock-macos/HelixLock-macos.zip publish/
+          cp release-assets/HelixLock-linux/HelixLock-linux.tar.gz publish/
+          cd publish
+          test -s HelixLock-windows.zip
+          test -s HelixLock-macos.zip
+          test -s HelixLock-linux.tar.gz
+          sha256sum HelixLock-windows.zip HelixLock-macos.zip HelixLock-linux.tar.gz > SHA256SUMS.txt
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
@@ -95,7 +96,7 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
-            release-assets/HelixLock-windows/HelixLock-windows.zip
-            release-assets/HelixLock-macos/HelixLock-macos.zip
-            release-assets/HelixLock-linux/HelixLock-linux.tar.gz
-            release-assets/SHA256SUMS.txt
+            publish/HelixLock-windows.zip
+            publish/HelixLock-macos.zip
+            publish/HelixLock-linux.tar.gz
+            publish/SHA256SUMS.txt
