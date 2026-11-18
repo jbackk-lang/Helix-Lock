@@ -36,8 +36,13 @@ def compress_branches(data: bytes, lanes: int, level: int = 6) -> int:
     """Sum separate zlib streams; 1-byte framing estimate per branch."""
     if lanes not in LANES:
         raise ValueError("invalid lanes")
-    return sum(len(zlib.compress(data[i::lanes], level)) + 1
-               for i in range(lanes))
+    lengths = [len(range(i, len(data), lanes)) for i in range(lanes)]
+    offset = 0
+    total = 0
+    for length in lengths:
+        total += len(zlib.compress(data[offset:offset + length], level)) + 1
+        offset += length
+    return total
 
 
 def search(data: bytes, level: int = 6) -> dict:
