@@ -393,46 +393,105 @@ class HelixLockApp(tk.Tk):
         self.key_file.set(path); self.mode.set("key"); self._refresh_mode()
         self.status.set(self._tr("Wygenerowano klucz. Zrób bezpieczną kopię poza urządzeniem.", "Key generated. Store a secure backup away from this device."))
 
+    def _confirm_output(self, source, destination):
+        """Never overwrite the input, even via a hard-link or symlink."""
+        validate_distinct_paths(source, destination)
+        if not os.path.exists(destination):
+            return True
+        return messagebox.askyesno(
+            self._tr("Potwierdź nadpisanie", "Confirm overwrite"),
+            self._tr(
+                "Plik docelowy już istnieje:\\n" + destination +
+                "\\n\\nPo pomyślnym zakończeniu operacji zostanie zastąpiony. Kontynuować?",
+                "The destination already exists:\\n" + destination +
+                "\\n\\nIt will be replaced only after the operation succeeds. Continue?"
+            ),
+        )
+
+    def _operation_success(self, operation, output):
+        self.status.set(self._tr(
+            operation + " zakończone. Zapisano: " + output,
+            operation + " complete. Saved to: " + output
+        ))
+        messagebox.showinfo(
+            self._tr("Operacja zakończona", "Operation complete"),
+            self._tr("Plik zapisano w:\\n", "File saved to:\\n") + output,
+        )
+
+    def _operation_error(self, operation, exc):
+        # Show actionable guidance; do not include keys, passwords or file contents.
+        if isinstance(exc, PermissionError):
+            hint = self._tr("Sprawdź uprawnienia do katalogu docelowego.",
+                            "Check permissions for the destination folder.")
+        elif isinstance(exc, FileNotFoundError):
+            hint = self._tr("Sprawdź, czy wskazany plik lub katalog nadal istnieje.",
+                            "Check that the selected file or folder still exists.")
+        elif isinstance(exc, HelixProError):
+            hint = self._tr("Sprawdź poprawność klucza/hasła i czy plik nie jest uszkodzony.",
+                            "Check the key/password and whether the file is damaged.")
+        else:
+            hint = self._tr("Sprawdź ścieżkę i wolne miejsce na dysku.",
+                            "Check the path and available disk space.")
+        self.status.set(self._tr(operation + " nie powiodło się. " + hint,
+                                 operation + " failed. " + hint))
+        messagebox.showerror(self._tr("Nie udało się", "Operation failed"),
+                             str(exc) + "\\n\\n" + hint)
+
     def _encrypt(self):
         try:
             src = self.source.get()
-            if not src or not os.path.isfile(src): raise HelixProError(self._tr("Wybierz istniejący plik.", "Select an existing file."))
+            if not src or not os.path.isfile(src):
+                raise HelixProError(self._tr("Wybierz istniejący plik.", "Select an existing file."))
             kwargs = self._read_key()
-            out = filedialog.asksaveasfilename(title=self._tr("Zapisz zaszyfrowany plik", "Save encrypted file"), initialfile=os.path.basename(src)+".helixpro", defaultextension=".helixpro")
-            if not out: return
-            validate_distinct_paths(src, out)
-            if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
-            atomic_file_result(src, out, lambda temporary: encrypt_file_with_name(src, temporary, compress=True, **kwargs))
+            out = filedialog.asksaveasfilename(
+                title=self._tr("Zapisz zaszyfrowany plik", "Save encrypted file"),
+                initialfile=os.path.basename(src) + ".helixpro",
+                defaultextension=".helixpro",
+            )
+            if not out or not self._confirm_output(src, out):
+                return
+            atomic_file_result(src, out, lambda temporary: encrypt_file_with_name(
+                src, temporary, compress=True, **kwargs))
             self.source.set(out)
             self.refresh_dashboard()
-            self.status.set(self._tr("Szyfrowanie zakończone. Oryginalna nazwa jest zapisana wewnątrz szyfrogramu.", "Encryption complete. Original filename is stored inside the ciphertext."))
-            messagebox.showinfo("Helix-Lock", self._tr("Plik został zaszyfrowany.", "File encrypted."))
-        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("Szyfrowanie", "Encryption"), str(exc))
+            self._operation_success(self._tr("Szyfrowanie", "Encryption"), out)
+        except (OSError, ValueError, HelixProError) as exc:
+            self._operation_error(self._tr("Szyfrowanie", "Encryption"), exc)
 
     def _decrypt(self):
         try:
             src = self.source.get()
-            if not src or not os.path.isfile(src): raise HelixProError(self._tr("Wybierz istniejący plik.", "Select an existing file."))
+            if not src or not os.path.isfile(src):
+                raise HelixProError(self._tr("Wybierz istniejący plik.", "Select an existing file."))
             fmt = detect_format(src)
-            if fmt == "unknown": raise HelixProError(self._tr("Nie rozpoznano formatu Helix-Lock.", "Unrecognized Helix-Lock format."))
-            if fmt == "counter": raise HelixProError(self._tr("Format CounterLock wymaga weryfikacji licznika przez AIRPCounterLock i trwały rejestr. Odszyfrowanie bez tej kontroli jest zablokowane.", "CounterLock requires AIRPCounterLock and a durable ledger check. Decryption is blocked without that check."))
+            if fmt == "unknown":
+                raise HelixProError(self._tr(
+                    "Nie rozpoznano formatu obsługiwanego przez standardowe odszyfrowywanie.",
+                    "File format is not supported by standard decryption."))
+            if fmt == "counter":
+                raise HelixProError(self._tr(
+                    "CounterLock wymaga osobnej weryfikacji licznika w trwałym rejestrze.",
+                    "CounterLock requires a separate durable counter-ledger verification."))
             kwargs = self._read_key()
             if fmt == "named":
                 name, data = decrypt_bytes_with_name(src, **kwargs)
-                out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=name)
-                if not out: return
-                validate_distinct_paths(src, out)
-                if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
+                out = filedialog.asksaveasfilename(
+                    title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"),
+                    initialfile=os.path.basename(name))
+                if not out or not self._confirm_output(src, out):
+                    return
                 atomic_file_result(src, out, lambda temporary: open_write_bytes(temporary, data))
             else:
-                out = filedialog.asksaveasfilename(title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"), initialfile=os.path.basename(src).removesuffix(".helixpro"))
-                if not out: return
-                if os.path.exists(out) and not messagebox.askyesno(self._tr("Nadpisanie", "Overwrite"), self._tr("Plik istnieje. Nadpisać?", "File exists. Overwrite?")): return
+                out = filedialog.asksaveasfilename(
+                    title=self._tr("Zapisz odszyfrowany plik", "Save decrypted file"),
+                    initialfile=os.path.basename(src).removesuffix(".helixpro"))
+                if not out or not self._confirm_output(src, out):
+                    return
                 atomic_file_result(src, out, lambda temporary: decrypt_file(src, temporary, **kwargs))
             self.refresh_dashboard()
-            self.status.set(self._tr("Deszyfrowanie zakończone.", "Decryption complete."))
-            messagebox.showinfo("Helix-Lock", self._tr("Plik został odszyfrowany.", "File decrypted."))
-        except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("Deszyfrowanie", "Decryption"), str(exc))
+            self._operation_success(self._tr("Odszyfrowywanie", "Decryption"), out)
+        except (OSError, ValueError, HelixProError) as exc:
+            self._operation_error(self._tr("Odszyfrowywanie", "Decryption"), exc)
 
     def _create_fingerprint(self):
         try:
