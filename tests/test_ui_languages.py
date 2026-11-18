@@ -51,3 +51,13 @@ def test_regional_variants_use_parent_translation():
     assert translate("id", "Password") == "Kata sandi"
     assert translate("vi", "Password") == "Mật khẩu"
     assert translate("th", "Password") == "รหัสผ่าน"
+
+
+def test_file_operation_translations_and_safety_notice():
+    assert translate("de", "Operation failed") == "Vorgang fehlgeschlagen"
+    assert translate("ja", "Confirm overwrite") == "上書きの確認"
+    assert translate("pt-BR", "Save encrypted file") == "Salvar arquivo criptografado"
+    assert "audit" not in translate(
+        "fr", "Helix-Lock is beta software and has not undergone an independent security audit."
+    ).lower()
+    assert translate("es-419", "Operation failed") == translate("es", "Operation failed")
