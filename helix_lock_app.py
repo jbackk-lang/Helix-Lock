@@ -14,6 +14,7 @@ from urllib.parse import quote
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
+from helix_pro.file_identification import identify_header
 from helix_pro.airp_identity import AIRPIdentityManager
 from helix_pro.airp_key_fingerprint import (
     KeyFingerprint, create_key_fingerprint, representation_fingerprint_file,
@@ -154,17 +155,12 @@ class HelixLockApp(tk.Tk):
             try:
                 with open(selected, "rb") as stream:
                     header = stream.read(13)
-                magic = header[:4]
-                if magic == b"HLXC" and len(header) == 13 and header[4] == 1:
-                    file_counter = struct.unpack(">Q", header[5:13])[0]
-                    self.dash_file.set("CounterLock / HLXC")
+                label, file_counter = identify_header(header)
+                self.dash_file.set(label)
+                if file_counter is not None:
                     self.dash_counter.set(str(file_counter) + " (naglowek; niezweryfikowany)")
-                elif magic == b"HLXN":
-                    self.dash_file.set("Helix named / HLXN")
-                elif magic == b"HLXP":
-                    self.dash_file.set("Helix / HLXP")
                 else:
-                    self.dash_file.set(self._tr("Nieznany / zwykly", "Unknown / plain file"))
+                    self.dash_counter.set("—")
             except OSError:
                 self.dash_file.set(self._tr("Nie mozna odczytac", "Cannot read file"))
         else:
