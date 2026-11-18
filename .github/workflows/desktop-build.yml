@@ -26,7 +26,9 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: HelixLock-linux
-          - os: macos-latest
+          # Explicit Intel runner avoids macos-latest ARM64 allocation ambiguity.
+          # This changes the macOS artifact architecture to x86_64.
+          - os: macos-15-intel
             artifact: HelixLock-macos
           - os: windows-latest
             artifact: HelixLock-windows
