@@ -29,9 +29,16 @@ LANGUAGE_NAMES = {
 # Populate each catalog with reviewed strings before marking a locale complete.
 CATALOGS = {"en": {}, "pl": {}}
 
+
+def merge_catalogs(translations: dict) -> None:
+    """Extend existing locales without discarding earlier translated messages."""
+    for locale, messages in translations.items():
+        CATALOGS.setdefault(locale, {}).update(messages)
+
+
 # Initial translations for common controls and validation messages.
 # Remaining strings deliberately fall back to English pending review.
-CATALOGS.update({
+merge_catalogs({
     "de": {
         "Help / Glossary": "Hilfe / Glossar",
         "Security overview": "Sicherheitsübersicht",
@@ -211,7 +218,7 @@ CATALOGS.update({
 })
 
 # Additional initial locale coverage; other messages fall back to English.
-CATALOGS.update({
+merge_catalogs({
     "pt": {
         "Help / Glossary": "Ajuda / Glossário",
         "Security overview": "Visão geral da segurança",
@@ -347,7 +354,7 @@ CATALOGS.update({
 })
 
 # Safety-critical notices and file-operation labels; pending native-speaker review.
-CATALOGS.update({
+merge_catalogs({
     "de": {
         "Operation complete": "Vorgang abgeschlossen",
         "Operation failed": "Vorgang fehlgeschlagen",
@@ -501,7 +508,7 @@ CATALOGS.update({
 })
 
 # Full offline F1 help: first three additional locales, pending language review.
-CATALOGS.update({
+merge_catalogs({
     "de": {
         "1. On the Files tab, select the source file.\n2. Choose a password or a 32-byte key file.\n3. Click Encrypt and choose an output path; keep the original.\n4. To recover data, select the encrypted file, use the same key or password, and click Decrypt.\n5. Check the recovered file before deleting backups.\nF1 opens this help from any tab.": "1. Wählen Sie auf der Registerkarte Dateien die Quelldatei aus.\n2. Wählen Sie ein Passwort oder eine 32-Byte-Schlüsseldatei.\n3. Klicken Sie auf Verschlüsseln und wählen Sie einen Speicherort; bewahren Sie das Original auf.\n4. Wählen Sie zum Wiederherstellen die verschlüsselte Datei und denselben Schlüssel oder dasselbe Passwort, dann Entschlüsseln.\n5. Prüfen Sie die wiederhergestellte Datei, bevor Sie Sicherungen löschen.\nF1 öffnet diese Hilfe auf jeder Registerkarte.",
         "Source file: the file to process.\nKey file: a secret file containing 32 bytes.\nPassword: an alternative to a key file.\nEncrypt: creates an encrypted file.\nDecrypt: restores content after successful authentication.\nGenerate key: creates a new random key.\nOverwrite: replaces an existing output file.": "Quelldatei: zu verarbeitende Datei.\nSchlüsseldatei: geheime Datei mit 32 Byte.\nPasswort: Alternative zur Schlüsseldatei.\nVerschlüsseln: erstellt eine verschlüsselte Datei.\nEntschlüsseln: stellt Inhalte nach erfolgreicher Authentifizierung wieder her.\nSchlüssel erzeugen: erstellt einen neuen Zufallsschlüssel.\nÜberschreiben: ersetzt eine vorhandene Ausgabedatei.",
@@ -526,7 +533,7 @@ CATALOGS.update({
 })
 
 # Complete F1 help for East Asian locales; native-speaker review pending.
-CATALOGS.update({
+merge_catalogs({
     "ja": {
         "1. On the Files tab, select the source file.\n2. Choose a password or a 32-byte key file.\n3. Click Encrypt and choose an output path; keep the original.\n4. To recover data, select the encrypted file, use the same key or password, and click Decrypt.\n5. Check the recovered file before deleting backups.\nF1 opens this help from any tab.": "1. 「ファイル」タブで元のファイルを選択します。\n2. パスワードまたは32バイトの鍵ファイルを選びます。\n3. 「暗号化」をクリックして保存先を指定し、元のファイルを保管してください。\n4. 復元するには暗号化ファイルを選び、同じ鍵またはパスワードを指定して「復号」をクリックします。\n5. バックアップを削除する前に復元したファイルを確認してください。\nF1キーでどのタブからでもこのヘルプを開けます。",
         "Source file: the file to process.\nKey file: a secret file containing 32 bytes.\nPassword: an alternative to a key file.\nEncrypt: creates an encrypted file.\nDecrypt: restores content after successful authentication.\nGenerate key: creates a new random key.\nOverwrite: replaces an existing output file.": "元のファイル：処理対象のファイル。\n鍵ファイル：32バイトの秘密ファイル。\nパスワード：鍵ファイルの代わりに使用できます。\n暗号化：暗号化ファイルを作成します。\n復号：認証に成功した場合に内容を復元します。\n鍵の生成：新しいランダムな鍵を作成します。\n上書き：既存の出力ファイルを置き換えます。",
@@ -551,7 +558,7 @@ CATALOGS.update({
 })
 
 # F1 help in Italian, European Portuguese and Ukrainian; review pending.
-CATALOGS.update({
+merge_catalogs({
     "it": {
         "1. On the Files tab, select the source file.\n2. Choose a password or a 32-byte key file.\n3. Click Encrypt and choose an output path; keep the original.\n4. To recover data, select the encrypted file, use the same key or password, and click Decrypt.\n5. Check the recovered file before deleting backups.\nF1 opens this help from any tab.": "1. Nella scheda File, seleziona il file sorgente.\n2. Scegli una password o un file chiave di 32 byte.\n3. Fai clic su Cifra e scegli dove salvare; conserva l'originale.\n4. Per recuperare i dati, seleziona il file cifrato, usa la stessa chiave o password e fai clic su Decifra.\n5. Controlla il file recuperato prima di eliminare i backup.\nF1 apre questa guida da qualsiasi scheda.",
         "Source file: the file to process.\nKey file: a secret file containing 32 bytes.\nPassword: an alternative to a key file.\nEncrypt: creates an encrypted file.\nDecrypt: restores content after successful authentication.\nGenerate key: creates a new random key.\nOverwrite: replaces an existing output file.": "File sorgente: file da elaborare.\nFile chiave: file segreto contenente 32 byte.\nPassword: alternativa al file chiave.\nCifra: crea un file cifrato.\nDecifra: ripristina i contenuti dopo l'autenticazione.\nGenera chiave: crea una nuova chiave casuale.\nSovrascrivi: sostituisce un file di output esistente.",
@@ -576,7 +583,7 @@ CATALOGS.update({
 })
 
 # F1 help in Hindi, Indonesian, Vietnamese and Thai; native review pending.
-CATALOGS.update({
+merge_catalogs({
     "hi": {
         "1. On the Files tab, select the source file.\n2. Choose a password or a 32-byte key file.\n3. Click Encrypt and choose an output path; keep the original.\n4. To recover data, select the encrypted file, use the same key or password, and click Decrypt.\n5. Check the recovered file before deleting backups.\nF1 opens this help from any tab.": "1. फ़ाइलें टैब में स्रोत फ़ाइल चुनें।\n2. पासवर्ड या 32-बाइट की कुंजी फ़ाइल चुनें।\n3. एन्क्रिप्ट पर क्लिक करें और सहेजने की जगह चुनें; मूल फ़ाइल सुरक्षित रखें।\n4. डेटा वापस पाने के लिए एन्क्रिप्ट की गई फ़ाइल चुनें, वही कुंजी या पासवर्ड दें और डिक्रिप्ट पर क्लिक करें।\n5. बैकअप हटाने से पहले पुनर्प्राप्त फ़ाइल जाँचें।\nकिसी भी टैब से F1 दबाकर यह सहायता खोलें।",
         "Source file: the file to process.\nKey file: a secret file containing 32 bytes.\nPassword: an alternative to a key file.\nEncrypt: creates an encrypted file.\nDecrypt: restores content after successful authentication.\nGenerate key: creates a new random key.\nOverwrite: replaces an existing output file.": "स्रोत फ़ाइल: संसाधित की जाने वाली फ़ाइल।\nकुंजी फ़ाइल: 32 बाइट वाली गोपनीय फ़ाइल।\nपासवर्ड: कुंजी फ़ाइल का विकल्प।\nएन्क्रिप्ट: एन्क्रिप्ट की गई फ़ाइल बनाता है।\nडिक्रिप्ट: सफल प्रमाणीकरण के बाद सामग्री लौटाता है।\nकुंजी बनाएँ: नई यादृच्छिक कुंजी बनाता है।\nओवरराइट: मौजूदा आउटपुट फ़ाइल को बदलता है।",
