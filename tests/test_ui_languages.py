@@ -61,3 +61,16 @@ def test_file_operation_translations_and_safety_notice():
         "fr", "Helix-Lock is beta software and has not undergone an independent security audit."
     ).lower()
     assert translate("es-419", "Operation failed") == translate("es", "Operation failed")
+
+
+def test_f1_help_localized_in_first_three_languages():
+    english = (
+        "Keep backups of the key and original file on a separate device.\n"
+        "Losing the key or password may make recovery impossible.\n"
+        "Helix-Lock is beta software and has not undergone an independent security audit."
+    )
+    for locale in ("de", "fr", "es", "es-419"):
+        translated = translate(locale, english)
+        assert translated != english
+        assert "Helix-Lock" in translated
+        assert len(translated.splitlines()) == 3
