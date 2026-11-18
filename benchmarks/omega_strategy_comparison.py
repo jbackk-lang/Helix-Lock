@@ -40,15 +40,17 @@ def compare(data: bytes) -> dict:
         ("cascade", cascade_search, lambda r: r["best"]["bytes"]),
     )
     results = {}
+    baseline = None
     for name, run, extract in strategies:
         started = time.perf_counter()
         outcome = run(data)
+        if name == "common":
+            baseline = outcome["baseline_zlib_bytes"]
         results[name] = {
             "estimated_bytes": extract(outcome),
             "search_ms": round((time.perf_counter() - started) * 1000, 3),
             "best": outcome["best"],
         }
-    baseline = common_search(data)["baseline_zlib_bytes"]
     winners = sorted(
         [("raw_zlib", baseline)] +
         [(name, result["estimated_bytes"]) for name, result in results.items()],
