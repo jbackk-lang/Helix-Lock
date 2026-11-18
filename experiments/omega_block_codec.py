@@ -25,16 +25,8 @@ def _unsplit(data: bytes, n: int) -> bytes:
 
 
 def _sub(data: bytes, lag: int) -> bytes:
-    """Bytewise modular difference, preserving the existing OBX1 encoding."""
-    # A preallocated buffer avoids per-byte generator yields and repeated
-    # conditional checks for the common i >= lag case.
-    result = bytearray(len(data))
-    prefix = min(lag, len(data))
-    result[:prefix] = data[:prefix]
-    for i in range(prefix, len(data)):
-        result[i] = (data[i] - data[i - lag]) & 255
-    return bytes(result)
-
+    return bytes((value - (data[i - lag] if i >= lag else 0)) & 255
+                 for i, value in enumerate(data))
 
 def _unsub(data: bytes, lag: int) -> bytes:
     result = bytearray()
