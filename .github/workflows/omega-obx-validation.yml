@@ -6,6 +6,7 @@ on:
       - "experiments/omega_block_codec.py"
       - "helix_pro/timdr_obx_cipher.py"
       - "helix_pro/timdr_archive_*.py"
+      - "benchmarks/omega_fixture_corpus.py"
       - "benchmarks/omega_block_files.py"
       - "benchmarks/compare_hlob_hlom.py"
       - "tests/test_omega_block*.py"
@@ -50,12 +51,14 @@ jobs:
             tests/test_compare_hlob_hlom.py
       - name: Compare HLOB and HLOM on deterministic CI fixtures
         run: |
-          python -c "from pathlib import Path; p=Path('omega-ci-fixture.bin'); p.write_bytes(bytes(range(256))*64)"
-          python -m benchmarks.compare_hlob_hlom omega-ci-fixture.bin --repeats 2 --output omega-ci-results.json
+          python -m benchmarks.omega_fixture_corpus --directory omega-ci-corpus --size 32768 --seed 42 > omega-ci-corpus-generation.json
+          python -m benchmarks.compare_hlob_hlom omega-ci-corpus/*.bin --repeats 2 --output omega-ci-results.json
       - name: Upload reproducible comparison output
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: omega-comparison-py${{ matrix.python-version }}
-          path: omega-ci-results.json
+          path: |
+            omega-ci-results.json
+            omega-ci-corpus/manifest.json
           if-no-files-found: ignore
