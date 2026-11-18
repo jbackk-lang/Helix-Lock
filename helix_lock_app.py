@@ -84,6 +84,7 @@ class HelixLockApp(tk.Tk):
         head = tk.Frame(self, bg=BG)
         head.pack(fill="x", padx=22, pady=(18, 12))
         self._logo(head)
+        ttk.Button(head, text=self._tr("Pomoc / Co oznacza co?", "Help / Glossary"), command=self._show_help).pack(side="right", padx=(8, 0), pady=8)
         tk.Label(head, text="HELIX-LOCK", bg=BG, fg=FG, font=("Segoe UI", 22, "bold")).pack(anchor="w", padx=(78, 0), pady=(4, 0))
         tk.Label(head, text=self._tr("Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", "File encryption · Key identity · AIRP trust"), bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
         self.tabs = ttk.Notebook(self)
@@ -100,6 +101,62 @@ class HelixLockApp(tk.Tk):
         self.refresh_dashboard()
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
         tk.Label(bar, textvariable=self.status, bg="#0C1421", fg=MUTED, anchor="w", padx=16, pady=10).pack(fill="x")
+
+    def _show_help(self):
+        """Offline help: explain the controls without requiring a web browser."""
+        if getattr(self, "_help_window", None) is not None and self._help_window.winfo_exists():
+            self._help_window.lift()
+            self._help_window.focus_set()
+            return
+        window = tk.Toplevel(self)
+        self._help_window = window
+        window.title(self._tr("Pomoc — Helix-Lock", "Help — Helix-Lock"))
+        window.geometry("740x610")
+        window.minsize(510, 380)
+        window.configure(bg=BG)
+        content = tk.Frame(window, bg=BG)
+        content.pack(fill="both", expand=True, padx=16, pady=12)
+        tk.Label(content, text=self._tr("Pomoc — co oznacza co?", "Help — what does it mean?"),
+                 bg=BG, fg=FG, font=("Segoe UI", 17, "bold")).pack(anchor="w", pady=(0, 8))
+        text = tk.Text(content, wrap="word", bg=PANEL, fg=FG, insertbackground=FG,
+                       relief="flat", padx=14, pady=12, font=("Segoe UI", 10))
+        scrollbar = ttk.Scrollbar(content, orient="vertical", command=text.yview)
+        text.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        text.pack(side="left", fill="both", expand=True)
+        sections = [
+            ("FILES / PLIKI", "Source file / Plik źródłowy: wybierz plik do przetworzenia.\n"
+             "Key file / Plik-klucz: tajny plik zawierający 32 bajty.\n"
+             "Password / Hasło: alternatywa dla pliku-klucza.\n"
+             "Encrypt / Szyfruj: tworzy zaszyfrowany plik.\n"
+             "Decrypt / Odszyfruj: odzyskuje zawartość po poprawnej weryfikacji.\n"
+             "Generate key / Generuj klucz: tworzy nowy losowy klucz.\n"
+             "Overwrite / Nadpisz: zastępuje istniejący plik wynikowy."),
+            ("FILE FORMATS / FORMATY", "HLXP: podstawowy format szyfrowania.\n"
+             "HLXN: szyfrogram zawierający oryginalną nazwę pliku.\n"
+             "HLXC / CounterLock: format z licznikiem odczytów; wymaga osobnej kontroli rejestru.\n"
+             "HLOB: eksperymentalna kompresja OBX1 + AES-GCM.\n"
+             "HLOM: eksperymentalny format Omega z ograniczoną naprawą GF(256).\n"
+             "OBX1: sam kodek kompresji — NIE szyfruje.\n"
+             "HLOB i HLOM są rozpoznawane w panelu, ale nie są standardowymi trybami przycisku Decrypt."),
+            ("SECURITY / BEZPIECZEŃSTWO", "AIRP: eksperymentalny rejestr tożsamości kluczy i zdarzeń.\n"
+             "Chain / Łańcuch: lokalna spójność wpisów.\n"
+             "Sequence / Sekwencja: liczba zdarzeń.\n"
+             "Checkpoint: punkt kontrolny; wymaga niezależnej weryfikacji.\n"
+             "Trust Anchor: zewnętrzny punkt zaufania.\n"
+             "Quorum: wymagana większość niezależnych świadków.\n"
+             "Fingerprint / Odcisk: identyfikator klucza lub szyfrogramu, NIE klucz.\n"
+             "File format: rozpoznanie nagłówka, NIE potwierdzenie autentyczności."),
+            ("IMPORTANT / WAŻNE", "Przechowuj kopię klucza i oryginału poza urządzeniem.\n"
+             "Utrata klucza lub hasła może uniemożliwić odzyskanie pliku.\n"
+             "Helix-Lock jest w wersji beta i nie przeszedł niezależnego audytu bezpieczeństwa.")
+        ]
+        text.tag_configure("heading", foreground=ACCENT, font=("Segoe UI", 11, "bold"), spacing1=12, spacing3=5)
+        for heading, body in sections:
+            text.insert("end", heading + "\n", "heading")
+            text.insert("end", body + "\n\n")
+        text.configure(state="disabled")
+        window.bind("<Escape>", lambda _event: window.destroy())
 
     def _logo(self, parent):
         c = tk.Canvas(parent, width=66, height=66, bg=BG, highlightthickness=0)
