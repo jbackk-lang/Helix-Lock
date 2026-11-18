@@ -190,38 +190,16 @@ class HelixLockApp(tk.Tk):
         scrollbar.pack(side="right", fill="y")
         text.pack(side="left", fill="both", expand=True)
         sections = [
-            ("SZYBKI START / QUICK START",
-             "1. W zakładce Pliki wybierz plik źródłowy.\n"
-             "2. Wybierz plik-klucz (32 bajty) lub hasło.\n"
-             "3. Kliknij Szyfruj, wskaż miejsce zapisu i zachowaj oryginał.\n"
-             "4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz/hasło i kliknij Odszyfruj.\n"
-             "5. Sprawdź odzyskany plik, zanim usuniesz kopie zapasowe.\n"
-             "Skrót F1 otwiera tę pomoc z dowolnej zakładki."),
-            ("FILES / PLIKI", "Source file / Plik źródłowy: wybierz plik do przetworzenia.\n"
-             "Key file / Plik-klucz: tajny plik zawierający 32 bajty.\n"
-             "Password / Hasło: alternatywa dla pliku-klucza.\n"
-             "Encrypt / Szyfruj: tworzy zaszyfrowany plik.\n"
-             "Decrypt / Odszyfruj: odzyskuje zawartość po poprawnej weryfikacji.\n"
-             "Generate key / Generuj klucz: tworzy nowy losowy klucz.\n"
-             "Overwrite / Nadpisz: zastępuje istniejący plik wynikowy."),
-            ("FILE FORMATS / FORMATY", "HLXP: podstawowy format szyfrowania.\n"
-             "HLXN: szyfrogram zawierający oryginalną nazwę pliku.\n"
-             "HLXC / CounterLock: format z licznikiem odczytów; wymaga osobnej kontroli rejestru.\n"
-             "HLOB: eksperymentalna kompresja OBX1 + AES-GCM.\n"
-             "HLOM: eksperymentalny format Omega z ograniczoną naprawą GF(256).\n"
-             "OBX1: sam kodek kompresji — NIE szyfruje.\n"
-             "HLOB i HLOM są rozpoznawane w panelu, ale nie są standardowymi trybami przycisku Decrypt."),
-            ("SECURITY / BEZPIECZEŃSTWO", "AIRP: eksperymentalny rejestr tożsamości kluczy i zdarzeń.\n"
-             "Chain / Łańcuch: lokalna spójność wpisów.\n"
-             "Sequence / Sekwencja: liczba zdarzeń.\n"
-             "Checkpoint: punkt kontrolny; wymaga niezależnej weryfikacji.\n"
-             "Trust Anchor: zewnętrzny punkt zaufania.\n"
-             "Quorum: wymagana większość niezależnych świadków.\n"
-             "Fingerprint / Odcisk: identyfikator klucza lub szyfrogramu, NIE klucz.\n"
-             "File format: rozpoznanie nagłówka, NIE potwierdzenie autentyczności."),
-            ("IMPORTANT / WAŻNE", "Przechowuj kopię klucza i oryginału poza urządzeniem.\n"
-             "Utrata klucza lub hasła może uniemożliwić odzyskanie pliku.\n"
-             "Helix-Lock jest w wersji beta i nie przeszedł niezależnego audytu bezpieczeństwa.")
+            (self._tr("SZYBKI START", "QUICK START"),
+             self._tr("1. W zakładce Pliki wybierz plik źródłowy.\n2. Wybierz hasło lub plik-klucz (32 bajty).\n3. Kliknij Szyfruj i wskaż miejsce zapisu; zachowaj oryginał.\n4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz lub hasło i kliknij Odszyfruj.\n5. Sprawdź odzyskany plik przed usunięciem kopii zapasowych.\nF1 otwiera tę pomoc z dowolnej zakładki.", "1. On the Files tab, select the source file.\n2. Choose a password or a 32-byte key file.\n3. Click Encrypt and choose an output path; keep the original.\n4. To recover data, select the encrypted file, use the same key or password, and click Decrypt.\n5. Check the recovered file before deleting backups.\nF1 opens this help from any tab.")),
+            (self._tr("PLIKI", "FILES"),
+             self._tr("Plik źródłowy: plik do przetworzenia.\nPlik-klucz: tajny plik zawierający 32 bajty.\nHasło: alternatywa dla pliku-klucza.\nSzyfruj: tworzy zaszyfrowany plik.\nOdszyfruj: odzyskuje zawartość po poprawnej weryfikacji.\nGeneruj klucz: tworzy nowy losowy klucz.\nNadpisz: zastępuje istniejący plik wynikowy.", "Source file: the file to process.\nKey file: a secret file containing 32 bytes.\nPassword: an alternative to a key file.\nEncrypt: creates an encrypted file.\nDecrypt: restores content after successful authentication.\nGenerate key: creates a new random key.\nOverwrite: replaces an existing output file.")),
+            (self._tr("FORMATY PLIKÓW", "FILE FORMATS"),
+             self._tr("HLXP: podstawowy format szyfrowania.\nHLXN: szyfrogram z oryginalną nazwą pliku.\nHLXC / CounterLock: format z licznikiem odczytów; wymaga osobnej kontroli rejestru.\nHLOB: eksperymentalna kompresja OBX1 + AES-GCM.\nHLOM: eksperymentalny format Omega z ograniczoną naprawą GF(256).\nOBX1: sam kodek kompresji — NIE szyfruje.\nHLOB i HLOM nie są standardowymi trybami przycisku Odszyfruj.", "HLXP: basic encryption format.\nHLXN: encrypted container with the original filename.\nHLXC / CounterLock: read-counter format; requires separate ledger verification.\nHLOB: experimental OBX1 compression plus AES-GCM.\nHLOM: experimental Omega format with limited GF(256) repair.\nOBX1: compression codec only — NOT encryption.\nHLOB and HLOM are not standard modes of the Decrypt button.")),
+            (self._tr("BEZPIECZEŃSTWO", "SECURITY"),
+             self._tr("AIRP: eksperymentalny rejestr tożsamości kluczy i zdarzeń.\nŁańcuch: lokalna spójność wpisów.\nSekwencja: liczba zdarzeń.\nCheckpoint: punkt kontrolny wymagający niezależnej weryfikacji.\nTrust Anchor: zewnętrzny punkt zaufania.\nQuorum: wymagana większość niezależnych świadków.\nOdcisk: identyfikator klucza lub szyfrogramu, NIE klucz.\nFormat pliku: rozpoznanie nagłówka, NIE potwierdzenie autentyczności.", "AIRP: experimental key identity and event ledger.\nChain: local consistency of ledger entries.\nSequence: number of events.\nCheckpoint: requires independent verification.\nTrust Anchor: external trust reference.\nQuorum: required majority of independent witnesses.\nFingerprint: identifier of a key or ciphertext, NOT the secret key.\nFile format: header detection, NOT proof of authenticity.")),
+            (self._tr("WAŻNE", "IMPORTANT"),
+             self._tr("Przechowuj kopię klucza i oryginału poza urządzeniem.\nUtrata klucza lub hasła może uniemożliwić odzyskanie pliku.\nHelix-Lock jest w wersji beta i nie przeszedł niezależnego audytu bezpieczeństwa.", "Keep backups of the key and original file on a separate device.\nLosing the key or password may make recovery impossible.\nHelix-Lock is beta software and has not undergone an independent security audit."))
         ]
         text.tag_configure("heading", foreground=ACCENT, font=("Segoe UI", 11, "bold"), spacing1=12, spacing3=5)
         for heading, body in sections:
