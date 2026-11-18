@@ -14,7 +14,7 @@ from urllib.parse import quote
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from helix_pro.file_identification import identify_header
+from helix_pro.ui_languages import LANGUAGE_NAMES, translate\nfrom helix_pro.file_identification import identify_header
 from helix_pro.safe_output import atomic_file_result, validate_distinct_paths
 from helix_pro.airp_identity import AIRPIdentityManager
 from helix_pro.airp_key_fingerprint import (
@@ -46,7 +46,7 @@ class HelixLockApp(tk.Tk):
         self.geometry("820x690")
         self.minsize(700, 610)
         self.configure(bg=BG)
-        self.source = tk.StringVar()
+        self.language = tk.StringVar(value="pl")\n        self.source = tk.StringVar()
         self.key_file = tk.StringVar()
         self.password = tk.StringVar()
         self.mode = tk.StringVar(value="key")
@@ -98,7 +98,7 @@ class HelixLockApp(tk.Tk):
         self._build_files()
         self._build_fingerprint()
         self._build_trust()
-        self.status = tk.StringVar(value=self._tr("Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.", "Ready. Keys stay on this device."))
+        if not hasattr(self, "status"):\n            self.status = tk.StringVar()\n        self.status.set(self._tr("Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.", "Ready. Keys stay on this device."))
         self.refresh_dashboard()
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
         tk.Label(bar, textvariable=self.status, bg="#0C1421", fg=MUTED, anchor="w", padx=16, pady=10).pack(fill="x")
@@ -300,15 +300,20 @@ class HelixLockApp(tk.Tk):
     def _build_files(self):
         card = self._section(self.file_tab, self._tr("01  Szyfruj / odszyfruj", "01  Encrypt / decrypt"), self._tr("Wybierz plik, sposób uwierzytelnienia i jedną operację. Program sam podpowie nazwę pliku wynikowego.", "Choose a file and an authentication method, then encrypt or decrypt."))
         self._entry(card, self._tr("Plik źródłowy", "Source file"), self.source, browse=self._pick_source)
-        row = tk.Frame(card, bg=PANEL); row.pack(fill="x", padx=14, pady=7)
-        ttk.Radiobutton(row, text=self._tr("Plik-klucz (zalecane)", "Key file (recommended)"), variable=self.mode, value="key", command=self._refresh_mode).pack(side="left")
-        ttk.Radiobutton(row, text=self._tr("Hasło", "Password"), variable=self.mode, value="password", command=self._refresh_mode).pack(side="left", padx=18)
-        self.key_row = tk.Frame(card, bg=PANEL); self.key_row.pack(fill="x")
-        self._entry(self.key_row, "Plik klucza", self.key_file, browse=self._pick_key)
-        ttk.Button(card, text=self._tr("Wygeneruj nowy klucz…", "Generate key…"), command=self._generate_key).pack(anchor="e", padx=14, pady=5)
+        # Keep authentication immediately below the source file, in both modes.
+        auth = tk.Frame(card, bg=PANEL)
+        auth.pack(fill="x", padx=14, pady=(3, 5))
+        ttk.Radiobutton(auth, text=self._tr("Hasło", "Password"), variable=self.mode,
+                        value="password", command=self._refresh_mode).pack(side="left")
+        ttk.Radiobutton(auth, text=self._tr("Plik-klucz", "Key file"), variable=self.mode,
+                        value="key", command=self._refresh_mode).pack(side="left", padx=18)
         self.pass_row = tk.Frame(card, bg=PANEL)
         self._entry(self.pass_row, self._tr("Hasło", "Password"), self.password, secret=True)
-        actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))
+        self.key_row = tk.Frame(card, bg=PANEL)
+        self._entry(self.key_row, self._tr("Plik klucza", "Key file"), self.key_file, browse=self._pick_key)
+        self.generate_key_button = ttk.Button(card, text=self._tr("Wygeneruj nowy klucz…", "Generate key…"),
+                                               command=self._generate_key)
+        actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))\n        self.file_actions = actions
         ttk.Button(actions, text=self._tr("🔒  Szyfruj", "🔒  Encrypt"), style="Accent.TButton", command=self._encrypt).pack(side="left", expand=True, fill="x", padx=(0, 6))
         ttk.Button(actions, text=self._tr("🔓  Odszyfruj", "🔓  Decrypt"), command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
         self._refresh_mode()
