@@ -12,6 +12,7 @@ on:
       - "benchmarks/compare_hlob_hlom.py"
       - "benchmarks/profile_obx_modes.py"
       - "tests/test_omega_block*.py"
+      - "tests/test_omega_sub_compatibility.py"
       - "tests/test_timdr_obx_cipher.py"
       - "tests/test_compare_hlob_hlom.py"
       - "tests/test_omega_fixture_corpus.py"
@@ -25,6 +26,7 @@ on:
       - "benchmarks/omega_block_files.py"
       - "benchmarks/compare_hlob_hlom.py"
       - "tests/test_omega_block*.py"
+      - "tests/test_omega_sub_compatibility.py"
       - "tests/test_timdr_obx_cipher.py"
       - "tests/test_compare_hlob_hlom.py"
       - ".github/workflows/omega-obx-validation.yml"
@@ -50,6 +52,7 @@ jobs:
           python -m pytest -q \
             tests/test_omega_block_codec.py \
             tests/test_omega_block_codec_hardening.py \
+            tests/test_omega_sub_compatibility.py \
             tests/test_omega_block_files.py \
             tests/test_timdr_obx_cipher.py \
             tests/test_compare_hlob_hlom.py \
