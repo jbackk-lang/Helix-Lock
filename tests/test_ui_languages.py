@@ -33,3 +33,21 @@ def test_initial_locale_translations():
     assert translate("zh-CN", "Password") == "密码"
     assert translate("ko", "Password") == "비밀번호"
     assert translate("ja", "Untranslated security notice") == "Untranslated security notice"
+
+
+def test_all_listed_languages_have_core_labels():
+    for code in LANGUAGE_NAMES:
+        assert translate(code, "Password", "Hasło")
+        assert translate(code, "Files", "Pliki")
+        assert translate(code, "Enter a password.", "Wpisz hasło.")
+
+
+def test_regional_variants_use_parent_translation():
+    assert translate("es-419", "Password") == translate("es", "Password")
+    assert translate("en-US", "Password") == "Password"
+    assert translate("pt", "Password") == "Palavra-passe"
+    assert translate("uk", "Password") == "Пароль"
+    assert translate("hi", "Password") == "पासवर्ड"
+    assert translate("id", "Password") == "Kata sandi"
+    assert translate("vi", "Password") == "Mật khẩu"
+    assert translate("th", "Password") == "รหัสผ่าน"
