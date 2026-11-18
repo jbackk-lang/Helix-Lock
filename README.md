@@ -6,7 +6,7 @@
 
 ## Pobierz pliki
 
-Poniższe linki prowadzą do poprzedniego wydania v0.1.1-beta.2. Pakiety v0.1.2 zostaną udostępnione dopiero po zakończeniu kompilacji i weryfikacji sum SHA-256.
+Poniższe linki prowadzą do wcześniej opublikowanych pakietów v0.1.1-beta.2. Kod przygotowany dla v0.1.3 Beta znajduje się w `main`, ale nie oznacza to, że pakiety v0.1.3 zostały opublikowane. Dostępność nowszych wydań i plików instalacyjnych sprawdzaj na stronie wydań GitHub.
 
 
 | System / plik | Pobieranie |
@@ -36,9 +36,11 @@ W głównej aplikacji **Helix-Lock** pole **Hasło** (lub wybór **Plik-klucz**)
 
 Tłumaczenia są obsługiwane przez moduł [`helix_pro/ui_languages.py`](helix_pro/ui_languages.py): angielskie teksty są identyfikatorami, a brakujące tłumaczenia nowych języków mogą korzystać z angielskiego tekstu zastępczego. Dodanie nowego języka wymaga uzupełnienia katalogu tłumaczeń.
 
-## Języki — prace nad v0.1.3 Beta
+## Języki — v0.1.3 Beta (kod w `main`)
 
-W gałęzi rozwojowej v0.1.3 przygotowywany jest wybór języka według regionów **Europa / Ameryka / Azja**. Regiony porządkują listę, ale nie ograniczają wyboru użytkownika. Ustawienie języka jest zapamiętywane lokalnie w `~/.helix_lock/ui-settings.json`.
+W kodzie v0.1.3 przygotowano wybór języka według regionów **Europa / Ameryka / Azja**. Regiony porządkują listę, ale nie ograniczają wyboru użytkownika. Ustawienie języka jest zapamiętywane lokalnie w `~/.helix_lock/ui-settings.json`.
+
+**Poprawka słowników:** kolejne partie tłumaczeń są dopisywane do istniejących słowników językowych, zamiast nadpisywać wcześniej dodane wpisy. Zmiana została scalona w PR #4 (`7af2483`). **Testy dla tego commita nie zostały potwierdzone** — przed użyciem produkcyjnym zalecane jest uruchomienie `python -m pytest tests/ -q` i sprawdzenie [GitHub Actions](https://github.com/jbackk-lang/Helix-Lock/actions).
 
 **Uwaga:** lista dostępnych języków nie oznacza jeszcze pełnego tłumaczenia. Polski i angielski są językami bazowymi; dla pozostałych brakujące teksty wyświetlane są po angielsku do czasu przygotowania i weryfikacji tłumaczeń. Dotyczy to również komunikatów bezpieczeństwa.
 
