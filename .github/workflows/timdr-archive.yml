@@ -33,4 +33,5 @@ jobs:
             tests/test_timdr_archive_hto2.py \
             tests/test_timdr_archive_hto3.py \
             tests/test_timdr_archive_hto4.py \
-            tests/test_timdr_archive_fast.py
+            tests/test_timdr_archive_fast.py \
+            tests/test_timdr_archive_cipher.py
