@@ -22,3 +22,14 @@ def test_regional_catalog_fallback(monkeypatch):
     assert translate("pt-BR", "Encrypt", "Szyfruj") == "Criptografar"
     monkeypatch.setitem(CATALOGS, "pt-BR", {"Encrypt": "Criptografar arquivo"})
     assert translate("pt-BR", "Encrypt", "Szyfruj") == "Criptografar arquivo"
+
+
+def test_initial_locale_translations():
+    assert translate("de", "Password") == "Passwort"
+    assert translate("fr", "Password") == "Mot de passe"
+    assert translate("es", "Password") == "Contraseña"
+    assert translate("pt-BR", "Password") == "Senha"
+    assert translate("ja", "Password") == "パスワード"
+    assert translate("zh-CN", "Password") == "密码"
+    assert translate("ko", "Password") == "비밀번호"
+    assert translate("ja", "Untranslated security notice") == "Untranslated security notice"
