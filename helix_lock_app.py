@@ -14,7 +14,7 @@ from urllib.parse import quote
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from helix_pro.ui_languages import LANGUAGE_NAMES, translate
+from helix_pro.ui_languages import LANGUAGE_NAMES, LANGUAGE_REGIONS, region_for_language, translate
 from helix_pro.file_identification import identify_header
 from helix_pro.safe_output import atomic_file_result, validate_distinct_paths
 from helix_pro.airp_identity import AIRPIdentityManager
@@ -47,7 +47,8 @@ class HelixLockApp(tk.Tk):
         self.geometry("820x690")
         self.minsize(700, 610)
         self.configure(bg=BG)
-        self.language = tk.StringVar(value="pl")
+        self.language = tk.StringVar(value=self._load_language())
+        self.region = tk.StringVar(value=region_for_language(self.language.get()))
         self.source = tk.StringVar()
         self.key_file = tk.StringVar()
         self.password = tk.StringVar()
@@ -64,10 +65,53 @@ class HelixLockApp(tk.Tk):
         self._build()
         self.bind_all("<F1>", self._show_help)
 
+    @staticmethod
+    def _language_settings_path():
+        return os.path.join(os.path.expanduser("~"), ".helix_lock", "ui-settings.json")
+
+    def _load_language(self):
+        try:
+            with open(self._language_settings_path(), encoding="utf-8") as stream:
+                language = json.load(stream).get("language", "pl")
+            return language if language in LANGUAGE_NAMES else "pl"
+        except (OSError, ValueError, TypeError, AttributeError):
+            return "pl"
+
+    def _save_language(self):
+        path = self._language_settings_path()
+        temporary = path + ".tmp"
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(temporary, "w", encoding="utf-8") as stream:
+                json.dump({"language": self.language.get()}, stream)
+            os.replace(temporary, path)
+        except OSError:
+            try:
+                os.unlink(temporary)
+            except OSError:
+                pass
+
+    def _select_region(self, _event=None):
+        region = self.region.get()
+        if region not in LANGUAGE_REGIONS:
+            return
+        if self.language.get() not in LANGUAGE_REGIONS[region]:
+            self.language.set(next(iter(LANGUAGE_REGIONS[region])))
+        self._change_language()
+
+    def _select_language(self, _event=None):
+        label = self.language_choice.get()
+        for code, name in LANGUAGE_REGIONS[self.region.get()].items():
+            if name == label:
+                self.language.set(code)
+                self._change_language()
+                break
+
     def _tr(self, polish, english):
         return translate(self.language.get(), english, polish)
 
     def _change_language(self, *_args):
+        self._save_language()
         if getattr(self, "_help_window", None) is not None and self._help_window.winfo_exists():
             self._help_window.destroy()
         for child in self.winfo_children():
@@ -93,7 +137,16 @@ class HelixLockApp(tk.Tk):
         head = tk.Frame(self, bg=BG)
         head.pack(fill="x", padx=22, pady=(18, 12))
         self._logo(head)
-        ttk.OptionMenu(head, self.language, self.language.get(), *LANGUAGE_NAMES.keys(), command=self._change_language).pack(side="right", padx=(8, 0), pady=8)
+        self.region.set(region_for_language(self.language.get()))
+        self.language_choice = tk.StringVar(value=LANGUAGE_NAMES[self.language.get()])
+        language_menu = ttk.Combobox(head, textvariable=self.language_choice, state="readonly",
+                                     values=list(LANGUAGE_REGIONS[self.region.get()].values()), width=24)
+        language_menu.pack(side="right", padx=(4, 0), pady=8)
+        language_menu.bind("<<ComboboxSelected>>", self._select_language)
+        region_menu = ttk.Combobox(head, textvariable=self.region, state="readonly",
+                                   values=list(LANGUAGE_REGIONS), width=10)
+        region_menu.pack(side="right", padx=(8, 0), pady=8)
+        region_menu.bind("<<ComboboxSelected>>", self._select_region)
         ttk.Button(head, text=self._tr("Pomoc / Co oznacza co?", "Help / Glossary"), command=self._show_help).pack(side="right", padx=(8, 0), pady=8)
         tk.Label(head, text="HELIX-LOCK", bg=BG, fg=FG, font=("Segoe UI", 22, "bold")).pack(anchor="w", padx=(78, 0), pady=(4, 0))
         tk.Label(head, text=self._tr("Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", "File encryption · Key identity · AIRP trust"), bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
