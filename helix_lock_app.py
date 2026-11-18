@@ -14,7 +14,8 @@ from urllib.parse import quote
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from helix_pro.ui_languages import LANGUAGE_NAMES, translate\nfrom helix_pro.file_identification import identify_header
+from helix_pro.ui_languages import LANGUAGE_NAMES, translate
+from helix_pro.file_identification import identify_header
 from helix_pro.safe_output import atomic_file_result, validate_distinct_paths
 from helix_pro.airp_identity import AIRPIdentityManager
 from helix_pro.airp_key_fingerprint import (
@@ -46,10 +47,11 @@ class HelixLockApp(tk.Tk):
         self.geometry("820x690")
         self.minsize(700, 610)
         self.configure(bg=BG)
-        self.language = tk.StringVar(value="pl")\n        self.source = tk.StringVar()
+        self.language = tk.StringVar(value="pl")
+        self.source = tk.StringVar()
         self.key_file = tk.StringVar()
         self.password = tk.StringVar()
-        self.mode = tk.StringVar(value="key")
+        self.mode = tk.StringVar(value="password")
         self.object_id = tk.StringVar(value="my-object")
         self.key_id = tk.StringVar(value="key-v1")
         self.old_key_id = tk.StringVar(value="key-v0")
@@ -63,8 +65,14 @@ class HelixLockApp(tk.Tk):
         self.bind_all("<F1>", self._show_help)
 
     def _tr(self, polish, english):
-        # Windows users asked for bilingual labels; Linux/macOS keep concise English UI.
-        return english + " / " + polish if os.name == "nt" else english
+        return translate(self.language.get(), english, polish)
+
+    def _change_language(self, *_args):
+        if getattr(self, "_help_window", None) is not None and self._help_window.winfo_exists():
+            self._help_window.destroy()
+        for child in self.winfo_children():
+            child.destroy()
+        self._build()
 
     def _style(self):
         style = ttk.Style(self)
@@ -85,6 +93,7 @@ class HelixLockApp(tk.Tk):
         head = tk.Frame(self, bg=BG)
         head.pack(fill="x", padx=22, pady=(18, 12))
         self._logo(head)
+        ttk.OptionMenu(head, self.language, self.language.get(), *LANGUAGE_NAMES.keys(), command=self._change_language).pack(side="right", padx=(8, 0), pady=8)
         ttk.Button(head, text=self._tr("Pomoc / Co oznacza co?", "Help / Glossary"), command=self._show_help).pack(side="right", padx=(8, 0), pady=8)
         tk.Label(head, text="HELIX-LOCK", bg=BG, fg=FG, font=("Segoe UI", 22, "bold")).pack(anchor="w", padx=(78, 0), pady=(4, 0))
         tk.Label(head, text=self._tr("Szyfrowanie plików  ·  Tożsamość kluczy  ·  Zaufanie AIRP", "File encryption · Key identity · AIRP trust"), bg=BG, fg=MUTED, font=("Segoe UI", 10)).pack(anchor="w", padx=(80, 0))
@@ -98,7 +107,9 @@ class HelixLockApp(tk.Tk):
         self._build_files()
         self._build_fingerprint()
         self._build_trust()
-        if not hasattr(self, "status"):\n            self.status = tk.StringVar()\n        self.status.set(self._tr("Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.", "Ready. Keys stay on this device."))
+        if not hasattr(self, "status"):
+            self.status = tk.StringVar()
+        self.status.set(self._tr("Gotowy. Klucze pozostają lokalnie na Twoim urządzeniu.", "Ready. Keys stay on this device."))
         self.refresh_dashboard()
         bar = tk.Frame(self, bg="#0C1421"); bar.pack(fill="x", side="bottom")
         tk.Label(bar, textvariable=self.status, bg="#0C1421", fg=MUTED, anchor="w", padx=16, pady=10).pack(fill="x")
@@ -127,42 +138,71 @@ class HelixLockApp(tk.Tk):
         text.pack(side="left", fill="both", expand=True)
         sections = [
             ("SZYBKI START / QUICK START",
-             "1. W zakładce Pliki wybierz plik źródłowy.\\n"
-             "2. Wybierz plik-klucz (32 bajty) lub hasło.\\n"
-             "3. Kliknij Szyfruj, wskaż miejsce zapisu i zachowaj oryginał.\\n"
-             "4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz/hasło i kliknij Odszyfruj.\\n"
-             "5. Sprawdź odzyskany plik, zanim usuniesz kopie zapasowe.\\n"
+             "1. W zakładce Pliki wybierz plik źródłowy.\
+"
+             "2. Wybierz plik-klucz (32 bajty) lub hasło.\
+"
+             "3. Kliknij Szyfruj, wskaż miejsce zapisu i zachowaj oryginał.\
+"
+             "4. Aby odzyskać dane, wybierz szyfrogram, ten sam klucz/hasło i kliknij Odszyfruj.\
+"
+             "5. Sprawdź odzyskany plik, zanim usuniesz kopie zapasowe.\
+"
              "Skrót F1 otwiera tę pomoc z dowolnej zakładki."),
-            ("FILES / PLIKI", "Source file / Plik źródłowy: wybierz plik do przetworzenia.\n"
-             "Key file / Plik-klucz: tajny plik zawierający 32 bajty.\n"
-             "Password / Hasło: alternatywa dla pliku-klucza.\n"
-             "Encrypt / Szyfruj: tworzy zaszyfrowany plik.\n"
-             "Decrypt / Odszyfruj: odzyskuje zawartość po poprawnej weryfikacji.\n"
-             "Generate key / Generuj klucz: tworzy nowy losowy klucz.\n"
+            ("FILES / PLIKI", "Source file / Plik źródłowy: wybierz plik do przetworzenia.
+"
+             "Key file / Plik-klucz: tajny plik zawierający 32 bajty.
+"
+             "Password / Hasło: alternatywa dla pliku-klucza.
+"
+             "Encrypt / Szyfruj: tworzy zaszyfrowany plik.
+"
+             "Decrypt / Odszyfruj: odzyskuje zawartość po poprawnej weryfikacji.
+"
+             "Generate key / Generuj klucz: tworzy nowy losowy klucz.
+"
              "Overwrite / Nadpisz: zastępuje istniejący plik wynikowy."),
-            ("FILE FORMATS / FORMATY", "HLXP: podstawowy format szyfrowania.\n"
-             "HLXN: szyfrogram zawierający oryginalną nazwę pliku.\n"
-             "HLXC / CounterLock: format z licznikiem odczytów; wymaga osobnej kontroli rejestru.\n"
-             "HLOB: eksperymentalna kompresja OBX1 + AES-GCM.\n"
-             "HLOM: eksperymentalny format Omega z ograniczoną naprawą GF(256).\n"
-             "OBX1: sam kodek kompresji — NIE szyfruje.\n"
+            ("FILE FORMATS / FORMATY", "HLXP: podstawowy format szyfrowania.
+"
+             "HLXN: szyfrogram zawierający oryginalną nazwę pliku.
+"
+             "HLXC / CounterLock: format z licznikiem odczytów; wymaga osobnej kontroli rejestru.
+"
+             "HLOB: eksperymentalna kompresja OBX1 + AES-GCM.
+"
+             "HLOM: eksperymentalny format Omega z ograniczoną naprawą GF(256).
+"
+             "OBX1: sam kodek kompresji — NIE szyfruje.
+"
              "HLOB i HLOM są rozpoznawane w panelu, ale nie są standardowymi trybami przycisku Decrypt."),
-            ("SECURITY / BEZPIECZEŃSTWO", "AIRP: eksperymentalny rejestr tożsamości kluczy i zdarzeń.\n"
-             "Chain / Łańcuch: lokalna spójność wpisów.\n"
-             "Sequence / Sekwencja: liczba zdarzeń.\n"
-             "Checkpoint: punkt kontrolny; wymaga niezależnej weryfikacji.\n"
-             "Trust Anchor: zewnętrzny punkt zaufania.\n"
-             "Quorum: wymagana większość niezależnych świadków.\n"
-             "Fingerprint / Odcisk: identyfikator klucza lub szyfrogramu, NIE klucz.\n"
+            ("SECURITY / BEZPIECZEŃSTWO", "AIRP: eksperymentalny rejestr tożsamości kluczy i zdarzeń.
+"
+             "Chain / Łańcuch: lokalna spójność wpisów.
+"
+             "Sequence / Sekwencja: liczba zdarzeń.
+"
+             "Checkpoint: punkt kontrolny; wymaga niezależnej weryfikacji.
+"
+             "Trust Anchor: zewnętrzny punkt zaufania.
+"
+             "Quorum: wymagana większość niezależnych świadków.
+"
+             "Fingerprint / Odcisk: identyfikator klucza lub szyfrogramu, NIE klucz.
+"
              "File format: rozpoznanie nagłówka, NIE potwierdzenie autentyczności."),
-            ("IMPORTANT / WAŻNE", "Przechowuj kopię klucza i oryginału poza urządzeniem.\n"
-             "Utrata klucza lub hasła może uniemożliwić odzyskanie pliku.\n"
+            ("IMPORTANT / WAŻNE", "Przechowuj kopię klucza i oryginału poza urządzeniem.
+"
+             "Utrata klucza lub hasła może uniemożliwić odzyskanie pliku.
+"
              "Helix-Lock jest w wersji beta i nie przeszedł niezależnego audytu bezpieczeństwa.")
         ]
         text.tag_configure("heading", foreground=ACCENT, font=("Segoe UI", 11, "bold"), spacing1=12, spacing3=5)
         for heading, body in sections:
-            text.insert("end", heading + "\n", "heading")
-            text.insert("end", body + "\n\n")
+            text.insert("end", heading + "
+", "heading")
+            text.insert("end", body + "
+
+")
         text.configure(state="disabled")
         actions = ttk.Frame(window)
         actions.pack(fill="x", padx=16, pady=(0, 12))
@@ -294,7 +334,8 @@ class HelixLockApp(tk.Tk):
                 history_lines = [self._tr("Nie udalo sie odczytac bazy AIRP: ", "Could not read AIRP database: ") + str(exc)]
         self.dash_history.configure(state="normal")
         self.dash_history.delete("1.0", "end")
-        self.dash_history.insert("1.0", "\\n".join(history_lines))
+        self.dash_history.insert("1.0", "\
+".join(history_lines))
         self.dash_history.configure(state="disabled")
 
     def _build_files(self):
@@ -313,7 +354,8 @@ class HelixLockApp(tk.Tk):
         self._entry(self.key_row, self._tr("Plik klucza", "Key file"), self.key_file, browse=self._pick_key)
         self.generate_key_button = ttk.Button(card, text=self._tr("Wygeneruj nowy klucz…", "Generate key…"),
                                                command=self._generate_key)
-        actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))\n        self.file_actions = actions
+        actions = tk.Frame(card, bg=PANEL); actions.pack(fill="x", padx=14, pady=(12, 14))
+        self.file_actions = actions
         ttk.Button(actions, text=self._tr("🔒  Szyfruj", "🔒  Encrypt"), style="Accent.TButton", command=self._encrypt).pack(side="left", expand=True, fill="x", padx=(0, 6))
         ttk.Button(actions, text=self._tr("🔓  Odszyfruj", "🔓  Decrypt"), command=self._decrypt).pack(side="left", expand=True, fill="x", padx=(6, 0))
         self._refresh_mode()
@@ -406,10 +448,16 @@ class HelixLockApp(tk.Tk):
         return messagebox.askyesno(
             self._tr("Potwierdź nadpisanie", "Confirm overwrite"),
             self._tr(
-                "Plik docelowy już istnieje:\\n" + destination +
-                "\\n\\nPo pomyślnym zakończeniu operacji zostanie zastąpiony. Kontynuować?",
-                "The destination already exists:\\n" + destination +
-                "\\n\\nIt will be replaced only after the operation succeeds. Continue?"
+                "Plik docelowy już istnieje:\
+" + destination +
+                "\
+\
+Po pomyślnym zakończeniu operacji zostanie zastąpiony. Kontynuować?",
+                "The destination already exists:\
+" + destination +
+                "\
+\
+It will be replaced only after the operation succeeds. Continue?"
             ),
         )
 
@@ -420,7 +468,9 @@ class HelixLockApp(tk.Tk):
         ))
         messagebox.showinfo(
             self._tr("Operacja zakończona", "Operation complete"),
-            self._tr("Plik zapisano w:\\n", "File saved to:\\n") + output,
+            self._tr("Plik zapisano w:\
+", "File saved to:\
+") + output,
         )
 
     def _operation_error(self, operation, exc):
@@ -440,7 +490,9 @@ class HelixLockApp(tk.Tk):
         self.status.set(self._tr(operation + " nie powiodło się. " + hint,
                                  operation + " failed. " + hint))
         messagebox.showerror(self._tr("Nie udało się", "Operation failed"),
-                             str(exc) + "\\n\\n" + hint)
+                             str(exc) + "\
+\
+" + hint)
 
     def _encrypt(self):
         try:
@@ -507,7 +559,8 @@ class HelixLockApp(tk.Tk):
             path = filedialog.asksaveasfilename(title=self._tr("Zapisz manifest", "Save manifest"), defaultextension=".json", initialfile="airp-key-fingerprint.json")
             if not path: return
             if os.path.exists(path): raise HelixProError(self._tr("Manifest już istnieje. Wybierz inną nazwę; nie nadpisuję go.", "Manifest already exists. Choose another name; it will not be overwritten."))
-            with open(path, "x", encoding="utf-8") as f: f.write(raw + "\n")
+            with open(path, "x", encoding="utf-8") as f: f.write(raw + "
+")
             self.fp_output.delete("1.0", "end"); self.fp_output.insert("1.0", raw)
             self.status.set(self._tr("Manifest odcisku zapisany. Nie zawiera sekretnego klucza.", "Fingerprint manifest saved. It contains no secret key."))
         except (OSError, HelixProError) as exc: messagebox.showerror(self._tr("Odcisk klucza", "Key fingerprint"), str(exc))
@@ -535,7 +588,9 @@ class HelixLockApp(tk.Tk):
             value = representation_fingerprint_file(path)
             self.clipboard_clear(); self.clipboard_append(value)
             self.status.set(self._tr("Odcisk reprezentacji skopiowano do schowka: ", "Representation fingerprint copied: ") + value)
-            messagebox.showinfo(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), value + "\n\nSkopiowano do schowka.")
+            messagebox.showinfo(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), value + "
+
+Skopiowano do schowka.")
         except HelixProError as exc: messagebox.showerror(self._tr("Odcisk szyfrogramu", "Ciphertext fingerprint"), str(exc))
 
     def _identity_manager(self):
@@ -567,7 +622,9 @@ class HelixLockApp(tk.Tk):
                 messagebox.showinfo(self._tr("AIRP / Quorum", "AIRP / Quorum"), result.message)
             else:
                 self.status.set(self._tr("AIRP: lokalny wpis oczekuje na quorum.", "AIRP: local event is waiting for quorum."))
-                messagebox.showwarning(self._tr("AIRP / Quorum — pending", "AIRP / Quorum — pending"), result.message + "\n\nStatus: " + result.anchor_status)
+                messagebox.showwarning(self._tr("AIRP / Quorum — pending", "AIRP / Quorum — pending"), result.message + "
+
+Status: " + result.anchor_status)
         except (OSError, ValueError, TypeError, HelixProError) as exc: messagebox.showerror(self._tr("AIRP / Quorum", "AIRP / Quorum"), str(exc))
 
     def _rotate_identity(self):
@@ -593,7 +650,9 @@ class HelixLockApp(tk.Tk):
                 messagebox.showinfo(self._tr("AIRP / rotacja", "AIRP / rotation"), result.message)
             else:
                 self.status.set(self._tr("AIRP: rotacja lokalna — oczekuje na quorum.", "AIRP: local rotation — waiting for quorum."))
-                messagebox.showwarning(self._tr("AIRP / rotacja — pending", "AIRP / rotation — pending"), result.message + "\n\nStatus: " + result.anchor_status)
+                messagebox.showwarning(self._tr("AIRP / rotacja — pending", "AIRP / rotation — pending"), result.message + "
+
+Status: " + result.anchor_status)
         except (OSError, ValueError, TypeError, HelixProError) as exc:
             messagebox.showerror(self._tr("AIRP / rotacja", "AIRP / rotation"), str(exc))
 
@@ -603,7 +662,9 @@ class HelixLockApp(tk.Tk):
             result = manager.retry_anchor()
             self.refresh_dashboard()
             self.status.set(self._tr("AIRP status: ", "AIRP status: ") + result.status)
-            messagebox.showinfo(self._tr("AIRP / Quorum", "AIRP / Quorum"), f"Status: {result.status}\nLokalna sekwencja: {result.local_sequence}\nZakotwiczona sekwencja: {result.anchored_sequence}")
+            messagebox.showinfo(self._tr("AIRP / Quorum", "AIRP / Quorum"), f"Status: {result.status}
+Lokalna sekwencja: {result.local_sequence}
+Zakotwiczona sekwencja: {result.anchored_sequence}")
         except (OSError, ValueError, HelixProError) as exc: messagebox.showerror(self._tr("AIRP / Quorum", "AIRP / Quorum"), str(exc))
 
 
