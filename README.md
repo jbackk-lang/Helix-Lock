@@ -8,11 +8,11 @@
 
 Kod v0.1.3 Beta został scalony do gałęzi `main` w PR #4. W tej wersji rozwijany jest regionalny wybór języków (Europa / Ameryka / Azja), lokalne zapamiętywanie ustawienia języka oraz uzupełnianie katalogów tłumaczeń. Poprawiono błąd, przez który kolejne partie tłumaczeń nadpisywały wcześniejsze wpisy słowników.
 
-**Stan weryfikacji:** nie ma potwierdzonego pozytywnego wyniku testów dla scalonej zmiany. **Stan publikacji:** kod v0.1.3 Beta jest w `main`, lecz nie potwierdzono opublikowania GitHub Release ani gotowych pakietów v0.1.3.
+**Stan weryfikacji:** nie ma potwierdzonego pozytywnego wyniku testów dla scalonej zmiany. **Stan publikacji:** wydanie [v0.1.3 Beta](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) zostało opublikowane; dostępność pakietów instalacyjnych należy sprawdzić w zasobach wydania.
 
 ## Pobierz pliki
 
-Poniższe linki prowadzą do wcześniej opublikowanych pakietów v0.1.1-beta.2. Kod przygotowany dla v0.1.3 Beta znajduje się w `main`, ale nie oznacza to, że pakiety v0.1.3 zostały opublikowane. Dostępność nowszych wydań i plików instalacyjnych sprawdzaj na stronie wydań GitHub.
+**[Helix-Lock v0.1.3 Beta — najnowsze wydanie](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3)**. Sprawdź stronę wydania, aby zobaczyć dostępne pliki. Poniższe bezpośrednie linki prowadzą do starszych pakietów v0.1.1-beta.2; nie są to instalatory v0.1.3.
 
 
 | System / plik | Pobieranie |
@@ -22,7 +22,7 @@ Poniższe linki prowadzą do wcześniej opublikowanych pakietów v0.1.1-beta.2. 
 | **Linux** — `HelixLock-linux.tar.gz` | [Pobierz TAR.GZ](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-linux.tar.gz) |
 | **Sumy kontrolne** — `SHA256SUMS-builds.txt` | [Pobierz SHA-256](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/SHA256SUMS-builds.txt) |
 
-[**Wszystkie wydania i informacje o wersji beta**](https://github.com/jbackk-lang/Helix-Lock/releases)
+[**Wydanie v0.1.3 Beta**](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) · [Wszystkie wydania](https://github.com/jbackk-lang/Helix-Lock/releases)
 
 Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed uruchomieniem sprawdź sumy SHA-256. Aktualne kompilacje CI nie muszą być identyczne z plikami opublikowanego wydania.
 
