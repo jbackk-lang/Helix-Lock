@@ -12,19 +12,20 @@ Kod v0.1.3 Beta został scalony do gałęzi `main` w PR #4. W tej wersji rozwija
 
 ## Pobierz pliki
 
-**[Helix-Lock v0.1.3 Beta — najnowsze wydanie](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3)**. Sprawdź stronę wydania, aby zobaczyć dostępne pliki. Poniższe bezpośrednie linki prowadzą do starszych pakietów v0.1.1-beta.2; nie są to instalatory v0.1.3.
-
+**[Helix-Lock v0.1.3 Beta — strona wydania](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3)**
 
 | System / plik | Pobieranie |
 |---|---|
-| **Windows x64** — `HelixLock-windows.zip` | [Pobierz ZIP](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-windows.zip) |
-| **macOS** — `HelixLock-macos.zip` | [Pobierz ZIP](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-macos.zip) |
-| **Linux** — `HelixLock-linux.tar.gz` | [Pobierz TAR.GZ](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/HelixLock-linux.tar.gz) |
-| **Sumy kontrolne** — `SHA256SUMS-builds.txt` | [Pobierz SHA-256](https://github.com/jbackk-lang/Helix-Lock/releases/download/v0.1.1-beta.2/SHA256SUMS-builds.txt) |
+| **Windows x64** — `HelixLock-windows.zip` | [Sprawdź pliki wydania v0.1.3](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) |
+| **macOS (Intel)** — `HelixLock-macos.zip` | [Sprawdź pliki wydania v0.1.3](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) |
+| **Linux** — `HelixLock-linux.tar.gz` | [Sprawdź pliki wydania v0.1.3](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) |
+| **Sumy kontrolne** — `SHA256SUMS.txt` | [Sprawdź pliki wydania v0.1.3](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) |
 
-[**Wydanie v0.1.3 Beta**](https://github.com/jbackk-lang/Helix-Lock/releases/tag/v0.1.3) · [Wszystkie wydania](https://github.com/jbackk-lang/Helix-Lock/releases)
+**Uwaga:** zielony wynik ręcznie uruchomionego workflow potwierdza zakończenie budowania, ale nie gwarantuje, że archiwa zostały dołączone do GitHub Release. Dlatego linki prowadzą do strony wydania, a nie do niepotwierdzonych adresów plików. Jeśli brakuje plików w sekcji **Assets**, nie są jeszcze dostępne do pobrania z wydania.
 
-Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed uruchomieniem sprawdź sumy SHA-256. Aktualne kompilacje CI nie muszą być identyczne z plikami opublikowanego wydania.
+[Wszystkie wydania](https://github.com/jbackk-lang/Helix-Lock/releases) · [GitHub Actions](https://github.com/jbackk-lang/Helix-Lock/actions/workflows/publish-release.yml)
+
+Pakiety mogą być niepodpisane; Windows może wyświetlić SmartScreen. Przed uruchomieniem sprawdź sumy SHA-256.
 
 ## Co potrafi Helix-Lock?
 
